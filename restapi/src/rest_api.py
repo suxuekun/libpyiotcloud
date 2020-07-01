@@ -49,7 +49,7 @@ import rest_api_utils
 from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
 from dashboards.dashboards_app import DashboardsApp
-#from payment.app import PaymentApp
+from payment.app import PaymentApp
 
 
 
@@ -977,8 +977,6 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 # Main entry point
 ###################################################################################
-from dashboards_app.app import DashboardsApp
-from payment.app import PaymentApp
 
 def initialize():
 
@@ -1062,7 +1060,7 @@ def initialize():
 
     dashboardsApp = DashboardsApp(app)
     paymentapp = PaymentApp(app)
-    exampleapp = ExampleApp(app,prefix = "/example")
+    #exampleapp = ExampleApp(app,prefix = "/example")
     # To be replaced
     g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
     g_device_dashboard_old         = device_dashboard_old(g_database_client, g_messaging_requests)

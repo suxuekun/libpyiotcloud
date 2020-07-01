@@ -27,6 +27,8 @@ import threading
 import rest_api_utils
 from database import database_categorylabel, database_crudindex
 from message_broker_api import message_broker_api
+from dashboards.ioc import init_chart_gateway_service
+from payment.services import subscription_service
 import re
 
 
@@ -162,28 +164,64 @@ class device:
         return password
 
 
-    def device_cleanup(self, entityname, deviceid):
+    def device_cleanup(self, entityname, deviceid, devicename):
 
-        # delete device sensor-related information
-        sensors = self.database_client.get_all_device_sensors_by_deviceid(deviceid)
-        if sensors is not None:
-            for sensor in sensors:
-                if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
-                    self.sensor_cleanup(None, None, deviceid, sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+        try:
+            # delete device sensor-related information
+            sensors = self.database_client.get_all_device_sensors_by_deviceid(deviceid)
+            if sensors is not None:
+                for sensor in sensors:
+                    if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
+                        self.sensor_cleanup(None, None, deviceid, sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+        except Exception as e:
+            print("Exception sensor_cleanup")
+            print(e)
 
-        # delete device-related information
-        self.database_client.delete_device_history_by_deviceid(deviceid)
-        self.database_client.delete_ota_status_by_deviceid(deviceid)
-        self.database_client.delete_device_notification_by_deviceid(deviceid)
-        self.database_client.delete_device_location_by_deviceid(deviceid)
-        self.database_client.remove_device_from_devicegroups(entityname, deviceid)
-        self.database_client.delete_device_heartbeats_by_deviceid(deviceid)
-        self.database_client.delete_ldsus_by_deviceid(deviceid)
-        self.database_client.delete_ota_status_by_deviceid(deviceid)
-        #self.database_client.delete_menos_transaction_by_deviceid(deviceid)
+        try:
+            # delete device-related information
+            self.database_client.delete_device_history_by_deviceid(deviceid)
+            self.database_client.delete_ota_status_by_deviceid(deviceid)
+            self.database_client.delete_device_notification_by_deviceid(deviceid)
+            self.database_client.delete_device_location_by_deviceid(deviceid)
+            self.database_client.remove_device_from_devicegroups(entityname, deviceid)
+            self.database_client.delete_device_heartbeats_by_deviceid(deviceid)
+            self.database_client.delete_ldsus_by_deviceid(deviceid)
+            self.database_client.delete_ota_status_by_deviceid(deviceid)
+            #self.database_client.delete_menos_transaction_by_deviceid(deviceid)
+        except Exception as e:
+            print("Exception asdasd")
+            print(e)
+
+        # delete dashboard related items
+        try:
+            init_chart_gateway_service().delete_by_deviceId(deviceid)
+        except Exception as e:
+            print("Exception init_chart_gateway_service().delete_by_deviceId")
+            print(e)
+
+        # delete device subscription
+        try:
+            subscription = subscription_service.get_one({'deviceid':deviceid})
+            subscription_service.delete(subscription._id)
+        except Exception as e:
+            print("Exception subscription_service.delete")
+            print(e)
+
+        # delete device notifications
+        try:
+            devices = self.database_client.get_devices(entityname)
+            for devicex in devices:
+                self.database_client.update_device_notification_devicedelete_by_deviceid(devicex["deviceid"], devicename)
+        except Exception as e:
+            print("Exception update_device_notification_devicedelete_by_deviceid")
+            print(e)
 
         # delete device from database
-        self.database_client.delete_device_by_deviceid(deviceid)
+        try:
+            self.database_client.delete_device_by_deviceid(deviceid)
+        except Exception as e:
+            print("Exception delete_device_by_deviceid")
+            print(e)
 
         # delete device subscription
         print('delete device subscription',deviceid)
@@ -196,8 +234,10 @@ class device:
         # delete device from message broker
         try:
             message_broker_api().unregister(deviceid)
-        except:
-            pass
+        except Exception as e:
+            print("Exception message_broker_api().unregister")
+            print(e)
+
 
     #
     # when deleting a sensor,
@@ -636,7 +676,7 @@ class device:
 
 
             # cleanup device
-            self.device_cleanup(entityname, device['deviceid'])
+            self.device_cleanup(entityname, device['deviceid'], device['devicename'])
 
 
             msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}
@@ -932,6 +972,24 @@ class device:
             return response, status.HTTP_400_BAD_REQUEST
 
 
+        # update device name in notifications
+        try:
+            devices = self.database_client.get_devices(entityname)
+            for devicex in devices:
+                self.database_client.update_device_notification_devicenamechange_by_deviceid(devicex["deviceid"], devicename, data["new_devicename"])
+        except Exception as e:
+            print("Exception update_device_notification_devicenamechange_by_deviceid")
+            print(e)
+
+        # update device name in subscription
+        try:
+            subscription = subscription_service.get_one({'deviceid': device["deviceid"]})
+            subscription.devicename = data["new_devicename"]
+            subscription_service.update(subscription._id,subscription)
+        except Exception as e:
+            print(e)
+
+
         # update the device name
         self.database_client.update_devicename(entityname, devicename, data["new_devicename"])
 
@@ -945,7 +1003,7 @@ class device:
 
 
 
-        msg = {'status': 'OK', 'message': 'Device name updated successfully.', 'device': device}
+        msg = {'status': 'OK', 'message': 'Device name updated successfully.'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)

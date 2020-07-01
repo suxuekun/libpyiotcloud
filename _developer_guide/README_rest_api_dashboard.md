@@ -18,7 +18,9 @@ SUMMARY:
         B. GETS                            - GET    /dashboards/dashboard/{dashboardId}/gateways
         C. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}/gateways/{chartId}
         D. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}/gateways/{chartId}
-
+        E. GETS_EX                         - GET    /dashboards/dashboard/{dashboardId}/gateways/ex
+        F. GETS_EX_DETAIL                  - GET    /dashboards/dashboard/{dashboardId}/gateways/{chartId}/ex
+        
     3. Gateway Attritubes:
 
         A. GETS                            - GET   /dashboards/gateway/attributes
@@ -162,6 +164,12 @@ DETAIL:
                         "data": [number]
                       }
                   ],
+                  "datasetsEx": [
+                      {
+                          "label": string
+                          "data": number
+                      }
+                  ],
                   "device": {
                       "name": string,
                       "uuid": string
@@ -205,6 +213,12 @@ DETAIL:
                         "data": [number]
                       }
                   ],
+                  "datasetsEx": [
+                      {
+                          "label": string
+                          "data": number
+                      }
+                  ],
                   "device": {
                       "name": string,
                       "uuid": string
@@ -231,6 +245,102 @@ DETAIL:
             'status': 'OK',
             'message': 'Delete successfully'
         }
+
+        E. GETS_EX
+        - Request:
+        GETS: /dashboards/dashboard/{dashboardId}/gateways/ex
+        headers: {'Authorization': 'Bearer ' + token.access}
+        - Response:
+        {
+            'status': 'OK',
+            'message, 'Get chart responses successfully',
+            'data': [
+                {
+                  "id": string,
+                  "chartTypeId": number,
+                  "datasets": [
+                      {
+                        "filterId": number,
+                        "filterName": string,
+                        "labels": [string],
+                        "data": [number],
+                      }
+                  ],
+                  "datasetsEx": [
+                      {
+                          "filterId": number,
+                          "filterName": string,
+                          "values": [
+                            {
+                                "label": string,
+                                "data": number,
+                            }
+                          ]
+                      }
+                  ],
+                  "device": {
+                      "name": string,
+                      "uuid": string
+                  },
+                  "attribute": {
+                      "name: string,
+                      "id": string,
+                      "filters": [
+                          "name": string,
+                          "id": number
+                      ]
+                  }
+                }
+            ]
+        }
+
+        F. GETS_EX_DETAIL
+        - Request:
+        GETS: /dashboards/dashboard/{dashboardId}/gateways/{chartId}/ex
+        headers: {'Authorization': 'Bearer ' + token.access}
+        - Response:
+        {
+            'status': 'OK',
+            'message, 'Get chart responses successfully',
+            'data': {
+                  "id": string,
+                  "chartTypeId": number,
+                  "datasets": [
+                      {
+                        "filterId": number,
+                        "filterName": string,
+                        "labels": [string],
+                        "data": [number],
+                      }
+                  ],
+                  "datasetsEx": [
+                      {
+                          "filterId": number,
+                          "filterName": string,
+                          "values": [
+                            {
+                                "label": string,
+                                "data": number,
+                            }
+                          ]
+                      }
+                  ],
+                  "device": {
+                      "name": string,
+                      "uuid": string
+                  },
+                  "attribute": {
+                      "name: string,
+                      "id": string,
+                      "filters": [
+                          "name": string,
+                          "id": number
+                      ]
+                  }
+            }
+        }
+
+
     3. Attributes
 
         A. GETS

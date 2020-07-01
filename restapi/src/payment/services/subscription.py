@@ -41,6 +41,7 @@ class SubscriptionService(BaseMongoService):
         device_models = [DeviceLinkModel(x,strict=False) for x in devices]
         result = self.repo.gets(query)
         subscriptions =[self.model(x,strict=False) for x in result]
+
         add_devs,remove_subs = self._match_device_subscription(device_models,subscriptions)
         [self._cancel(x) for x in remove_subs]
         [self.delete(str(x._id)) for x in remove_subs]

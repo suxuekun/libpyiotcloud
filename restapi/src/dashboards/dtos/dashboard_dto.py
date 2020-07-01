@@ -2,5 +2,5 @@ from schematics.types import StringType, DecimalType, IntType, BooleanType, List
 from schematics import Model
 
 class DashboardDto(Model):
-    name = StringType(required=True, max_length=100, min_length=2)
+    name = StringType(required=True, max_length=60, min_length=2)
     color = StringType(min_length=6)

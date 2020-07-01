@@ -307,6 +307,16 @@ class device_groups:
                 print('\r\nERROR Delete DeviceGroup: Device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
                 return response, status.HTTP_404_NOT_FOUND
 
+
+            # delete device notifications
+            try:
+                devices = self.database_client.get_devices(entityname)
+                for devicex in devices:
+                    self.database_client.update_device_notification_groupdelete_by_deviceid(devicex["deviceid"], devicegroupname)
+            except Exception as e:
+                print("Exception update_device_notification_groupdelete_by_deviceid")
+                print(e)
+
             # delete device group
             msg = {'status': 'OK', 'message': 'Device group deleted successfully.'}
             self.database_client.delete_devicegroup(entityname, devicegroupname)
@@ -566,7 +576,7 @@ class device_groups:
 
 
 
-        print('\r\n {}\r\n{}\r\n'.format(username, msg["message"]))
+        #print('\r\n {}\r\n{}\r\n'.format(username, msg["message"]))
         response = json.dumps(msg)
         return response
 
@@ -662,6 +672,15 @@ class device_groups:
             print('\r\nERROR Update Device Group Name: Device group name is already registered [{},{}]\r\n'.format(entityname, devicegroupname))
             return response, status.HTTP_409_CONFLICT
 
+
+        # update group name in notifications
+        try:
+            devices = self.database_client.get_devices(entityname)
+            for devicex in devices:
+                self.database_client.update_device_notification_groupnamechange_by_deviceid(devicex["deviceid"], devicegroupname, data["new_groupname"])
+        except Exception as e:
+            print("Exception update_device_notification_groupnamechange_by_deviceid")
+            print(e)
 
         # update the device group name
         self.database_client.update_name_devicegroup(entityname, devicegroupname, data["new_groupname"])

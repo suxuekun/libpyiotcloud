@@ -4,6 +4,7 @@ import hashlib
 import datetime
 import random
 import copy
+import bson
 from rest_api_config import config
 from pymongo import MongoClient # MongoDB
 #import psycopg2                # PostgreSQL
@@ -11,7 +12,7 @@ from cognito_client import cognito_client
 from paypal_client import paypal_client
 import statistics
 from shared.client.connection.mongo import DefaultMongoConnection
-from shared.client.db.mongo.default import DefaultMongoDB, SensorMongoDb
+from shared.client.db.mongo.default import DefaultMongoDB, SensorMongoDb, SENSOR_CONNECTION
 
 
 class database_models:
@@ -559,6 +560,19 @@ class database_client:
     ##########################################################
     # notifications
     ##########################################################
+
+    def update_device_notification_devicenamechange_by_deviceid(self, deviceid, devicename, new_devicename):
+        self._devices.update_device_notification_devicenamechange(deviceid, devicename, new_devicename)
+
+    def update_device_notification_devicedelete_by_deviceid(self, deviceid, devicename):
+        self._devices.update_device_notification_devicedelete(deviceid, devicename)
+
+    def update_device_notification_groupnamechange_by_deviceid(self, deviceid, groupname, new_groupname):
+        self._devices.update_device_notification_groupnamechange(deviceid, groupname, new_groupname)
+
+    def update_device_notification_groupdelete_by_deviceid(self, deviceid, groupname):
+        self._devices.update_device_notification_groupdelete(deviceid, groupname)
+
 
     def update_device_notification(self, username, devicename, source, notification):
         deviceid = self._devices.get_deviceid(username, devicename)
@@ -1530,10 +1544,12 @@ class database_client_mongodb:
         # different database for sensor dashboarding
         if "mongodb.net" in config.CONFIG_MONGODB_HOST2:
             connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
-            mongo_client_sensor = SensorMongoDb(connection_string).conn
+            SENSOR_CONNECTION = connection_string
+            mongo_client_sensor = SensorMongoDb().conn
             self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
         else:
             self.client_sensor = self.client
+
 
         self.paypal = paypal_client()
         self.paypal.initialize()
@@ -2250,10 +2266,10 @@ class database_client_mongodb:
         return menos_list
 
 
-    def get_menos_num_type(self, deviceid, datestart, dateend, type):
+    def get_menos_num_type(self, deviceid, datestart, dateend, typex):
         menos = self.get_menos_document()
         if menos:
-            items = menos.find({'deviceid': deviceid, 'type': type, 'timestamp': { '$gt': datestart, '$lte': dateend } })
+            items = menos.find({'deviceid': deviceid, 'type': typex, 'timestamp': { '$gt': datestart, '$lte': dateend } })
             if items:
                 return items.count()
         return 0
@@ -2275,12 +2291,37 @@ class database_client_mongodb:
 
     def get_menos_num_sensordata(self, deviceid, datestart, dateend):
         size = 0
+        items = None
         sensorreadings = self.get_sensorreadings_dataset_document()
         if sensorreadings:
-            items = sensorreadings.find({'deviceid': deviceid})
-            for item in items:
-                item.pop("_id")
-                size += len(str(item))
+            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["ns"])
+            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["size"])
+            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["storageSize"])
+            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["capped"])
+            start = int(time.time())
+            if True:
+                # estimate the size based on the size of the first element
+                items = sensorreadings.find({'deviceid': deviceid})
+                for item in items:
+                    if item.get("_id"):
+                        item.pop("_id")
+                    size = len(str(item)) * items.count()
+                    break
+            elif False:
+                # using bson
+                items = sensorreadings.find({'deviceid': deviceid})
+                for item in items:
+                    if item.get("_id"):
+                        item.pop("_id")
+                    size += len(bson.BSON.encode(item))
+            else:
+                # using str
+                items = sensorreadings.find({'deviceid': deviceid})
+                for item in items:
+                    if item.get("_id"):
+                        item.pop("_id")
+                    size += len(str(item))
+            print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
         return size
 
 
@@ -2291,8 +2332,138 @@ class database_client_mongodb:
     def get_notifications_document(self):
         return self.client[config.CONFIG_MONGODB_TB_NOTIFICATIONS]
 
+    def update_device_notification_devicenamechange(self, deviceid, devicename, new_devicename):
+        notifications = self.get_notifications_document()
+        if notifications:
+            for notification in notifications.find({'deviceid': deviceid}):
+                try:
+                    if notification["notification"]["endpoints"]["modem"].get("recipients") is None:
+                        continue
+                    if not notification["notification"]["endpoints"]["modem"]["enable"]:
+                        continue
+                    if notification["notification"]["endpoints"]["modem"].get("isgroup") is not None:
+                        if notification["notification"]["endpoints"]["modem"]["isgroup"]:
+                            continue
+
+                    recipients = notification["notification"]["endpoints"]["modem"]["recipients"]
+                    recipients_list = recipients.replace(" ", "").split(",")
+
+                    found = False
+                    for x in range(len(recipients_list)):
+                        if recipients_list[x] == devicename:
+                            recipients_list[x] = new_devicename
+                            found = True
+                            break
+                    if found:
+                        notification_new = copy.deepcopy(notification)
+                        notification_new["notification"]["endpoints"]["modem"]["recipients"] = ','.join(recipients_list)
+                        notifications.replace_one(notification, notification_new)
+                except:
+                    pass
+
+    def update_device_notification_devicedelete(self, deviceid, devicename):
+        notifications = self.get_notifications_document()
+        if notifications:
+            for notification in notifications.find({'deviceid': deviceid}):
+                try:
+                    if notification["notification"]["endpoints"]["modem"].get("recipients") is None:
+                        continue
+                    if not notification["notification"]["endpoints"]["modem"]["enable"]:
+                        continue
+                    if notification["notification"]["endpoints"]["modem"].get("isgroup") is not None:
+                        if notification["notification"]["endpoints"]["modem"]["isgroup"]:
+                            continue
+
+                    notification_new = copy.deepcopy(notification)
+                    recipients = notification_new["notification"]["endpoints"]["modem"]["recipients"]
+                    recipients_list = recipients.replace(" ", "").split(",")
+                    #print(recipients_list)
+
+                    found = False
+                    for x in range(len(recipients_list)-1, -1, -1):
+                        if recipients_list[x] == devicename:
+                            del recipients_list[x]
+                            #print("deleted {}".format(devicename))
+                            found = True
+                            # do not break in case of multiple instances
+                    if found:
+                        notification_new["notification"]["endpoints"]["modem"]["recipients"] = ','.join(recipients_list)
+                        if len(recipients_list) == 0:
+                            # if all recipient was deleted, then automatically disable
+                            notification_new["notification"]["endpoints"]["modem"]["enable"] = False
+                        notifications.replace_one(notification, notification_new)
+                except:
+                    pass
+
+    def update_device_notification_groupnamechange(self, deviceid, groupname, new_groupname):
+        notifications = self.get_notifications_document()
+        if notifications:
+            for notification in notifications.find({'deviceid': deviceid}):
+                try:
+                    if notification["notification"]["endpoints"]["modem"].get("recipients") is None:
+                        continue
+                    if not notification["notification"]["endpoints"]["modem"]["enable"]:
+                        continue
+                    if notification["notification"]["endpoints"]["modem"].get("isgroup") is None:
+                        continue
+                    if not notification["notification"]["endpoints"]["modem"]["isgroup"]:
+                       continue
+
+                    recipients = notification["notification"]["endpoints"]["modem"]["recipients"]
+                    recipients_list = recipients.replace(" ", "").split(",")
+
+                    found = False
+                    for x in range(len(recipients_list)):
+                        if recipients_list[x] == groupname:
+                            recipients_list[x] = new_groupname
+                            found = True
+                            break
+                    if found:
+                        notification_new = copy.deepcopy(notification)
+                        notification_new["notification"]["endpoints"]["modem"]["recipients"] = ','.join(recipients_list)
+                        notifications.replace_one(notification, notification_new)
+                except:
+                    pass
+
+    def update_device_notification_groupdelete(self, deviceid, groupname):
+        notifications = self.get_notifications_document()
+        if notifications:
+            for notification in notifications.find({'deviceid': deviceid}):
+                try:
+                    if notification["notification"]["endpoints"]["modem"].get("recipients") is None:
+                        continue
+                    if not notification["notification"]["endpoints"]["modem"]["enable"]:
+                        continue
+                    if notification["notification"]["endpoints"]["modem"].get("isgroup") is None:
+                        continue
+                    if not notification["notification"]["endpoints"]["modem"]["isgroup"]:
+                       continue
+
+                    notification_new = copy.deepcopy(notification)
+                    recipients = notification_new["notification"]["endpoints"]["modem"]["recipients"]
+                    recipients_list = recipients.replace(" ", "").split(",")
+                    #print(recipients_list)
+
+                    found = False
+                    for x in range(len(recipients_list)-1, -1, -1):
+                        if recipients_list[x] == groupname:
+                            del recipients_list[x]
+                            #print("deleted {}".format(groupname))
+                            found = True
+                            # do not break in case of multiple instances
+                    if found:
+                        notification_new["notification"]["endpoints"]["modem"]["recipients"] = ','.join(recipients_list)
+                        if len(recipients_list) == 0:
+                            # if all recipient was deleted, then automatically disable
+                            notification_new["notification"]["endpoints"]["modem"]["enable"] = False
+                            notification_new["notification"]["endpoints"]["modem"]["isgroup"] = False
+                        notifications.replace_one(notification, notification_new)
+                except:
+                    pass
+
+
     def update_device_notification(self, deviceid, source, notification):
-        notifications = self.get_notifications_document();
+        notifications = self.get_notifications_document()
         item = {}
         #item['username'] = username
         #item['devicename'] = devicename
@@ -4692,8 +4863,9 @@ class database_client_mongodb:
                 print(device)
 
     def fix_timestamps(self, device):
-        if type(device['timestamp']) is str:
-            device['timestamp'] = int(device['timestamp'])
+        if device.get('timestamp') is not None:
+            if type(device['timestamp']) is str:
+                device['timestamp'] = int(device['timestamp'])
         if device.get('heartbeat') is not None:
             if type(device['heartbeat']) is str:
                 device['heartbeat'] = int(device['heartbeat'])
@@ -5069,7 +5241,7 @@ class database_client_mongodb:
                     break
             if not found:
                 ungroupeddevices.append(device)
-        print(ungroupeddevices)
+        #print(ungroupeddevices)
         return ungroupeddevices
 
     def get_devicegroups(self, username):

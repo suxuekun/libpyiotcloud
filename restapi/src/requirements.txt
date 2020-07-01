@@ -20,3 +20,5 @@ pycountry==19.8.18
 phonenumbers==8.12.2
 schematics
 Flask-RESTful==0.3.8
+braintree==4.1.0
+
