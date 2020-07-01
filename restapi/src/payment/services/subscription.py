@@ -1,3 +1,4 @@
+from payment.core import payment_client
 from payment.models.device import DeviceLinkModel
 from shared.client.clients.database_client import db_client
 from shared.simple_api.service import BaseMongoService, throw_bad_db_query
@@ -40,12 +41,36 @@ class SubscriptionService(BaseMongoService):
         device_models = [DeviceLinkModel(x,strict=False) for x in devices]
         result = self.repo.gets(query)
         subscriptions =[self.model(x,strict=False) for x in result]
-
         add_devs,remove_subs = self._match_device_subscription(device_models,subscriptions)
+        [self._cancel(x) for x in remove_subs]
         [self.delete(str(x._id)) for x in remove_subs]
         add_list = [self.create_free_sub_for_new_device(x) for x in add_devs]
         current_list = subscriptions + add_list
         return current_list
+
+    @throw_bad_db_query(False)
+    def delete(self, id):
+        res = self.repo.delete(id)
+        return res
+
+    def cancel(self,subscription):
+        self._cancel(subscription)
+
+    def _cancel(self,subscription):
+        if (subscription.next.bt_sub):
+            try:
+                res = payment_client.cancel_subscription(id)
+                return True
+            except Exception as e:
+                print (e)
+                return False
+        return True
+
+    def cleanup(self,deviceid):
+        subscription = self.get_one({'deviceid': deviceid})
+        self.cancel(subscription)
+        self.delete(subscription._id)
+
 
 if __name__ == "__main__":
     pass
