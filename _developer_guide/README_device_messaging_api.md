@@ -70,8 +70,9 @@ SUMMARY:
 
 	5. Sensor Reading
 		A. PUBLISH SENSOR READING           pub_sensor_reading
-		B. RECEIVE SENSOR READING           rcv_sensor_reading   // OBSOLETED
-		C. REQUEST SENSOR READING           req_sensor_reading   // OBSOLETED
+		B. STORE SENSOR READING             str_sensor_reading   // TO BE IMPLEMENTED
+		C. RECEIVE SENSOR READING           rcv_sensor_reading
+		D. REQUEST SENSOR READING           req_sensor_reading   // OBSOLETED
 
 	6. OTA Firmware Update
 
@@ -513,39 +514,34 @@ DETAILED:
 
 	5. Sensor Reading
 
-		C. PUBLISH SENSOR READING    pub_sensor_reading
+		A. PUBLISH SENSOR READING
 		-  Publish:
 		   topic: DEVICEID/pub_sensor_reading
 		   payload:
-		   // NEW
 		   {
-		     "UID": string, // LDSU UUID
-		     "TS":  string, // timestamp in epoch
+		     "UID": string,       // LDSU UUID
+		     "TS":  string,       // timestamp in epoch
 		     "SNS": [string, ...] // if disabled, use "NaN"
 		   }
-		
-		   // OLD
-		   {
-		     "timestamp": int,
-		     "sensors": { 
-		       "i2c1":    [{"class": 0, "value": 1, "address": 1}, ...],
-		       "i2c2":    [{"class": 1, "value": 2, "address": 2}, ...],
-		       "i2c3":    [{"class": 2, "value": 3, "address": 3}, ...],
-		       "i2c4":    [{"class": 3, "value": 4, "address": 4}, ...],
-		       "adc1":    [{"class": 0, "value": 1}],
-		       "adc2":    [{"class": 1, "value": 2}],
-		       "1wire1":  [{"class": 2, "value": 3}],
-		       "tprobe1": [{"class": 3, "value": 4, subclass: {"class": 4, "value": 5}}],
-		     }
-		   }
-		   // NOTE: multiple sensor data from different peripherals can be sent at the same time
-		   // class is the index of the sensor's class in the array
-		      ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
-		   // address is optional and it only applies for I2C
-		   // timestamp is optional and it refers to epoch in seconds
 
-		B. RECEIVE SENSOR READING    rcv_sensor_reading
-		C. REQUEST SENSOR READING    req_sensor_reading
+		B. STORE SENSOR READING
+		-  Publish:
+		   topic: DEVICEID/str_sensor_reading
+		   payload: 
+		   [
+		     {
+		       "UID": string,              // LDSU UUID
+		       "TS":  [string, ...]        // array of timestamp in epoch
+		       "SNS": [[string, ...], ...] // array of arrays
+		     }
+			 , ...
+		   ]
+		   // This is for storing cached sensor readings to the cloud
+		   // This makes storing and sending data efficiently
+
+		C. RECEIVE SENSOR READING    rcv_sensor_reading
+
+		D. REQUEST SENSOR READING    req_sensor_reading // OBSOLETED
 
 
 	6. OTA Firmware Update
