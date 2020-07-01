@@ -9,27 +9,35 @@ class ISensorRepository(BaseRepository, IMongoBaseRepository):
     def get_sensor_detail(self, id: str):
         pass
 
-    def get_data_reading(self, id: str, timestamp: int = None):
+    def get_data_reading(self, ids: str, timestamp: int = None):
         pass
 
 
 class SensorRepository(MongoBaseRepository, ISensorRepository):
 
-    def get_data_reading(self, id: str, timestamp: int = None):
-        sensor = super().getById(id)
-        print("SOurce: ")
-        print(sensor["source"])
-        print("Number")
-        print(sensor["number"])
-        print("Timestamp: ")
-        print(timestamp)
-        print("Convert TimeStamp: ")
-        print(datetime.fromtimestamp(timestamp))
+    def get_data_reading(self, ids: str, timestamp: int = None):
+
+        sensors = super().gets_with_ids(ids)
+        sources = list(map(lambda s: s["source"], sensors))
+        numbers = list(map(lambda s: s["number"], sensors))
+
         pipeline = [
             {
                 '$match': {
-                    'source': sensor["source"],
-                    'number': sensor["number"],
+                    'source': {
+                        '$in': sources
+                    },
+                    'number': {
+                        '$in': numbers
+                    }
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'sensorreadings',
+                    'localField': 'source',
+                    'foreignField': 'source',
+                    'as': 'readings'
                 }
             },
             {
@@ -37,30 +45,71 @@ class SensorRepository(MongoBaseRepository, ISensorRepository):
                     'from': 'sensorreadingsdataset',
                     'localField': 'source',
                     'foreignField': 'source',
-                    'as': 'readings'
+                    'as': 'dataset'
                 }
             },
             {
                 '$project': {
                     'source': 1,
                     'number': 1,
+                    'enable': 1,
+                    'sensorname': 1,
+                    'port': 1,
+                    'name': 1,
+                    'class': 1,
                     'readings': {
                         '$filter': {
                             'input': '$readings',
                             'as': 'reading',
                             'cond': {
                                 '$and': [
-                                    {'$eq': ['$$reading.source',
-                                             sensor['source']]},
-                                    {'$eq': ['$$reading.number',
-                                             int(sensor['number'])]},
-                                    {'$gte': ['$$reading.timestamp', timestamp]}
+                                    {
+                                        '$eq': 
+                                            [
+                                                '$$reading.source',
+                                                '$source'
+                                            ]
+                                    },
+                                    {
+                                        '$eq': [
+                                            '$$reading.number',
+                                            {
+                                                '$toInt': '$number'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    'dataset': {
+                        '$filter': {
+                            'input': '$dataset',
+                            'as': 'data',
+                            'cond': {
+                                '$and': [
+                                    {
+                                        '$eq': 
+                                            [  
+                                                '$$data.source',
+                                                '$source'
+                                            ]
+                                    },
+                                    {
+                                        '$eq': [
+                                            '$$data.number',
+                                            {
+                                                '$toInt': '$number'
+                                            }
+                                        ]
+                                    },
+                                    {'$gte': ['$$data.timestamp', timestamp]}
                                 ]
                             }
                         }
                     }
-                }
-            }
+                },
+            },
         ]
 
         cursors = self.collection.aggregate(pipeline)
@@ -69,8 +118,8 @@ class SensorRepository(MongoBaseRepository, ISensorRepository):
         for item in items:
             item["readings"] = list(
                 map(lambda r: self._cast_object_without_objectId(r), item["readings"]))
-            for read in item["readings"]:
-                read["timestamp"] = datetime.fromtimestamp(read["timestamp"])
+            item["dataset"] = list(
+                map(lambda r: self._cast_object_without_objectId(r), item["dataset"]))
 
         results = list(
             map(lambda r: self._cast_object_without_objectId(r), items))

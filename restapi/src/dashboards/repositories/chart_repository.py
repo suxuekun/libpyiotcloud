@@ -8,6 +8,9 @@ class IChartRepository(BaseRepository, IMongoBaseRepository):
 
     def get_charts_gateway(self, dashboardId, userId):
         pass
+    
+    def get_charts_sensor(self, dashboardId, userId):
+        pass
 
     def get_detail(self, dashboardId, userId, chartId, query: {}):
         pass
@@ -19,6 +22,14 @@ class IChartRepository(BaseRepository, IMongoBaseRepository):
         pass
     
 class ChartRepository(MongoBaseRepository, IChartRepository):
+
+    def get_charts_sensor(self, dashboardId, userId):
+        query = {
+            'dashboardId': dashboardId,
+            'userId': userId,
+            'type': "SENSORS"
+        }
+        return super().gets(query=query)
 
     def get_charts_gateway(self, dashboardId, userId):
 

@@ -1,7 +1,7 @@
 
-from dashboards.models.gateway_attribute import AttributeValue
 from schematics import Model
 from schematics.types import StringType, ModelType, IntType, ListType, FloatType
+from dashboards.dtos.attribute_response import AttributeResponse
 
 class DatasetResponse(Model): 
     labels = ListType(StringType)
@@ -13,15 +13,9 @@ class DatasetExResponse(Model):
     label = StringType()
     data = IntType()
 
-class AttributeResponse(Model):
-    name = StringType()
-    id = IntType()
-    filters = ListType(ModelType(AttributeValue), default=[])
-
 class DeviceResponse(Model):
     name = StringType()
     uuid = StringType()
-
 
 class DatasetAttributeResponse(Model):
     labels = ListType(StringType)
