@@ -53,9 +53,23 @@ class SubscriptionService(BaseMongoService):
         res = self.repo.delete(id)
         return res
 
+    def cancel(self,subscription):
+        self._cancel(subscription)
+
     def _cancel(self,subscription):
         if (subscription.next.bt_sub):
-            payment_client.cancel_subscription(id)
+            try:
+                res = payment_client.cancel_subscription(id)
+                return True
+            except Exception as e:
+                print (e)
+                return False
+        return True
+
+    def cleanup(self,deviceid):
+        subscription = self.get_one({'deviceid': deviceid})
+        self.cancel(subscription)
+        self.delete(subscription._id)
 
 
 if __name__ == "__main__":

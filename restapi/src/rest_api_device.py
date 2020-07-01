@@ -187,8 +187,8 @@ class device:
 
         # delete device subscription
         try:
-            subscription = subscription_service.get_one({'deviceid':deviceid})
-            subscription_service.delete(subscription._id)
+            subscription_service.cleanup(deviceid)
+
         except Exception as e:
             print(e)
 
