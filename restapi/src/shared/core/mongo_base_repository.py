@@ -17,7 +17,7 @@ class IMongoBaseRepository:
 
     def get_one(self,query):
         pass
-
+    
     def create_many(self, inputs):
         pass
 

@@ -911,7 +911,7 @@ def get_device_firmware_updates():
 def compute_device_password():
     return g_other_stuffs.compute_device_password()
 
-# This is for the device simulator. 
+# This is for the device simulator.
 # This can be easily blocked by removing entry in nginx.conf.
 @app.route('/devicesimulator/otaauthcode', methods=['GET'])
 def compute_ota_authcode():
@@ -1025,8 +1025,6 @@ def initialize():
     # Initialize Database client
     g_database_client = db_client
 
-    print("g_database_client")
-    g_database_client = db_client
     # Initialize S3 client
     g_storage_client = s3_client
 
