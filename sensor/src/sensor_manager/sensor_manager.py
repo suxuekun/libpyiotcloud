@@ -65,6 +65,7 @@ CONFIG_SEPARATOR            = '/'
 API_RECEIVE_SENSOR_READING  = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING  = "req_sensor_reading"
 API_PUBLISH_SENSOR_READING  = "pub_sensor_reading"
+API_STORE_SENSOR_READING    = "str_sensor_reading"
 
 
 
@@ -367,7 +368,7 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     for number in range(len(payload["SNS"])):
         value = payload["SNS"][number]
         # Ignore if value is "NaN"
-        if payload["SNS"][number] != "NaN":
+        if value != "NaN":
             #
             # store sensor reading
             thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], number, float(value), int(payload["TS"]), ))
@@ -387,6 +388,32 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     # print elapsed time
     #print(time.time() - start_time) 
     #print("")
+
+
+def batch_store_sensor_reading(database_client, deviceid, topic, payload):
+
+    start_time = time.time()
+    #print(deviceid)
+    #print(topic)
+    payload = json.loads(payload)
+
+    username, devicename = database_client.get_username_devicename(deviceid)
+    if username is None or devicename is None:
+        return
+
+    # todo: optimize    
+    for ldsu in payload["cached"]:
+        if len(ldsu["TS"]) != len(ldsu["SNS"]):
+            print("cached TS length is not equal to SNS length")
+            continue
+        for x in range(len(ldsu["TS"])):
+            for number in range(len(ldsu["SNS"][x])):
+                if ldsu["SNS"][x][number] != "NaN":
+                    database_client.add_sensor_reading_dataset(username, deviceid, ldsu["UID"], number, float(ldsu["SNS"][x][number]), int(ldsu["TS"][x]))
+
+    # print elapsed time
+    print(time.time() - start_time) 
+    print("")
 
 
 def on_message(subtopic, subpayload):
@@ -410,7 +437,15 @@ def on_message(subtopic, subpayload):
             print("exception API_PUBLISH_SENSOR_READING")
             print(e)
             return
-
+    elif topic == API_STORE_SENSOR_READING: # for cached values
+        try:
+            thr = threading.Thread(target = batch_store_sensor_reading, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_STORE_SENSOR_READING")
+            print(e)
+            return
+    
 
 def on_mqtt_message(client, userdata, msg):
 
@@ -507,9 +542,9 @@ if __name__ == '__main__':
     # Subscribe to messages sent for this device
     time.sleep(1)
     subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
-    #subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_SENSOR_READING)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_STORE_SENSOR_READING)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
-    #g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
