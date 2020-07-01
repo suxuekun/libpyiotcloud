@@ -82,6 +82,7 @@ class PaymentService():
             'payment_method_token': payment_method_token,
             'plan_id': plan.bt_plan_id,
             'price': plan.get_price_str(gst),
+            'first_billing_date':timestamp_util.get_next_month_first_day().date()
         }
         print('new_sub',option,subscription.draft)
         bt_subscription = payment_client.create_subscription(option)
