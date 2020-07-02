@@ -70,7 +70,7 @@ SUMMARY:
 
 	5. Sensor Reading
 		A. PUBLISH SENSOR READING           pub_sensor_reading
-		B. STORE SENSOR READING             str_sensor_reading   // TO BE IMPLEMENTED
+		B. STORE SENSOR READING             str_sensor_reading
 		C. RECEIVE SENSOR READING           rcv_sensor_reading
 		D. REQUEST SENSOR READING           req_sensor_reading   // OBSOLETED
 
@@ -532,13 +532,13 @@ DETAILED:
 		   payload: 
 		   {
 		     "cached": 
-			 [
+		     [
 		       {
 		         "UID": string,              // LDSU UUID
 		         "TS":  [string, ...]        // array of timestamp in epoch
 		         "SNS": [[string, ...], ...] // array of arrays
 		       }
-			   , ...
+		       , ...
 		     ]
 		   }
 		   // This is for storing cached sensor readings to the cloud
@@ -558,6 +558,7 @@ DETAILED:
 		   //
 
 		C. RECEIVE SENSOR READING    rcv_sensor_reading
+		   // This is for sensor forwarding feature (sensor data to actuator); tested using CONTINUOUS mode
 
 		D. REQUEST SENSOR READING    req_sensor_reading // OBSOLETED
 
