@@ -111,37 +111,64 @@ def store_sensor_reading(database_client, username, devicename, deviceid, source
         #print("{} source:{} number:{} value:{}".format(deviceid, source, number, value))
         sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, number)
         if sensor_readings is None:
-            #print("no readings")
             sensor_readings = {}
-            sensor_readings["value"] = value
-            sensor_readings["lowest"] = value
-            sensor_readings["highest"] = value
+            sensor_readings["value"] = float(value)
+            sensor_readings["lowest"] = float(value)
+            sensor_readings["highest"] = float(value)
         else:
-            #
-            # handle class
-            sensor_readings["value"] = value
+            sensor_readings["value"] = float(value)
             if value > sensor_readings["highest"]:
-                sensor_readings["highest"] = value
+                sensor_readings["highest"] = float(value)
             elif value < sensor_readings["lowest"]:
-                sensor_readings["lowest"] = value
-
+                sensor_readings["lowest"] = float(value)
         #
-        # update sensor reading
-        #print(sensor_readings)
-        sensor_readings["value"] = float(sensor_readings["value"])
-        sensor_readings["lowest"] = float(sensor_readings["lowest"])
-        sensor_readings["highest"] = float(sensor_readings["highest"])
+        # update latest sensor reading
         database_client.add_sensor_reading(username, deviceid, source, number, sensor_readings)
 
         #
         # update sensor reading with timestamp for charting/graphing
-        if sensor_config.CONFIG_ENABLE_DATASET:
-            database_client.add_sensor_reading_dataset(username, deviceid, source, number, value, timestamp)
+        database_client.add_sensor_reading_dataset(username, deviceid, source, number, value, timestamp)
+
     except Exception as e:
         print(e)
         print("exception store_sensor_reading")
         pass
 
+def store_sensor_reading_ex(database_client, username, devicename, deviceid, source, values, timestamp):
+
+    try:
+        for number in range(len(values)):
+            # Ignore if value is "NaN"
+            if values[number] != "NaN":
+                value = float(values[number])
+
+                #
+                # get last record
+                #print("{} source:{} number:{} value:{}".format(deviceid, source, number, value))
+                sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, number)
+                if sensor_readings is None:
+                    sensor_readings = {}
+                    sensor_readings["value"] = float(value)
+                    sensor_readings["lowest"] = float(value)
+                    sensor_readings["highest"] = float(value)
+                else:
+                    sensor_readings["value"] = float(value)
+                    if value > sensor_readings["highest"]:
+                        sensor_readings["highest"] = float(value)
+                    elif value < sensor_readings["lowest"]:
+                        sensor_readings["lowest"] = float(value)
+            #
+            # update latest sensor reading
+            database_client.add_sensor_reading(username, deviceid, source, number, sensor_readings)
+
+        #
+        # update sensor reading with timestamp for charting/graphing
+        database_client.add_ldsu_sensor_reading_dataset(username, deviceid, source, values, timestamp)
+
+    except Exception as e:
+        print(e)
+        print("exception store_sensor_reading")
+        pass
 
 # for notification triggering used in thresholding modes
 def menos_publish(menos, deviceid, recipient=None, message=None, peripheral="uart", number="", activate=None, condition=None):
@@ -364,19 +391,27 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     if username is None or devicename is None:
         return
 
+    single_db_insert = True
     thr_list = []
+
+    if single_db_insert:
+        # Store sensor reading - single db insert
+        thr1 = threading.Thread(target = store_sensor_reading_ex, args = (database_client, username, devicename, deviceid, payload["UID"], payload["SNS"], int(payload["TS"]), ))
+        thr1.start()
+        thr_list.append(thr1)
+
     for number in range(len(payload["SNS"])):
         value = payload["SNS"][number]
         # Ignore if value is "NaN"
         if value != "NaN":
-            #
-            # store sensor reading
-            thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], number, float(value), int(payload["TS"]), ))
-            thr1.start()
-            thr_list.append(thr1)
 
-            #
-            # forward sensor reading (if applicable)
+            if not single_db_insert:
+                # Store sensor reading - single db insert but multiple threads
+                thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], number, float(value), int(payload["TS"]), ))
+                thr1.start()
+                thr_list.append(thr1)
+
+            # Forward sensor reading (if applicable)
             thr2 = threading.Thread(target = forward_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], number, float(value), ))
             thr2.start()
             thr_list.append(thr2)
@@ -392,28 +427,45 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
 
 def batch_store_sensor_reading(database_client, deviceid, topic, payload):
 
-    start_time = time.time()
+    #start_time = time.time()
     #print(deviceid)
     #print(topic)
+
     payload = json.loads(payload)
+    if payload.get("cached") is None:
+        return
 
     username, devicename = database_client.get_username_devicename(deviceid)
     if username is None or devicename is None:
         return
 
-    # todo: optimize    
-    for ldsu in payload["cached"]:
-        if len(ldsu["TS"]) != len(ldsu["SNS"]):
-            print("cached TS length is not equal to SNS length")
-            continue
-        for x in range(len(ldsu["TS"])):
-            for number in range(len(ldsu["SNS"][x])):
-                if ldsu["SNS"][x][number] != "NaN":
-                    database_client.add_sensor_reading_dataset(username, deviceid, ldsu["UID"], number, float(ldsu["SNS"][x][number]), int(ldsu["TS"][x]))
+    #
+    # This is for storing cached sensor readings to the cloud
+    # This makes storing and sending data efficiently
+    #
+    # The whole cached values can be set in a SINGLE MQTT packet
+    # Size:
+    #   4 LDSUS  - 16 sensors with 60 points each  - 960 points total in single MQTT packet   => 11419 bytes
+    #    80 LDSUS - 320 sensors with 60 points each - 19200 points total in single MQTT packet => 228351 bytes
+    #
+    # The whole structure is then saved to the database in a SINGLE database insert command
+    # Performance:
+    #   4 LDSUS  - 16 sensors with 60 points each  - 960 points total in single DB insert command   => 200 milliseconds
+    #   80 LDSUS - 320 sensors with 60 points each - 19200 points total in single DB insert command => 600 milliseconds
+    #
+    database_client.add_ldsus_batch_ldsu_sensor_reading_dataset(username, deviceid, payload["cached"])
+    #for ldsu in payload["cached"]:
+    #    if ldsu.get("UID") is None or ldsu.get("SNS") is None or ldsu.get("TS") is None:
+    #        print("batch_store_sensor_reading: invalid parameters")
+    #        continue
+    #    if len(ldsu["TS"]) != len(ldsu["SNS"]):
+    #        print("batch_store_sensor_reading: cached TS length is not equal to SNS length")
+    #        continue
+    #    database_client.add_batch_ldsu_sensor_reading_dataset(username, deviceid, ldsu["UID"], ldsu["SNS"], ldsu["TS"])
 
     # print elapsed time
-    print(time.time() - start_time) 
-    print("")
+    #print(time.time() - start_time) 
+    #print("")
 
 
 def on_message(subtopic, subpayload):

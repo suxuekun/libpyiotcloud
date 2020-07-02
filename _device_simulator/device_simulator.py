@@ -36,6 +36,7 @@ CONFIG_USE_AMQP = False
 
 # generate and store cached sensor values to cloud
 CONFIG_TEST_CACHED_SENSOR_VALUES = False
+CONFIG_TEST_CACHED_FIRST_LDSU_ONLY = True
 
 # query backend to compute device password
 CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD = True
@@ -394,6 +395,7 @@ def printf_json(json_object, label=None):
 def publish(topic, payload, debug=True):
     payload = json.dumps(payload)
     g_messaging_client.publish(topic, payload, debug)
+    printf(len(payload))
 
 def generate_pubtopic(subtopic):
     return CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + subtopic
@@ -3228,6 +3230,9 @@ def gen_cached_ldsu_sensor_data():
         }
         cached_values.append(cached_value)
 
+        if CONFIG_TEST_CACHED_FIRST_LDSU_ONLY:
+            break
+
     #printf(cached_values)
     return cached_values
         
@@ -3235,8 +3240,8 @@ def gen_cached_ldsu_sensor_data():
 def store_cached_ldsu_sensor_data(cached_values):
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_STORE_SENSOR_READING)
     payload = {"cached": cached_values}
-    #printf_json(payload)
-    #publish(topic, payload)
+    printf_json(payload)
+    publish(topic, payload)
 
 
 ###################################################################################

@@ -523,6 +523,8 @@ DETAILED:
 		     "TS":  string,       // timestamp in epoch
 		     "SNS": [string, ...] // if disabled, use "NaN"
 		   }
+		   // Performance:
+		   //   1 LDSU  - 4 sensors with 1 point each  - 4 points total in single DB insert command   => 15 milliseconds
 
 		B. STORE SENSOR READING
 		-  Publish:
@@ -541,6 +543,19 @@ DETAILED:
 		   }
 		   // This is for storing cached sensor readings to the cloud
 		   // This makes storing and sending data efficiently
+		   //
+		   // The whole cached values can be set in a SINGLE MQTT packet
+		   // Size:
+		   //   4 LDSUS  - 16 sensors with 60 points each  - 960 points total in single MQTT packet   => 11419 bytes
+		   //   80 LDSUS - 320 sensors with 60 points each - 19200 points total in single MQTT packet => 228351 bytes
+		   //
+		   // The whole structure is then saved to the database in a SINGLE database insert command
+		   // Performance:
+		   //   4 LDSUS  - 16 sensors with 60 points each  - 960 points total in single DB insert command   => 200 milliseconds (with parameter checking)
+		   //   80 LDSUS - 320 sensors with 60 points each - 19200 points total in single DB insert command => 600 milliseconds (with parameter checking)
+		   //
+		   // To test with device simulator, set CONFIG_TEST_CACHED_SENSOR_VALUES to True
+		   //
 
 		C. RECEIVE SENSOR READING    rcv_sensor_reading
 
