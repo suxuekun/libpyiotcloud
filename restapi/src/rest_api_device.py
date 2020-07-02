@@ -32,16 +32,18 @@ import re
 
 
 
-#CONFIG_SEPARATOR            = '/'
-#CONFIG_PREPEND_REPLY_TOPIC  = "server"
+CONFIG_SEPARATOR            = '/'
+CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
 
 
 class device:
 
-    def __init__(self, database_client, messaging_requests):
+    def __init__(self, database_client, messaging_requests, messaging_client, device_client):
         self.database_client = database_client
         self.messaging_requests = messaging_requests
+        self.messaging_client = messaging_client
+        self.device_client = device_client
 
 
     def _check_deviceid(self, deviceid):
@@ -1908,16 +1910,64 @@ class device:
                     print('\r\nERROR Download Device Sensor Data: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            print("download_device_sensor_data")
-            msg = {'status': 'OK', 'message': 'Sensor data download triggered successfully.'}
+            # check if device is registered
+            device = self.database_client.find_device(entityname, devicename)
+            if not device:
+                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+                print('\r\nERROR Download Device Sensor Data: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
+            # get device ldsus
+            ldsus = self.database_client.get_ldsus(username, devicename)
+            if len(ldsus) == 0:
+                response = json.dumps({'status': 'NG', 'message': 'No LDSU is registered'})
+                print('\r\nERROR Download Device Sensor Data: No LDSU is registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
+            # get name of user
+            name = None
+            info = self.database_client.get_user_info(token["access"])
+            if info:
+                # handle no family name
+                if 'given_name' in info:
+                    name = info['given_name']
+                if 'family_name' in info:
+                    if info['family_name'] != "NONE":
+                        name += " " + info['family_name']
+
+            # send to downloader manager
+            payload = {"name": name, "email": username, "devicename": device["devicename"], "ldsus": []}
+            for ldsu in ldsus:
+                numdevices = self.device_client.get_obj_numdevices(ldsu["descriptor"]["OBJ"])
+                for x in range(numdevices):
+                    descriptor = self.device_client.get_objidx(ldsu["descriptor"]["OBJ"], x)
+                    type = self.device_client.get_objidx_type(descriptor)
+                    format = self.device_client.get_objidx_format(descriptor)
+                    accuracy = self.device_client.get_objidx_accuracy(descriptor, x)
+                    payload["ldsus"].append({"UID": ldsu["UID"], "SAID": x, "FORMAT": format, "ACCURACY": accuracy})
+            try:
+                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + "download_device_sensor_data"
+                payload = json.dumps(payload)
+                self.messaging_client.publish(pubtopic, payload)
+            except:
+                pass
+
+            msg = {'status': 'OK', 'message': 'An email will be sent to you shortly once it is ready to download.'}
 
         elif flask.request.method == 'DELETE':
             if orgname is not None:
                 # check authorization
                 if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
                     response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                    print('\r\nERROR Download Device Sensor Data: Authorization not allowed [{}]\r\n'.format(username))
+                    print('\r\nERROR Delete Device Sensor Data: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
+
+            # check if device is registered
+            device = self.database_client.find_device(entityname, devicename)
+            if not device:
+                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+                print('\r\nERROR Delete Device Sensor Data: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
 
             self.database_client.delete_device_sensor_reading(entityname, devicename)
             print("clear_device_sensor_data")

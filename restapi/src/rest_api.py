@@ -1057,7 +1057,7 @@ def initialize():
     g_device_otaupdates            = device_otaupdates(g_database_client, g_storage_client, g_messaging_requests)
     g_device_hierarchies           = device_hierarchies(g_database_client, g_messaging_requests)
     g_device_histories             = device_histories(g_database_client)
-    g_device                       = device(g_database_client, g_messaging_requests)
+    g_device                       = device(g_database_client, g_messaging_requests, g_messaging_client, g_device_client)
     g_device_ldsbus                = device_ldsbus(g_database_client, g_messaging_requests, g_device_client)
     g_device_peripheral_properties = device_peripheral_properties(g_database_client, g_messaging_requests)
     g_other_stuffs                 = other_stuffs(g_database_client, g_storage_client)

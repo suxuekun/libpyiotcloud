@@ -9088,6 +9088,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         })
         .then(function (result) {
             console.log(result.data);
+            $ionicPopup.alert({ title: 'Sensor Data Download', template: result.data.message, buttons: [{text: 'OK', type: 'button-positive'}] });
         })
         .catch(function (error) {
             $scope.handle_error(error);
