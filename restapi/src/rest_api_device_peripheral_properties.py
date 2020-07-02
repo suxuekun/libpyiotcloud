@@ -48,6 +48,11 @@ class device_peripheral_properties:
         recipients = email["recipients"]
         recipients = recipients.replace(" ", "").split(",")
 
+        # check for duplicates
+        if len(recipients) != len(set(recipients)):
+            print("some duplicates in the list {}".format(recipients))
+            return False
+
         # check if the emails are valid
         for recipient in recipients:
             found = False
@@ -68,6 +73,11 @@ class device_peripheral_properties:
         # mobile is enabled, so check the recipients
         recipients = mobile["recipients"]
         recipients = recipients.replace(" ", "").split(",")
+
+        # check for duplicates
+        if len(recipients) != len(set(recipients)):
+            print("some duplicates in the list {}".format(recipients))
+            return False
 
         # check if the numbers are valid
         for recipient in recipients:
@@ -96,6 +106,11 @@ class device_peripheral_properties:
 
         recipients = modem["recipients"]
         recipients = recipients.replace(" ", "").split(",")
+
+        # check for duplicates
+        if len(recipients) != len(set(recipients)):
+            print("some duplicates in the list {}".format(recipients))
+            return False
 
         if isgroup == False:
             # check if the device recipients are valid
@@ -168,6 +183,11 @@ class device_peripheral_properties:
 
             recipients = configuration["hardware"]["recipients"]
             recipients = recipients.replace(" ", "").split(",")
+
+            # check for duplicates
+            if len(recipients) != len(set(recipients)):
+                print("some duplicates in the list {}".format(recipients))
+                return False
 
             if isgroup == False:
                 # check if the device recipients are valid
