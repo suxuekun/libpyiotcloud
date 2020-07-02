@@ -390,6 +390,8 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     username, devicename = database_client.get_username_devicename(deviceid)
     if username is None or devicename is None:
         return
+    if payload.get("UID") is None or payload.get("SNS") is None or payload.get("TS") is None:
+        return
 
     single_db_insert = True
     thr_list = []
