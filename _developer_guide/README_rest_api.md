@@ -119,6 +119,11 @@ SUMMARY:
 		R. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
 		S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
 
+		//
+		// device-sensor data
+		T. DOWNLOAD DEVICE SENSOR DATA    - POST   /devices/device/DEVICENAME/sensordata
+		U. CLEAR DEVICE SENSOR DATA       - DELETE /devices/device/DEVICENAME/sensordata
+
 
 	4. Device group registration and management APIs
 
@@ -1353,6 +1358,24 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'hierarchy': {"name": string, "active": string, "children": [{"name": string, "active": int, "children":[]}, ...]} }
 		   { 'status': 'NG', 'message': string}
 		   // active is 1 or 0 to indicate if online/offline or enabled/disabled
+
+
+		T. DOWNLOAD DEVICE SENSOR DATA
+		-  Request:
+		   POST /devices/device/DEVICENAME/sensordata
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		U. CLEAR DEVICE SENSOR DATA
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/sensordata
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
 
 	4. Device group registration and management APIs
 

@@ -1829,3 +1829,102 @@ class device:
         response = json.dumps(msg)
         print('\r\n{} Sensor queried successful: {}\r\n{}\r\n'.format(xxx, username, response))
         return response
+
+
+    ########################################################################################################
+    #
+    # DOWNLOAD DEVICE SENSOR DATA
+    #
+    # - Request:
+    #   POST /devices/device/DEVICENAME/sensordata
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    # CLEAR DEVICE SENSOR DATA
+    #
+    # - Request:
+    #   POST /devices/device/DEVICENAME/sensordata
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def download_device_sensor_data(self, devicename):
+
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        if flask.request.method == 'POST':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Add Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
+            print("download_device_sensor_data")
+
+        elif flask.request.method == 'DELETE':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Add Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
+            self.database_client.delete_device_sensor_reading(entityname, devicename)
+            print("clear_device_sensor_data")
+
+
+        msg = {'status': 'OK', 'message': 'Sensor download triggered successfully.', 'sensor': sensor}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\n{} Sensor download triggered successful: {}\r\n{}\r\n'.format(xxx, username, response))
+        return response
