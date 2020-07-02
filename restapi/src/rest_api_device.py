@@ -206,13 +206,19 @@ class device:
             print("Exception subscription_service.delete")
             print(e)
 
-        # delete device notifications
+        # delete device notifications and configurations
+        devices = self.database_client.get_devices(entityname)
         try:
-            devices = self.database_client.get_devices(entityname)
             for devicex in devices:
                 self.database_client.update_device_notification_devicedelete_by_deviceid(devicex["deviceid"], devicename)
         except Exception as e:
             print("Exception update_device_notification_devicedelete_by_deviceid")
+            print(e)
+        try:
+            for devicex in devices:
+                self.database_client.update_device_peripheral_configuration_devicedelete_by_deviceid(devicex["deviceid"], devicename)
+        except Exception as e:
+            print("Exception update_device_peripheral_configuration_devicedelete_by_deviceid")
             print(e)
 
         # delete device from database
@@ -960,13 +966,19 @@ class device:
             return response, status.HTTP_400_BAD_REQUEST
 
 
-        # update device name in notifications
+        # update device name in notifications and configurations
+        devices = self.database_client.get_devices(entityname)
         try:
-            devices = self.database_client.get_devices(entityname)
             for devicex in devices:
                 self.database_client.update_device_notification_devicenamechange_by_deviceid(devicex["deviceid"], devicename, data["new_devicename"])
         except Exception as e:
             print("Exception update_device_notification_devicenamechange_by_deviceid")
+            print(e)
+        try:
+            for devicex in devices:
+                self.database_client.update_device_peripheral_configuration_devicenamechange_by_deviceid(devicex["deviceid"], devicename, data["new_devicename"])
+        except Exception as e:
+            print("Exception update_device_peripheral_configuration_devicenamechange_by_deviceid")
             print(e)
 
         # update device name in subscription

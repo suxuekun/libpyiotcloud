@@ -619,6 +619,19 @@ class database_client:
     # configurations
     ##########################################################
 
+    def update_device_peripheral_configuration_devicenamechange_by_deviceid(self, deviceid, devicename, new_devicename):
+        self._devices.update_device_peripheral_configuration_devicenamechange(deviceid, devicename, new_devicename)
+
+    def update_device_peripheral_configuration_devicedelete_by_deviceid(self, deviceid, devicename):
+        self._devices.update_device_peripheral_configuration_devicedelete(deviceid, devicename)
+
+    def update_device_peripheral_configuration_groupnamechange_by_deviceid(self, deviceid, groupname, new_groupname):
+        self._devices.update_device_peripheral_configuration_groupnamechange(deviceid, groupname, new_groupname)
+
+    def update_device_peripheral_configuration_groupdelete_by_deviceid(self, deviceid, groupname):
+        self._devices.update_device_peripheral_configuration_groupdelete(deviceid, groupname)
+
+
     def update_device_peripheral_configuration(self, username, devicename, source, number, address, classid, subclassid, properties):
         return self._devices.update_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address, classid, subclassid, properties)
 
@@ -2574,6 +2587,127 @@ class database_client_mongodb:
 
     def get_configurations_document(self):
         return self.client[config.CONFIG_MONGODB_TB_CONFIGURATIONS]
+
+    def update_device_peripheral_configuration_devicenamechange(self, deviceid, devicename, new_devicename):
+        configurations = self.get_configurations_document()
+        if configurations:
+            for configuration in configurations.find({'deviceid': deviceid}):
+                try:
+                    if configuration["attributes"]["mode"] != 2: # CONTINUOUS MODE
+                        continue
+                    if not configuration["attributes"]["hardware"]["enable"]:
+                        continue
+                    if configuration["attributes"]["hardware"]["isgroup"]:
+                        continue
+
+                    recipients = configuration["attributes"]["hardware"]["recipients"]
+                    recipients_list = recipients.replace(" ", "").split(",")
+
+                    found = False
+                    for x in range(len(recipients_list)):
+                        if recipients_list[x] == devicename:
+                            recipients_list[x] = new_devicename
+                            found = True
+                            break
+                    if found:
+                        configuration_new = copy.deepcopy(configuration)
+                        configuration_new["attributes"]["hardware"]["recipients"] = ','.join(recipients_list)
+                        configurations.replace_one(configuration, configuration_new)
+                except:
+                    pass
+
+    def update_device_peripheral_configuration_devicedelete(self, deviceid, devicename):
+        configurations = self.get_configurations_document()
+        if configurations:
+            for configuration in configurations.find({'deviceid': deviceid}):
+                try:
+                    if configuration["attributes"]["mode"] != 2: # CONTINUOUS MODE
+                        continue
+                    if not configuration["attributes"]["hardware"]["enable"]:
+                        continue
+                    if configuration["attributes"]["hardware"]["isgroup"]:
+                        continue
+
+                    configuration_new = copy.deepcopy(configuration)
+                    recipients = configuration["attributes"]["hardware"]["recipients"]
+                    recipients_list = recipients.replace(" ", "").split(",")
+
+                    found = False
+                    for x in range(len(recipients_list)-1, -1, -1):
+                        if recipients_list[x] == devicename:
+                            del recipients_list[x]
+                            #print("deleted {}".format(devicename))
+                            found = True
+                            # do not break in case of multiple instances
+                    if found:
+                        configuration_new["attributes"]["hardware"]["recipients"] = ','.join(recipients_list)
+                        if len(recipients_list) == 0:
+                            # if all recipient was deleted, then automatically disable
+                            configuration_new["attributes"]["hardware"]["enable"] = False
+                        configurations.replace_one(configuration, configuration_new)
+                except:
+                    pass
+
+    def update_device_peripheral_configuration_groupnamechange(self, deviceid, groupname, new_groupname):
+        configurations = self.get_configurations_document()
+        if configurations:
+            for configuration in configurations.find({'deviceid': deviceid}):
+                try:
+                    if configuration["attributes"]["mode"] != 2: # CONTINUOUS MODE
+                        continue
+                    if not configuration["attributes"]["hardware"]["enable"]:
+                        continue
+                    if not configuration["attributes"]["hardware"]["isgroup"]:
+                        continue
+
+                    recipients = configuration["attributes"]["hardware"]["recipients"]
+                    recipients_list = recipients.replace(" ", "").split(",")
+
+                    found = False
+                    for x in range(len(recipients_list)):
+                        if recipients_list[x] == groupname:
+                            recipients_list[x] = new_groupname
+                            found = True
+                            break
+                    if found:
+                        configuration_new = copy.deepcopy(configuration)
+                        configuration_new["attributes"]["hardware"]["recipients"] = ','.join(recipients_list)
+                        configurations.replace_one(configuration, configuration_new)
+                except:
+                    pass
+
+    def update_device_peripheral_configuration_groupdelete(self, deviceid, groupname):
+        configurations = self.get_configurations_document()
+        if configurations:
+            for configuration in configurations.find({'deviceid': deviceid}):
+                try:
+                    if configuration["attributes"]["mode"] != 2: # CONTINUOUS MODE
+                        continue
+                    if not configuration["attributes"]["hardware"]["enable"]:
+                        continue
+                    if not configuration["attributes"]["hardware"]["isgroup"]:
+                        continue
+
+                    configuration_new = copy.deepcopy(configuration)
+                    recipients = configuration["attributes"]["hardware"]["recipients"]
+                    recipients_list = recipients.replace(" ", "").split(",")
+
+                    found = False
+                    for x in range(len(recipients_list)-1, -1, -1):
+                        if recipients_list[x] == groupname:
+                            del recipients_list[x]
+                            #print("deleted {}".format(groupname))
+                            found = True
+                            # do not break in case of multiple instances
+                    if found:
+                        configuration_new["attributes"]["hardware"]["recipients"] = ','.join(recipients_list)
+                        if len(recipients_list) == 0:
+                            # if all recipient was deleted, then automatically disable
+                            configuration_new["attributes"]["hardware"]["enable"] = False
+                            configuration_new["attributes"]["hardware"]["isgroup"] = False
+                        configurations.replace_one(configuration, configuration_new)
+                except:
+                    pass
 
     def update_device_peripheral_configuration(self, deviceid, source, number, address, classid, subclassid, properties):
         configurations = self.get_configurations_document()
