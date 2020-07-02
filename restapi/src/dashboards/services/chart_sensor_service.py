@@ -105,8 +105,7 @@ class ChartSensorService:
 
     def compare(self, dashboardId: str, userId: str, query: ChartComparisonQuery):
         try:
-            if len(query.chartsId) < 2:
-                return Response.fail("ChartsId should have not empty and size >= 2")
+            query.validate()
        
             chartEntites = self.chartRepository.gets_with_ids(query.chartsId)
             sensorIds = list(map(lambda c: c["deviceId"], chartEntites))
@@ -134,6 +133,10 @@ class ChartSensorService:
             response = map_charts_sensor_response(
                 charts=chartEntites, dictSensors=dictSensors, timestamp=query.timestamp, totalPoint=query.points, minutes=query.minutes)
             return Response.success(data=response, message="Get chart responses successfully")
+
+        except ModelValidationError as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("ChartsId should have not empty and size >= 2")
 
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
