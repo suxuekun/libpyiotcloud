@@ -7993,9 +7993,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     return label;
                 },
                 "afterLabel": function(tooltipItem, data) {
-                    //console.log("afterLabel");
-                    //console.log(tooltipItem);
-                    //console.log(data);
+                    // console.log("afterLabel");
+                    // console.log(tooltipItem);
+                    // console.log(data);
                     var key = Object.keys(data.datasets[0]._meta)[0];
                     //console.log(key);
                     var canvasid = data.datasets[0]._meta[key].controller.chart.ctx.canvas.id;

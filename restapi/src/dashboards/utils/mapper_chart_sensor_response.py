@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from dashboards.dtos.chart_sensor_response import *
+from dashboards.dtos.chart_sensor_query import ChartSensorQuery
 import statistics
 
 
@@ -10,20 +11,20 @@ def setup_empty_int_arrays(size: int):
     return arrays
 
 
-def mapping_sensor_dataset(dataset, timestamp, totalPoint, minutes):
+def map_to_sensor_dataset(dataset, query: ChartSensorQuery):
 
     defaultTimeRangeInSecond = 5
-    seconds = minutes * 60
-    timeRange = seconds / totalPoint
+    seconds = query.minutes * 60
+    timeRange = seconds / query.points
 
-    timeStart = datetime.fromtimestamp(timestamp) - timedelta(minutes=minutes)
+    timeStart = datetime.fromtimestamp(query.timestamp) - timedelta(minutes=query.minutes)
     timeEnd = timeStart + timedelta(seconds=timeRange)
 
-    data = setup_empty_int_arrays(totalPoint)
-    low = setup_empty_int_arrays(totalPoint)
-    high = setup_empty_int_arrays(totalPoint)
+    data = setup_empty_int_arrays(query.points)
+    low = setup_empty_int_arrays(query.points)
+    high = setup_empty_int_arrays(query.points)
     timeArrays = []
-    for index in range(totalPoint):
+    for index in range(query.points):
         timeArrays.append(int(timeStart.timestamp()))
         pointsValue = find_value_with_timestamp_in_range(
             dataset, int(timeStart.timestamp()), int(timeEnd.timestamp()))
@@ -54,23 +55,12 @@ def find_value_with_timestamp_in_range(readings, timeStart: int, timeEnd: int):
                 return values
     return values
 
-
-def map_chart_sensor_response(chart, deviceResponse: SensorResponse):
-
-    response = ChartSensorReponse()
-    response.id = chart["_id"]
-    response.chartTypeId = chart["chartTypeId"]
-    response.device = deviceResponse
-    return response.to_primitive()
-
-
-def map_charts_sensor_response(charts, dictSensors: {}, timestamp: int, totalPoint: int, minutes: int):
-    response = list(map(lambda chart: map_chart_sensor_response(
-        chart, dictSensors[chart["deviceId"]], timestamp, totalPoint, minutes), charts))
+def map_to_charts_sensor_response(charts, dictSensors: {}, query: ChartSensorQuery):
+    response = list(map(lambda chart: map_to_chart_sensor_response(
+        chart, dictSensors[chart["deviceId"]], query), charts))
     return response
 
-
-def map_chart_sensor_response(chart, sensor, timestamp: int, totalPoint: int, minutes: int) -> SensorResponse:
+def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery) -> SensorResponse:
 
     response = ChartSensorReponse()
     response.id = chart["_id"]
@@ -86,14 +76,17 @@ def map_chart_sensor_response(chart, sensor, timestamp: int, totalPoint: int, mi
     device.sensorClass = sensor["class"]
     response.device = device
 
-    dataset = mapping_sensor_dataset(
-        sensor["dataset"], timestamp, totalPoint, minutes)
+    dataset = map_to_sensor_dataset(
+        sensor["dataset"], query)
     response.dataset = dataset
 
     readings = sensor["readings"]
-    if len(readings):
-        readingsResponse = ReadingSensorResponse(
-            readings[0]["sensor_readings"])
+    if len(readings) > 0:
+        sensorReadings = readings[0]["sensor_readings"]
+        readingsResponse = ReadingSensorResponse()
+        readingsResponse.value = sensorReadings["value"]
+        readingsResponse.highest = sensorReadings["highest"]
+        readingsResponse.lowest = sensorReadings["lowest"]
         response.readings = readingsResponse
 
     return response.to_primitive()

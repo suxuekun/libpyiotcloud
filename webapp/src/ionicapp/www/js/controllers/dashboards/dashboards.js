@@ -6,6 +6,8 @@ angular.module('app.dashboardsCtrl', [])
         'search': '',
         'token': User.get_token(),
       };
+      let timerChartSensor = {};
+
       const defaultColor = "#f2495e";
       $scope.dashboardDetail = {};
       $scope.selectedColor = defaultColor;
@@ -19,10 +21,17 @@ angular.module('app.dashboardsCtrl', [])
         $scope.getDashboards();
       });
 
+
+      $scope.$on("$destroy", function () {
+        clearInterval(timerChartSensor);
+      });
+
       // Init life cycle
       $scope.add = () => {
         const device_param = {}
-        $state.go('addDashboard', device_param, { reload: true });
+        $state.go('addDashboard', device_param, {
+          reload: true
+        });
       }
 
       //  Scope of list dashboards
@@ -41,16 +50,18 @@ angular.module('app.dashboardsCtrl', [])
         $ionicPopup.alert({
           title: 'Remove dashboard',
           template: 'Are you sure to remove it ?',
-          buttons: [
-            {
+          buttons: [{
               text: 'Yes',
               type: 'button-positive',
               onTap: (e) => {
                 $http({
-                  method: 'DELETE',
-                  url: `${server}/dashboards/dashboard/${id}`,
-                  headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' }
-                })
+                    method: 'DELETE',
+                    url: `${server}/dashboards/dashboard/${id}`,
+                    headers: {
+                      'Authorization': 'Bearer ' + $scope.data.token.access,
+                      'Content-Type': 'application/json'
+                    }
+                  })
                   .then(function (result) {
                     console.log(result.data);
                     const dashboards = $scope.dashboards
@@ -98,10 +109,13 @@ angular.module('app.dashboardsCtrl', [])
 
       $scope.getDashboards = () => {
         $http({
-          method: 'GET',
-          url: server + '/dashboards',
-          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-        })
+            method: 'GET',
+            url: server + '/dashboards',
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+          })
           .then(function (result) {
             cachedDashboards = result.data.data;
             renderDashdoards(cachedDashboards);
@@ -116,8 +130,10 @@ angular.module('app.dashboardsCtrl', [])
           });
       }
       // Scope of dashboard detail
-      $scope.sensors_datachart_colors_options     = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];
-      $scope.sensors_datachart_colors_options_ex  = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3', '#3C5A99', '#B6A2FC', '#F58CF6'];
+
+
+      $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];
+      $scope.sensors_datachart_colors_options_ex = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3', '#3C5A99', '#B6A2FC', '#F58CF6'];
       $scope.sensors_datachart_colors_options_ex2 = ['#F58CF6', '#B6A2FC', '#3C5A99', '#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3'];
       $scope.colors = [
         '#f2495e',
@@ -136,8 +152,20 @@ angular.module('app.dashboardsCtrl', [])
       $scope.chartsGatewaysView = []
       $scope.activeTab = 0
       $scope.tabLength = 2
+
+
       $scope.changeActiveTab = (index) => {
         $scope.activeTab = index
+        if ($scope.activeTab === 1) { // Sensors tab
+          getChartSensors();
+          timerChartSensor = setInterval(() => {
+            getChartSensors();
+          }, 3000);
+          return;
+        }
+
+        clearInterval(timerChartSensor);
+
       }
       $scope.selectColor = (color) => $scope.selectedColor = color
       $scope.close = () => $state.go('menu.dashboards')
@@ -149,7 +177,6 @@ angular.module('app.dashboardsCtrl', [])
       };
 
       mappingChartGatewayToView = (c) => {
-        console.log("Cho ma: ", c);
         const labels = c.datasets.labels;
         const values = c.datasets.data;
         return {
@@ -165,10 +192,13 @@ angular.module('app.dashboardsCtrl', [])
       }
       getChartGateways = () => {
         $http({
-          method: 'GET',
-          url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/gateways`,
-          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-        })
+            method: 'GET',
+            url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/gateways`,
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+          })
           .then(function (result) {
             $scope.chartsGateways = result.data.data;
             $scope.chartsGatewaysView = $scope.chartsGateways.map((c) => mappingChartGatewayToView(c));
@@ -186,10 +216,13 @@ angular.module('app.dashboardsCtrl', [])
           url = `${url}?attributeId=${attributeId}&fiterId=${filterId}`;
 
         $http({
-          method: 'GET',
-          url: url,
-          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-        })
+            method: 'GET',
+            url: url,
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+          })
           .then(function (result) {
             const chart = result.data.data;
             const foundIndex = $scope.chartsGatewaysView.findIndex((c) => c.id == chart.id);
@@ -207,11 +240,14 @@ angular.module('app.dashboardsCtrl', [])
         };
 
         $http({
-          method: 'PUT',
-          url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}`,
-          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-          data: request
-        })
+            method: 'PUT',
+            url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}`,
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+            data: request
+          })
           .then(function (result) {
             console.log(result.data);
             $scope.getDashboards();
@@ -225,12 +261,36 @@ angular.module('app.dashboardsCtrl', [])
           });
       }
 
-      $scope.addNewChartGateway = () => {
+      $scope.addChart = (activeTab) => {
+        switch (activeTab) {
+          case 0:
+            addNewChartGateway();
+            return;
+          case 1:
+            addNewChartSensor();
+            return;
+        }
+      }
+
+      addNewChartSensor = () => {
+        clearInterval(timerChartSensor);
         const params = {
           'dashboard': $scope.dashboardDetail,
           'dashboardId': $scope.dashboardDetail.id
         }
-        $state.go('addNewChartGateway', params, { reload: true });
+        $state.go('addNewChartSensor', params, {
+          reload: true
+        });
+      };
+
+      addNewChartGateway = () => {
+        const params = {
+          'dashboard': $scope.dashboardDetail,
+          'dashboardId': $scope.dashboardDetail.id
+        }
+        $state.go('addNewChartGateway', params, {
+          reload: true
+        });
       }
 
       $scope.deleteChartGateway = (chartId) => {
@@ -238,16 +298,18 @@ angular.module('app.dashboardsCtrl', [])
         $ionicPopup.alert({
           title: 'Remove chart',
           template: 'Are you sure to remove it ?',
-          buttons: [
-            {
+          buttons: [{
               text: 'Yes',
               type: 'button-positive',
               onTap: (e) => {
                 $http({
-                  method: 'DELETE',
-                  url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/gateways/${chartId}`,
-                  headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' }
-                })
+                    method: 'DELETE',
+                    url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/gateways/${chartId}`,
+                    headers: {
+                      'Authorization': 'Bearer ' + $scope.data.token.access,
+                      'Content-Type': 'application/json'
+                    }
+                  })
                   .then(function (result) {
                     console.log(result.data);
                     $scope.chartsGatewaysView.splice($scope.chartsGatewaysView.findIndex((d) => d.id === chartId), 1)
@@ -273,6 +335,139 @@ angular.module('app.dashboardsCtrl', [])
       $scope.selectFilter = (chartId, filterId) => {
         console.log("OK Try to test: " + chartId + "dsdasdas -- " + filterId);
       };
+
+      // Sensors parts
+      $scope.sensors = []
+      $scope.sensorsView = [];
+
+      getSensorColor = (sensorClass) => {
+        console.log("Fucking dadasd:", sensorClass);
+        switch (sensorClass) {
+          case 'temperature':
+            return ["#FFC900"];
+          case 'humidity':
+            return ['#F38124'];
+          case 'Co2 gas':
+            return ['#F58CF6'];
+          case 'VOC gas':
+            return ['#11C1F3'];
+          case 'ambient light':
+            return ['#B6A2FC'];
+          case 'motion detection':
+            return ['#3C5A99'];
+        }
+
+        return ["#FFC900"];
+      }
+
+      $scope.deleteChartSensor = (chartId) => {
+        console.log("Chart ID: ", chartId)
+        $ionicPopup.alert({
+          title: 'Remove chart sensor',
+          template: 'Are you sure to remove it ?',
+          buttons: [{
+              text: 'Yes',
+              type: 'button-positive',
+              onTap: (e) => {
+                $http({
+                    method: 'DELETE',
+                    url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors/${chartId}`,
+                    headers: {
+                      'Authorization': 'Bearer ' + $scope.data.token.access,
+                      'Content-Type': 'application/json'
+                    }
+                  })
+                  .then(function (result) {
+                    console.log(result.data);
+                    $scope.sensorsView.splice($scope.chartsGatewaysView.findIndex((d) => d.id === chartId), 1)
+                  })
+                  .catch(function (error) {
+                    console.error(error);
+                    $ionicPopup.alert({
+                      title: 'Dashboard',
+                      template: 'Delete chart was failed!',
+                    });
+                  });
+              }
+            },
+            {
+              text: 'No',
+              type: 'button-positive',
+              onTap: (e) => true
+            }
+          ]
+        });
+      }
+
+      mapDataToSensorViews = (sensors) => {
+        const result = sensors.map(c => {
+          const dataset = c.dataset;
+          labels = dataset.labels.map((timestamp) => {
+            const date = new Date(timestamp * 1000);
+            return ('0' + date.getHours()).slice(-2) +
+              ":" + ('0' + date.getMinutes()).slice(-2) + ":" +
+              ('0' + date.getSeconds()).slice(-2);
+          });
+          const lowAndHighs = [];
+          for (let index = 0; index < dataset.high.length; index++) {
+            const item = {
+              "ticks": {
+                "max": parseFloat(dataset.high[index]),
+                "min": parseFloat(dataset.low[index]),
+              }
+            };
+            lowAndHighs.push(item)
+          }
+          dataset.labels = labels;
+          return {
+            dataset: dataset,
+            device: c.device,
+            id: c.id,
+            chartType: c.type,
+            colors: getSensorColor(c.device.sensorClass),
+            options: {
+              "animation": false,
+              "legend": {
+                "display": true,
+                "position": 'bottom'
+              },
+              "scales": {
+                "xAxes": [{
+                  "ticks": {
+                    //"autoSkip": false,
+                    "maxRotation": 90,
+                    "minRotation": 90
+                  }
+                }]
+
+              },
+            }
+          }
+        });
+        return result;
+      };
+
+      getChartSensors = () => {
+        let url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors?minutes=60&points=30`
+        $http({
+            method: 'GET',
+            url: url,
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+          })
+          .then(function (result) {
+            const charts = result.data.data
+            $scope.sensors = charts;
+            $scope.sensorsView = mapDataToSensorViews(charts);
+            console.log("Chart Sensors: ", $scope.sensorsView);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+
+      }
     }
   ])
   .controller('addDashboardCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User',
@@ -309,15 +504,20 @@ angular.module('app.dashboardsCtrl', [])
         };
 
         $http({
-          method: 'POST',
-          url: server + '/dashboards',
-          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-          data: request
-        })
+            method: 'POST',
+            url: server + '/dashboards',
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+            data: request
+          })
           .then(function (result) {
             $scope.data.name = '';
             $scope.data.selectedColor = "#00c0ef";
-            $state.go('menu.dashboards', {}, { reload: true })
+            $state.go('menu.dashboards', {}, {
+              reload: true
+            })
 
           })
           .catch(function (error) {
@@ -369,10 +569,13 @@ angular.module('app.dashboardsCtrl', [])
       // get gateways
       getGateways = () => {
         $http({
-          method: 'GET',
-          url: server + '/devicegroups/mixed',
-          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-        })
+            method: 'GET',
+            url: server + '/devicegroups/mixed',
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+          })
           .then(function (result) {
             const allDevices = result.data.data;
             $scope.devicesGroups = allDevices.devicegroups;
@@ -392,9 +595,9 @@ angular.module('app.dashboardsCtrl', [])
 
       getAttributes = () => {
         $http({
-          method: 'GET',
-          url: server + '/dashboards/gateway/attributes'
-        })
+            method: 'GET',
+            url: server + '/dashboards/gateway/attributes'
+          })
           .then(function (result) {
             $scope.attributes = result.data.data;
           })
@@ -405,9 +608,9 @@ angular.module('app.dashboardsCtrl', [])
 
       getChartTypes = () => {
         $http({
-          method: 'GET',
-          url: server + '/dashboards/charts/types/gateway',
-        })
+            method: 'GET',
+            url: server + '/dashboards/charts/types/gateway',
+          })
           .then(function (result) {
             $scope.chartTypes = result.data.data;
           })
@@ -474,8 +677,6 @@ angular.module('app.dashboardsCtrl', [])
       }
 
       $scope.save = () => {
-        console.log("dadsa")
-        console.log(dashboard)
         if (!$scope.selectedChartType.id) {
           $ionicPopup.alert({
             title: 'Select ChartType',
@@ -490,14 +691,19 @@ angular.module('app.dashboardsCtrl', [])
         }
 
         $http({
-          method: 'POST',
-          url: `${server}/dashboards/dashboard/${dashboard.id}/gateways`,
-          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-          data: request
-        })
+            method: 'POST',
+            url: `${server}/dashboards/dashboard/${dashboard.id}/gateways`,
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+            data: request
+          })
           .then(function (result) {
             resest()
-            $state.go('menu.dashboards', {}, { reload: true })
+            $state.go('menu.dashboards', {}, {
+              reload: true
+            })
           })
           .catch(function (error) {
             console.log(error);
@@ -507,5 +713,174 @@ angular.module('app.dashboardsCtrl', [])
             });
           });
       }
+    }
+  ])
+
+  .controller('addNewChartSensorCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User',
+    function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
+      const server = Server.rest_api;
+      $scope.close = () => $state.go('menu.dashboards')
+      let dashboard = $stateParams.dashboard;
+      $scope.currentStep = 0;
+      $scope.data = {
+        'token': User.get_token(),
+      }
+      $scope.devicesGroups = [];
+      $scope.sensors = [];
+      $scope.chartTypes = [];
+
+      reset = () => {
+        $scope.currentStep = 0;
+        $scope.selectedGateway = {
+          'deviceid': '',
+          'devicename': ''
+        };
+        $scope.selectedSensor = {
+          'id': '',
+          'sensorname': ''
+        };
+        $scope.selectedChartType = {
+          'id': '',
+          'name': ''
+        };
+      }
+
+      $scope.nextToSellectionSensor = () => {
+        const gatewayId = $scope.selectedGateway.deviceid;
+        if (!$scope.selectedGateway.deviceid) {
+          $ionicPopup.alert({
+            title: 'Select gateway',
+            template: 'You have to select one gateway',
+          });
+          return;
+        }
+
+        getSensors(gatewayId);
+        $scope.currentStep = 1;
+      }
+
+      $scope.nextToChartTypeStep = () => {
+        if (!$scope.selectedSensor.id) {
+          $ionicPopup.alert({
+            title: 'Select gateway',
+            template: 'You have to select one gateway',
+          });
+          return;
+        }
+        getChartTypes();
+        $scope.currentStep = 2;
+      }
+
+
+      $scope.backToSelectionSensorStep = () => {
+        $scope.currentStep = 1;
+      }
+
+      $scope.backToGatewayStep = () => {
+        $scope.currentStep = 0;
+      }
+
+      $scope.save = () => {
+        if (!$scope.selectedChartType.id) {
+          $ionicPopup.alert({
+            title: 'Select ChartType',
+            template: 'You have to select one chart type',
+          });
+          return;
+        }
+        const request = {
+          "deviceId": $scope.selectedSensor.id,
+          "chartTypeId": parseInt($scope.selectedChartType.id)
+        }
+
+        $http({
+            method: 'POST',
+            url: `${server}/dashboards/dashboard/${dashboard.id}/sensors`,
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+            data: request
+          })
+          .then(function (result) {
+            reset()
+            $state.go('menu.dashboards', {}, {
+              reload: true
+            })
+          })
+          .catch(function (error) {
+            console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: error.data.message,
+            });
+          });
+      }
+      // get gateways
+      getGateways = () => {
+        $http({
+            method: 'GET',
+            url: server + '/devicegroups/mixed',
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+          })
+          .then(function (result) {
+            const allDevices = result.data.data;
+            $scope.devicesGroups = allDevices.devicegroups;
+            devices = allDevices.devices;
+            if (devices.length > 0) {
+              deviceUngroup = {
+                groupname: "Ungroup",
+                devices: devices
+              }
+              $scope.devicesGroups.push(deviceUngroup);
+            }
+            console.log("Gateways: ", $scope.devicesGroups);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }
+
+      getSensors = (gatewayId) => {
+        $http({
+            method: 'GET',
+            url: `${server}/gateways/${gatewayId}/sensors`,
+            headers: {
+              'Authorization': 'Bearer ' + $scope.data.token.access,
+              'Content-Type': 'application/json'
+            },
+          })
+          .then(function (result) {
+            $scope.sensors = result.data.data;
+            console.log("Sensors: ", $scope.sensors);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }
+
+      getChartTypes = () => {
+        $http({
+            method: 'GET',
+            url: server + '/dashboards/charts/types/sensor',
+
+          })
+          .then(function (result) {
+            $scope.chartTypes = result.data.data;
+            console.log("ChartTypes: ", $scope.chartTypes);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }
+
+      $scope.$on('$ionicView.enter', (e) => {
+        dashboard = $stateParams.dashboard;
+        reset();
+        getGateways();
+      });
     }
   ])

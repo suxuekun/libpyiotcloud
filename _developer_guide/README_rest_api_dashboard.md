@@ -31,7 +31,8 @@ SUMMARY:
         B. GETS                            - GET    /dashboards/dashboard/{dashboardId}/sensors
         C. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         D. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}/sensors/{chartId}
-        
+        E. COMPARE                         - GER    /dashboards/dashboard/{dashboardId}/sensors/comparison
+
     5. ChartTypes:
 
         A. GETS                            - GET    /dashboards/charts/types/{valueType}   
@@ -388,28 +389,47 @@ DETAIL:
         GET: /dashboards/dashboard/{dashboardId}/sensors
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
-            - type: string # sensor type
-            - gateway: string
-            - sensors: [string] # list id  # note: can use it for merge/compare with different sensors
+            - minutes: int  (optional,)
+            - timestamp: int (optional)
+            - points: int  (optional)
+
+            * Note:
+            - minutes: int  (default = 5 min, should convert hour or day to minutes)
+            - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
+            - points: int  (default = 30, Just use only 30 & 60 points)
+
+        Example request: /dashboards/dashboard/5ef998655de8966f2de5064e/sensors?minutes=5&points=30
+
         - Response:
         {
             'status': 'OK',
             'data': [
                 {
                     'id': string,
+                    'chartTypeId': int,
                     'device': {
                         'id': string, #  (gatewaydId/sensorId)
                         'name': string,
-                    },
-                    'chartTypeId': string,
-                    'dataset': [],
-                    'attribute': {
-                        'id': string , # (uuid)
-                        'systemNamne': string, # (can't modify)
+                        'source': string,
+                        'port': int,
                         'name': string,
-                        'lables': [],
-                        'filters': [],
+                        'sensorClass': string
                     },
+                    'dataset': [{
+                        {
+                            data: [float],
+                            lables: [int],
+                            low: [float],
+                            high: [float]
+                        }
+                    }],
+                    'readings: [
+                        {
+                            highest: float,
+                            lowest: float,
+                            value float
+                        }
+                    ]
                 }
             ],
             'message': 'Get charts sensors successfully'
@@ -419,38 +439,126 @@ DETAIL:
         - Request:
         GET: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
+        queryParams:
+            - minutes: int  (optional,)
+            - timestamp: int (optional)
+            - points: int  (optional)
+
+            * Note:
+            - minutes: int  (default = 5 min, should convert hour or day to minutes)
+            - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
+            - points: int  (default = 30, Just use only 30 & 60 points)
+
+        Example request: /dashboards/dashboard/5ef998655de8966f2de5064e/sensors/5efc2c38cc25092a0c952291?minutes=5&points=30
+        
+
         - Response:
         {
             'status': 'OK',
             'data': {
                 {
                     'id': string,
+                    'chartTypeId': int,
                     'device': {
                         'id': string, #  (gatewaydId/sensorId)
                         'name': string,
-                    },
-                    'chartTypeId': string,
-                    'dataset': [],
-                    'attribute': {
-                        'id': string , # (uuid)
-                        'systemNamne': string, # (can't modify)
+                        'source': string,
+                        'port': int,
                         'name': string,
-                        'lables': [],
-                        'filters': [],
+                        'sensorClass': string
                     },
+                    'dataset': [{
+                        {
+                            data: [float],
+                            lables: [int],
+                            low: [float],
+                            high: [float]
+                        }
+                    }],
+                    'readings: [
+                        {
+                            highest: float,
+                            lowest: float,
+                            value float
+                        }
+                    ]
                 }
             },
             'message': 'Get chart detail successfully'
         }
+        
 
         D. DELETE
         - Request:
         DELETE: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
+        queryParams:
+            - minutes: int  (optional,)
+            - timestamp: int (optional)
+            - points: int  (optional)
+
+            * Note:
+            - minutes: int  (default = 5 min, should convert hour or day to minutes)
+            - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
+            - points: int  (default = 30, Just use only 30 & 60 points)
         - Response:
         {
             'status': 'OK',
             'message': 'Delete successfully'
+        }
+
+        E. COMPARE
+
+        - Request:
+        GET: /dashboards/dashboard/{dashboardId}/sensors/comparison
+        headers: {'Authorization': 'Bearer ' + token.access}
+        queryParams:
+            - minutes: int  (optional,)
+            - timestamp: int (optional)
+            - points: int  (optional)
+            - chartsId: [string] (require, max = 3, min = 2)
+
+            * Note:
+            - minutes: int  (default = 5 min, should convert hour or day to minutes)
+            - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
+            - points: int  (default = 30, Just use only 30 & 60 points)
+        
+        Example request:
+        /dashboards/dashboard/5ef998655de8966f2de5064e/sensors/comparison?chartsId=5efc2c38cc25092a0c952291&chartsId=5efc3128c6c8bd539d036f28
+
+        - Response:
+        {
+            'status': 'OK',
+            'data': [
+                {
+                    'id': string,
+                    'chartTypeId': int,
+                    'device': {
+                        'id': string, #  (gatewaydId/sensorId)
+                        'name': string,
+                        'source': string,
+                        'port': int,
+                        'name': string,
+                        'sensorClass': string
+                    },
+                    'dataset': [{
+                        {
+                            data: [float],
+                            lables: [int],
+                            low: [float],
+                            high: [float]
+                        }
+                    }],
+                    'readings: [
+                        {
+                            highest: float,
+                            lowest: float,
+                            value float
+                        }
+                    ]
+                }
+            ],
+            'message': 'Get charts sensors successfully'
         }
 
     5. Charts type

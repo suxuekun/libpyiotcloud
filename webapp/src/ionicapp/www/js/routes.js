@@ -54,6 +54,17 @@ angular.module('app.routes', [])
         controller: 'addNewChartGatewayCtrl'
       })
 
+      .state('addNewChartSensor', {
+        url: 'dashboards/{dashboardId}/chart/new/sensor',
+        params: {
+          username: "",
+          token: "",
+          dashboard: {}
+        },
+        templateUrl: 'templates/dashboards/addNewChartSensor.html',
+        controller: 'addNewChartSensorCtrl'
+      })
+
       .state('menu.gateways', {
         url: '/page_devices',
         params: {

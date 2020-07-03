@@ -49,23 +49,23 @@
                           style="float:right; height: 40px;width: 20px;"
                           ng-model="selectedAttribute.id"
                           value="{{attribute.id}}">
-                </div>
-                <div class="row">
-                  <button id="addGateway-button55"
-                          ng-click="backToGatewayStep()"
-                          style="width: 40%;margin: auto; margin-top: 20px"
-                          ng-style="{'background-color': selectedColor}"
-                          class="button button-positive button-block">BACK</button>
-                  <button id="addGateway-button55"
-                          ng-click="nextToChartTypeStep()"
-                          style="width: 40%;margin: auto; margin-top: 20px"
-                          ng-style="{'background-color': selectedColor}"
-                          class="button button-positive button-block">NEXT</button>
-                </div>
+              </div>
+              <div class="row">
+                <button id="addGateway-button55"
+                        ng-click="backToGatewayStep()"
+                        style="width: 40%;margin: auto; margin-top: 20px"
+                        ng-style="{'background-color': selectedColor}"
+                        class="button button-positive button-block">BACK</button>
+                <button id="addGateway-button55"
+                        ng-click="nextToChartTypeStep()"
+                        style="width: 40%;margin: auto; margin-top: 20px"
+                        ng-style="{'background-color': selectedColor}"
+                        class="button button-positive button-block">NEXT</button>
+              </div>
           </div>
       </div>
       <div ng-show="currentStep == 2">
-          <div class="dashboard-container dashboard-border dashboard-round-border" >
+          <div class="dashboard-container dashboard-border dashboard-round-border">
               <h2>Type of Chart</h2>
               <div class="item item-body" ng-repeat="chartType in chartTypes">
                   <div class="dashboard-item-main-column">

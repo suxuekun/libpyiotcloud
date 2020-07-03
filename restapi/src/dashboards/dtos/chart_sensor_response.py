@@ -28,6 +28,6 @@ class ChartSensorReponse(Model):
     chartTypeId = IntType()
     device = ModelType(SensorResponse)
     dataset = ModelType(DatasetSensorResponse)
-    readings: ModelType(ReadingSensorResponse)
+    readings = ModelType(ReadingSensorResponse)
     
     
