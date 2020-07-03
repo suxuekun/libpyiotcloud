@@ -1402,6 +1402,7 @@ DETAILED:
 			// 
 			//    select a device and click download sensor data button.
 			//    you shall receive an email containing the link.
+			//    it can take seconds to minutes depending on the size of the sensor data.
 			//
 			// 10. if a device has 4 LDSUs with 4 sensors each => 16 sensors total 
 			//     then there will be 16 CSV files in the ZIP file

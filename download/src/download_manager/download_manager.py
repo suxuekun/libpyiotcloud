@@ -125,19 +125,25 @@ def generate_file(database_client, deviceid, uid, said, format, accuracy):
 
 def generate_files(database_client, deviceid, ldsus):
     threaded = True
+    max_threads = 4
     create_folder(deviceid)
 
-    if not threaded:
+    if not threaded or len(ldsus) > max_threads:
         for ldsu in ldsus:
             generate_file(database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]))
     else:
-        thr_list = []
-        for ldsu in ldsus:
-            thr1 = threading.Thread(target = generate_file, args = (database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]), ) )
-            thr1.start()
-            thr_list.append(thr1)
-        for thr in thr_list:
-            thr.join()
+        try:
+            thr_list = []
+            for ldsu in ldsus:
+                thr1 = threading.Thread(target = generate_file, args = (database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]), ) )
+                thr1.start()
+                thr_list.append(thr1)
+            for thr in thr_list:
+                thr.join()
+        except Exception as e:
+            print(e)
+            for ldsu in ldsus:
+                generate_file(database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]))
 
 def zipdir(path, ziph):
     for root, dirs, files in os.walk(path):
