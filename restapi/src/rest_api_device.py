@@ -199,14 +199,6 @@ class device:
             print("Exception init_chart_gateway_service().delete_by_deviceId")
             print(e)
 
-        # delete device subscription
-        try:
-            subscription = subscription_service.get_one({'deviceid':deviceid})
-            subscription_service.delete(subscription._id)
-        except Exception as e:
-            print("Exception subscription_service.delete")
-            print(e)
-
         # delete device notifications
         try:
             devices = self.database_client.get_devices(entityname)
