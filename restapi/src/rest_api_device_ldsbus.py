@@ -148,6 +148,7 @@ class device_ldsbus:
                         "sensors": sensors,
                         "actuators": []
                     })
+
                 #print(len(ldsbus))
                 #print(len(ldsbus[0]["ldsus"]))
                 #print(len(ldsbus[1]["ldsus"]))
