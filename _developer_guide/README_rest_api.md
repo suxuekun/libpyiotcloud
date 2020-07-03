@@ -1367,6 +1367,45 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+			//
+			// Downloading of device sensor datasets is now supported.
+			// -  a ZIP file containing CSV files for each sensor of each LDSU of the device is generated
+			// -  then uploaded to AWS S3 before sending an email containing the AWS S3 URL
+			// -  refer to DOWNLOAD DEVICE SENSOR DATA api
+			// 
+			// -  additional info:
+			// 1. current performance (local setup):
+			//    10K  data points across 16 sensors - 3 seconds
+			//    100K data points across 16 sensors - 8 seconds
+			//    1M   data points across 16 sensors - 31 seconds
+			//    to test more data points; can still be optimized
+			// 
+			// 2. the CSV file is just a 2-column table with timestamp and value
+			// 3. timestamp is the epoch time in seconds (no formatting done so that filesize doesn't become big)
+			// 4. value is formatted according to the corresponding sensor format and accuracy
+			// 5. the filename of the CSV file is <LDSUUUID>-<LDSUSAID>.csv
+			// 6. the filename of the ZIP file is <DEVICEID>.zip
+			// 7. if a device has 1 LDSU and that LDSU has 4 sensors, the zip file contains 4 CSV files.
+			//    all files are generated even when no data is available for specific sensors.
+			// 8. format of the email is below:
+			//    Hi <full name>,
+			// 
+			//    Sensor data for device Dev1 with UUID PH80XXRR0507208E is now available.
+			//    Click the link below to download.
+			//    https:// ft900-iot-portal.s3.amazonaws.com/sensordata/PH80XXRR0507208E.zip
+			// 
+			//    Best Regards,
+			//    Bridgetek Pte. Ltd.
+			// 
+			// 9. to test using web app, go to the OLD sensor dashboard page, 
+			//    (in the figma UI, this is located in the device subscription page)
+			// 
+			//    select a device and click download sensor data button.
+			//    you shall receive an email containing the link.
+			//
+			// 10. if a device has 4 LDSUs with 4 sensors each => 16 sensors total 
+			//     then there will be 16 CSV files in the ZIP file
+			//
 
 		U. CLEAR DEVICE SENSOR DATA
 		-  Request:
