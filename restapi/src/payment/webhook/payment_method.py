@@ -1,0 +1,5 @@
+'''
+braintree.WebhookNotification.Kind.GrantedPaymentMethodRevoked
+braintree.WebhookNotification.Kind.PaymentMethodRevokedByCustomer
+braintree.WebhookNotification.Kind.LocalPaymentCompleted
+'''
