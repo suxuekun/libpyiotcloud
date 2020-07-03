@@ -26,7 +26,7 @@ class ProrateResource(Resource,BaseResource):
         dto = self.to_valid_request_data(parameters)
         # created = informations.get_user_created_timestamp(request)
         query = self.filtered()
-        print('wtf')
+
         data,message = self.service.prorate(old_plan_id=dto.old_plan_id,new_plan_id=dto.new_plan_id,query=query,promocode=dto.promocode)
         res = self.to_api_data(data)
         if data:

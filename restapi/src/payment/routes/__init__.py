@@ -10,7 +10,7 @@ from payment.routes.prorate import ProrateResource
 from payment.routes.subscription import SubscriptionResource, SubscriptionListResource
 from payment.routes.token import TokenResource
 from payment.routes.transaction import TransactionListResource, TransactionResource
-from payment.webhook import test_dummy_webhook
+from payment.webhook import test_dummy_webhook, webbhook
 from shared.middlewares.default_middleware import default_middleware
 from shared.middlewares.request.permission.base import getRequest
 from shared.middlewares.request.permission.login import login_required
@@ -103,6 +103,14 @@ api.add_resource(CancelSubscriptionResource,'/cancel_subscription/',endpoint="ca
 # api.add_resource(PlanResource,'/plan/<id>/')
 # api.add_resource(OtherPlanResourced,'/plan/<int:id>/somthinbg/')
 
+'''
+-----------------------
+webhook
+-----------------------
+'''
+@payment_blueprint.route("/webhooks/", methods=['POST'],endpoint="webhooks")
+def payment_webhook():
+    return webbhook()
 
 '''
 TEST
@@ -111,4 +119,6 @@ TEST
 def test_dummy_webhook_api():
     test_dummy_webhook()
     return Response(status=200)
+
+
 
