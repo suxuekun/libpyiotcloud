@@ -45,7 +45,7 @@ class ChartSensorService:
             if sensor is None:
                 return Response.fail("This device was not existed")
 
-            if sensor["enabled"] == 0:
+            if sensor["enabled"] == 0:  
                 return Response.fail("This device should be enabled")
 
             dashboardEntity = self.dashboardRepository.getById(dashboardId)
