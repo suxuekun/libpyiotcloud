@@ -47,10 +47,15 @@ def handle_webhook(bt_signature,bt_payload):
     try:
         webhook = Webhook(data)
         webhook.validate()
-        webhook_repo.create(webhook.to_primitive())
+        webhook_id = webhook_repo.create(webhook.to_primitive())
+        '''
+        fire a handle in another thread
+        fire(webhook_id)
+        #TODO
+        '''
         return True
     except Exception as e:
-        print (e)
+        print(e)
         return None
     # '''
     # if handle immediately
