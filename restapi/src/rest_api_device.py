@@ -33,16 +33,18 @@ import re
 
 
 
-#CONFIG_SEPARATOR            = '/'
-#CONFIG_PREPEND_REPLY_TOPIC  = "server"
+CONFIG_SEPARATOR            = '/'
+CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
 
 
 class device:
 
-    def __init__(self, database_client, messaging_requests):
+    def __init__(self, database_client, messaging_requests, messaging_client, device_client):
         self.database_client = database_client
         self.messaging_requests = messaging_requests
+        self.messaging_client = messaging_client
+        self.device_client = device_client
 
 
     def _check_deviceid(self, deviceid):
@@ -199,13 +201,26 @@ class device:
             print("Exception init_chart_gateway_service().delete_by_deviceId")
             print(e)
 
-        # delete device notifications
+        # delete device subscription
         try:
-            devices = self.database_client.get_devices(entityname)
+            subscription_service.cleanup(deviceid)
+        except Exception as e:
+            print("Exception subscription_service.delete")
+            print(e)
+
+        # delete device notifications and configurations
+        devices = self.database_client.get_devices(entityname)
+        try:
             for devicex in devices:
                 self.database_client.update_device_notification_devicedelete_by_deviceid(devicex["deviceid"], devicename)
         except Exception as e:
             print("Exception update_device_notification_devicedelete_by_deviceid")
+            print(e)
+        try:
+            for devicex in devices:
+                self.database_client.update_device_peripheral_configuration_devicedelete_by_deviceid(devicex["deviceid"], devicename)
+        except Exception as e:
+            print("Exception update_device_peripheral_configuration_devicedelete_by_deviceid")
             print(e)
 
         # delete device from database
@@ -213,14 +228,6 @@ class device:
             self.database_client.delete_device_by_deviceid(deviceid)
         except Exception as e:
             print("Exception delete_device_by_deviceid")
-            print(e)
-
-        # delete device subscription
-        print('delete device subscription',deviceid)
-        try:
-            subscription_service.cleanup(deviceid)
-        except Exception as e:
-            print('error in delete device subscription', deviceid)
             print(e)
 
         # delete device from message broker
@@ -964,13 +971,19 @@ class device:
             return response, status.HTTP_400_BAD_REQUEST
 
 
-        # update device name in notifications
+        # update device name in notifications and configurations
+        devices = self.database_client.get_devices(entityname)
         try:
-            devices = self.database_client.get_devices(entityname)
             for devicex in devices:
                 self.database_client.update_device_notification_devicenamechange_by_deviceid(devicex["deviceid"], devicename, data["new_devicename"])
         except Exception as e:
             print("Exception update_device_notification_devicenamechange_by_deviceid")
+            print(e)
+        try:
+            for devicex in devices:
+                self.database_client.update_device_peripheral_configuration_devicenamechange_by_deviceid(devicex["deviceid"], devicename, data["new_devicename"])
+        except Exception as e:
+            print("Exception update_device_peripheral_configuration_devicenamechange_by_deviceid")
             print(e)
 
         # update device name in subscription
@@ -1829,4 +1842,152 @@ class device:
             msg['new_token'] = new_token
         response = json.dumps(msg)
         print('\r\n{} Sensor queried successful: {}\r\n{}\r\n'.format(xxx, username, response))
+        return response
+
+
+    ########################################################################################################
+    #
+    # DOWNLOAD DEVICE SENSOR DATA
+    #
+    # - Request:
+    #   POST /devices/device/DEVICENAME/sensordata
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    # CLEAR DEVICE SENSOR DATA
+    #
+    # - Request:
+    #   POST /devices/device/DEVICENAME/sensordata
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def download_device_sensor_data(self, devicename):
+
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get Device Sensor Data: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Download Device Sensor Data: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('download_device_sensor_data {} devicename={}'.format(username, devicename))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Download Device Sensor Data: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Download Device Sensor Data: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Download Device Sensor Data: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        if flask.request.method == 'POST':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Download Device Sensor Data: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
+            # check if device is registered
+            device = self.database_client.find_device(entityname, devicename)
+            if not device:
+                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+                print('\r\nERROR Download Device Sensor Data: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
+            # get device ldsus
+            ldsus = self.database_client.get_ldsus(username, devicename)
+            if len(ldsus) == 0:
+                response = json.dumps({'status': 'NG', 'message': 'No LDSU is registered'})
+                print('\r\nERROR Download Device Sensor Data: No LDSU is registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
+            # get name of user
+            name = None
+            info = self.database_client.get_user_info(token["access"])
+            if info:
+                # handle no family name
+                if 'given_name' in info:
+                    name = info['given_name']
+                if 'family_name' in info:
+                    if info['family_name'] != "NONE":
+                        name += " " + info['family_name']
+
+            # send to downloader manager
+            payload = {"name": name, "email": username, "devicename": device["devicename"], "ldsus": []}
+            for ldsu in ldsus:
+                numdevices = self.device_client.get_obj_numdevices(ldsu["descriptor"]["OBJ"])
+                for x in range(numdevices):
+                    descriptor = self.device_client.get_objidx(ldsu["descriptor"]["OBJ"], x)
+                    type = self.device_client.get_objidx_type(descriptor)
+                    format = self.device_client.get_objidx_format(descriptor)
+                    accuracy = self.device_client.get_objidx_accuracy(descriptor, x)
+                    payload["ldsus"].append({"UID": ldsu["UID"], "SAID": x, "FORMAT": format, "ACCURACY": accuracy})
+            try:
+                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + "download_device_sensor_data"
+                payload = json.dumps(payload)
+                self.messaging_client.publish(pubtopic, payload)
+            except:
+                pass
+
+            msg = {'status': 'OK', 'message': 'An email will be sent to you shortly once it is ready to download.'}
+
+        elif flask.request.method == 'DELETE':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Delete Device Sensor Data: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
+            # check if device is registered
+            device = self.database_client.find_device(entityname, devicename)
+            if not device:
+                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+                print('\r\nERROR Delete Device Sensor Data: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
+            self.database_client.delete_device_sensor_reading(entityname, devicename)
+            print("clear_device_sensor_data")
+            msg = {'status': 'OK', 'message': 'Sensor data deleted successfully.'}
+
+
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nSensor download triggered successful: {}\r\n{}\r\n'.format(username, response))
         return response

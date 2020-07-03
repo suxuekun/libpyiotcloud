@@ -121,24 +121,64 @@ class device_ldsbus:
                     print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            # get ldsus and sensors in database
-            ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
-            sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+            # check if device is registered
+            deviceinfo = self.database_client.find_device(entityname, devicename)
+            if not deviceinfo:
+                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+                print('\r\nERROR Get LDSBUS: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
 
-            # get the sensor reading for all enabled sensors
-            for sensor in sensors:
-                if sensor["enabled"]:
-                    reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
-                    if reading:
-                        sensor["readings"] = reading
+            #portnumber = "0"
+            if portnumber == "0":
+                ldsbus = []
+                for x in range(3):
+                    # get ldsus and sensors in database
+                    ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, str(x+1))
+                    sensors = self.database_client.get_sensors_by_port(entityname, devicename, str(x+1))
 
-            ldsbus = [
-                {
-                    "ldsus": ldsus,
-                    "sensors": sensors,
-                    "actuators": [],
-                }
-            ]
+                    # get the sensor reading for all enabled sensors
+                    for sensor in sensors:
+                        if sensor["enabled"]:
+                            reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
+                            if reading:
+                                sensor["readings"] = reading
+
+                    ldsbus.append({
+                        "ldsus": ldsus,
+                        "sensors": sensors,
+                        "actuators": []
+                    })
+
+                #print(len(ldsbus))
+                #print(len(ldsbus[0]["ldsus"]))
+                #print(len(ldsbus[1]["ldsus"]))
+                #print(len(ldsbus[2]["ldsus"]))
+
+            elif portnumber == "1" or portnumber == "2" or portnumber == "3":
+                # get ldsus and sensors in database
+                ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
+                sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+
+                # get the sensor reading for all enabled sensors
+                for sensor in sensors:
+                    if sensor["enabled"]:
+                        reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
+                        if reading:
+                            sensor["readings"] = reading
+
+                ldsbus = [
+                    {
+                        "ldsus": ldsus,
+                        "sensors": sensors,
+                        "actuators": []
+                    }
+                ]
+
+            else:
+                response = json.dumps({'status': 'NG', 'message': 'Port number is not valid'})
+                print('\r\nERROR Get LDSBUS: Port number is not valid [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
             msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.', 'ldsbus': ldsbus}
 
         elif flask.request.method == 'DELETE':

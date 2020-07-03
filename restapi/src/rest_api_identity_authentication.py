@@ -1453,6 +1453,23 @@ class identity_authentication:
             givenname = names[0]
             familyname = "NONE"
 
+
+        # when changing number (and MFA is enabled), disable MFA first
+        try:
+            info = self.database_client.get_user_info(token['access'])
+            if info:
+                if info.get("mfa_enabled") is not None:
+                    if info["mfa_enabled"]:
+                        # mfa is enabled
+                        if info.get("phone_number") is not None:
+                            if info["phone_number"] != phonenumber:
+                                # phone number has been changed
+                                # disable MFA
+                                self.database_client.enable_mfa(token['access'], False)
+        except:
+            pass
+
+
         # change user
         result = self.database_client.update_user(token["access"], phonenumber, givenname, familyname)
         if not result:

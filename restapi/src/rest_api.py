@@ -697,6 +697,15 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
     return g_device.get_xxx_sensor(devicename, xxx, number, sensorname)
 
 
+@app.route('/devices/device/<devicename>/sensordata', methods=['POST'])
+def download_device_sensor_data(devicename):
+    return g_device.download_device_sensor_data(devicename)
+
+@app.route('/devices/device/<devicename>/sensordata', methods=['DELETE'])
+def clear_device_sensor_data(devicename):
+    return g_device.download_device_sensor_data(devicename)
+
+
 g_device_list = [
     { "name": "GET DEVICES",                  "func": get_device_list,           "api": "/devices",                                "method": "GET"    },
     { "name": "GET DEVICES (FILTERED)",       "func": get_device_list_filtered,  "api": "/devices/filter/<filter>",                "method": "GET"    },
@@ -717,6 +726,9 @@ g_device_list = [
     { "name": "REGISTER PERIPHERAL SENSOR",   "func": register_xxx_sensor,       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "POST"   },
     { "name": "UNREGISTER PERIPHERAL SENSOR", "func": register_xxx_sensor,       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "DELETE" },
     { "name": "GET PERIPHERAL SENSOR",        "func": get_xxx_sensor,            "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "GET"    },
+
+    { "name": "DOWNLOAD DEVICE SENSOR DATA",  "func": download_device_sensor_data, "api": "/devices/device/<devicename>/sensordata", "method": "POST"   },
+    { "name": "CLEAR DEVICE SENSOR DATA",     "func": clear_device_sensor_data,    "api": "/devices/device/<devicename>/sensordata", "method": "DELETE" },
 ]
 
 
@@ -1045,7 +1057,7 @@ def initialize():
     g_device_otaupdates            = device_otaupdates(g_database_client, g_storage_client, g_messaging_requests)
     g_device_hierarchies           = device_hierarchies(g_database_client, g_messaging_requests)
     g_device_histories             = device_histories(g_database_client)
-    g_device                       = device(g_database_client, g_messaging_requests)
+    g_device                       = device(g_database_client, g_messaging_requests, g_messaging_client, g_device_client)
     g_device_ldsbus                = device_ldsbus(g_database_client, g_messaging_requests, g_device_client)
     g_device_peripheral_properties = device_peripheral_properties(g_database_client, g_messaging_requests)
     g_other_stuffs                 = other_stuffs(g_database_client, g_storage_client)

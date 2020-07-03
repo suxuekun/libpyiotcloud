@@ -119,6 +119,11 @@ SUMMARY:
 		R. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
 		S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
 
+		//
+		// device-sensor data
+		T. DOWNLOAD DEVICE SENSOR DATA    - POST   /devices/device/DEVICENAME/sensordata
+		U. CLEAR DEVICE SENSOR DATA       - DELETE /devices/device/DEVICENAME/sensordata
+
 
 	4. Device group registration and management APIs
 
@@ -1354,6 +1359,64 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // active is 1 or 0 to indicate if online/offline or enabled/disabled
 
+
+		T. DOWNLOAD DEVICE SENSOR DATA
+		-  Request:
+		   POST /devices/device/DEVICENAME/sensordata
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+			//
+			// Downloading of device sensor datasets is now supported.
+			// -  a ZIP file containing CSV files for each sensor of each LDSU of the device is generated
+			// -  then uploaded to AWS S3 before sending an email containing the AWS S3 URL
+			// -  refer to DOWNLOAD DEVICE SENSOR DATA api
+			// 
+			// -  additional info:
+			// 1. current performance (local setup):
+			//    10K  data points across 16 sensors - 3 seconds
+			//    100K data points across 16 sensors - 8 seconds
+			//    1M   data points across 16 sensors - 31 seconds
+			//    to test more data points; can still be optimized
+			// 
+			// 2. the CSV file is just a 2-column table with timestamp and value
+			// 3. timestamp is the epoch time in seconds (no formatting done so that filesize doesn't become big)
+			// 4. value is formatted according to the corresponding sensor format and accuracy
+			// 5. the filename of the CSV file is <LDSUUUID>-<LDSUSAID>.csv
+			// 6. the filename of the ZIP file is <DEVICEID>.zip
+			// 7. if a device has 1 LDSU and that LDSU has 4 sensors, the zip file contains 4 CSV files.
+			//    all files are generated even when no data is available for specific sensors.
+			// 8. format of the email is below:
+			//    Hi <full name>,
+			// 
+			//    Sensor data for device Dev1 with UUID PH80XXRR0507208E is now available.
+			//    Click the link below to download.
+			//    https:// ft900-iot-portal.s3.amazonaws.com/sensordata/PH80XXRR0507208E.zip
+			// 
+			//    Best Regards,
+			//    Bridgetek Pte. Ltd.
+			// 
+			// 9. to test using web app, go to the OLD sensor dashboard page, 
+			//    (in the figma UI, this is located in the device subscription page)
+			// 
+			//    select a device and click download sensor data button.
+			//    you shall receive an email containing the link.
+			//    it can take seconds to minutes depending on the size of the sensor data.
+			//
+			// 10. if a device has 4 LDSUs with 4 sensors each => 16 sensors total 
+			//     then there will be 16 CSV files in the ZIP file
+			//
+
+		U. CLEAR DEVICE SENSOR DATA
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/sensordata
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+
 	4. Device group registration and management APIs
 
 		A. GET DEVICE GROUPS
@@ -1861,24 +1924,26 @@ DETAILED:
 		            }
 		        }
 		   //
-		   // TEMPERATURE class
+		   // TEMPERATURE/HUMIDITY/AMBIENTLIGHT/MOTIONSENSOR/CO2GAS/VOCGAS class
 		   data: {
 		           "opmode": int,
-		           "mode": int, 
-		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
-		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "enable": boolean}, 
-		           "notification": json_obj,
-		      }
-		   //
-		   // HUMIDITY class
-		   data: {
-		           "opmode": int,
-		           "mode": int, 
-		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
-		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "enable": boolean}, 
-		           "notification": json_obj,
+		           "mode": int,              // single threshold, dual threshold, continuous
+		           "threshold": {
+		               "value": int,         // for single threshold mode
+		               "min": int,           // for dual threshold mode
+		               "max": int,           // for dual threshold mode
+		               "activate": int       // for dual threshold mode
+		           }, 
+		           "alert": {
+		               "type": int, 
+		               "period": int
+		           }, 
+		           "hardware": {             // for continuous mode
+		               'enable': boolean
+		               'recipients': string, // can be multiple items separated by comma
+		               'isgroup': boolean    // true if all recipients are device groups, false if all recipients are devices
+		           }, 
+		           "notification": json_obj, // see above
 		      }
 		   //
 		   //   mode is an index to the list of modes

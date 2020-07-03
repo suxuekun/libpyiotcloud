@@ -48,6 +48,11 @@ class device_peripheral_properties:
         recipients = email["recipients"]
         recipients = recipients.replace(" ", "").split(",")
 
+        # check for duplicates
+        if len(recipients) != len(set(recipients)):
+            print("some duplicates in the list {}".format(recipients))
+            return False
+
         # check if the emails are valid
         for recipient in recipients:
             found = False
@@ -68,6 +73,11 @@ class device_peripheral_properties:
         # mobile is enabled, so check the recipients
         recipients = mobile["recipients"]
         recipients = recipients.replace(" ", "").split(",")
+
+        # check for duplicates
+        if len(recipients) != len(set(recipients)):
+            print("some duplicates in the list {}".format(recipients))
+            return False
 
         # check if the numbers are valid
         for recipient in recipients:
@@ -97,6 +107,11 @@ class device_peripheral_properties:
         recipients = modem["recipients"]
         recipients = recipients.replace(" ", "").split(",")
 
+        # check for duplicates
+        if len(recipients) != len(set(recipients)):
+            print("some duplicates in the list {}".format(recipients))
+            return False
+
         if isgroup == False:
             # check if the device recipients are valid
             devices = self.database_client.get_devices(entityname)
@@ -124,6 +139,82 @@ class device_peripheral_properties:
 
         return True
 
+    def is_configuration_valid(self, configuration, entityname):
+        mode = configuration["mode"]
+
+        if configuration.get("alert") is None:
+            return False
+        if configuration["alert"].get("type") is None:
+            return False
+        if configuration["alert"].get("period") is None:
+            return False
+
+        if mode == 0:
+            if configuration.get("threshold") is None:
+                return False
+            if configuration["threshold"].get("value") is None:
+                return False
+
+        elif mode == 1:
+            if configuration.get("threshold") is None:
+                return False
+            if configuration["threshold"].get("min") is None:
+                return False
+            if configuration["threshold"].get("max") is None:
+                return False
+            if configuration["threshold"].get("activate") is None:
+                return False
+
+        elif mode == 2:
+            if configuration.get("hardware") is None:
+                return False
+
+            if configuration["hardware"].get("enable") is None:
+                return False
+            if not configuration["hardware"]["enable"]:
+                return True
+            if configuration["hardware"].get("recipients") is None:
+                return False
+
+            # hardware is enabled, so check the recipients
+            isgroup = False
+            if configuration["hardware"].get("isgroup") is not None:
+                isgroup = configuration["hardware"]["isgroup"]
+
+            recipients = configuration["hardware"]["recipients"]
+            recipients = recipients.replace(" ", "").split(",")
+
+            # check for duplicates
+            if len(recipients) != len(set(recipients)):
+                print("some duplicates in the list {}".format(recipients))
+                return False
+
+            if isgroup == False:
+                # check if the device recipients are valid
+                devices = self.database_client.get_devices(entityname)
+                for recipient in recipients:
+                    found = False
+                    for device in devices:
+                        if recipient == device["devicename"]:
+                            found = True
+                            break
+                    if not found:
+                        print("device {} not found".format(recipient))
+                        return False
+            else:
+                # check if the devicegroup recipients are valid
+                devicegroups = self.database_client.get_devicegroups(entityname)
+                for recipient in recipients:
+                    found = False
+                    for devicegroup in devicegroups:
+                        if recipient == devicegroup["groupname"]:
+                            found = True
+                            break
+                    if not found:
+                        print("devicegroup {} not found".format(recipient))
+                        return False
+
+        return True
 
     #
     # GET UART PROPERTIES
@@ -502,8 +593,12 @@ class device_peripheral_properties:
             return response, status.HTTP_401_UNAUTHORIZED
         if not self.is_device_list_valid(notification, entityname):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the device/devicegroup is not valid. All device/devicegroup recipients should be valid.'})
-            print('\r\nERROR Set Uart: Device/device group list is not valid [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
+            print('\r\nERROR Set Peripheral Sensor: Device/device group list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_404_NOT_FOUND
+        if not self.is_configuration_valid(data, entityname):
+            response = json.dumps({'status': 'NG', 'message': 'Configuration is not valid.'})
+            print('\r\nERROR Set Peripheral Sensor: Configuration is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
 
 
         # set to disabled and configured

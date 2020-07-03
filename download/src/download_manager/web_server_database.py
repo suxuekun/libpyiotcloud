@@ -3,7 +3,7 @@ import hmac
 import hashlib
 import datetime
 import random
-from sensor_config import config
+from download_config import config
 from pymongo import MongoClient
 #from web_server_cognito_client import cognito_client
 
@@ -217,6 +217,8 @@ class database_client:
     def get_sensor_reading_dataset(self, username, devicename, source, number):
         return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, number)
 
+    def get_sensor_reading_dataset_by_deviceid(self, deviceid, source, number):
+        return self._devices.get_sensor_reading_dataset_by_deviceid(deviceid, source, number)
 
     ##########################################################
     # sensors
@@ -809,7 +811,7 @@ class database_client_mongodb:
         dataset = []
         sensorreadings = self.get_sensorreadings_dataset_document()
         if sensorreadings:
-            readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'number': number}, {'timestamp': 1, 'sensor_readings': 1})
+            readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'number': number}, {'timestamp': 1, 'value': 1})
             for sensorreading in readings:
                 sensorreading.pop('_id')
                 dataset.append(sensorreading)

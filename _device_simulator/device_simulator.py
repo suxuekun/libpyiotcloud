@@ -34,6 +34,11 @@ CONFIG_USE_AMQP = False
 # global variables
 ###################################################################################
 
+# generate and store cached sensor values to cloud
+CONFIG_TEST_CACHED_SENSOR_VALUES = False
+CONFIG_TEST_CACHED_FIRST_LDSU_ONLY = True
+CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR = 60
+
 # query backend to compute device password
 CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD = True
 
@@ -271,6 +276,7 @@ API_STATUS_NOTIFICATION          = "status_notification"
 API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING       = "req_sensor_reading"
 API_PUBLISH_SENSOR_READING       = "pub_sensor_reading"
+API_STORE_SENSOR_READING         = "str_sensor_reading"
 
 # heartbeat
 API_PUBLISH_HEARTBEAT            = "pub_heartbeat"
@@ -390,6 +396,7 @@ def printf_json(json_object, label=None):
 def publish(topic, payload, debug=True):
     payload = json.dumps(payload)
     g_messaging_client.publish(topic, payload, debug)
+    printf(len(payload))
 
 def generate_pubtopic(subtopic):
     return CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + subtopic
@@ -2274,6 +2281,16 @@ class TimerThread(threading.Thread):
             #menos_publish(MENOS_MOBILE)
 
     def run(self):
+    
+        # Generate and send cached sensor values to cloud
+        if CONFIG_TEST_CACHED_SENSOR_VALUES:
+            time.sleep(1)
+            if not CONFIG_TEST_CACHED_FIRST_LDSU_ONLY and CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR > 10000:
+                gen_and_store_cached_ldsu_sensor_data()
+            else:
+                cached_values = gen_cached_ldsu_sensor_data()
+                store_cached_ldsu_sensor_data(cached_values)
+
         #printf("")
         #printf("TimerThread {}".format(g_messaging_client.is_connected()))
         while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
@@ -3168,6 +3185,129 @@ def init_ldsu_properties():
         g_ldsu_properties[source] = []
         for device in range(numdevices):
             g_ldsu_properties[source].append({ 'enabled': 0, 'mode': 0 })
+
+
+###################################################################################
+# Cached sensor data
+###################################################################################
+
+# Generate cached LDSU sensor data
+def gen_cached_ldsu_sensor_data():
+    print("generating data...")
+    cached_values = []
+    num_points = CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR
+    end_time = int(time.time())
+    beg_time = end_time - (g_timer_thread_timeout * num_points)
+
+    # generate cached values for all device LDSUs    
+    ldsu_keys = list(g_ldsu_properties.keys())
+    for ldsu_key in ldsu_keys:
+        # get obj        
+        obj = None
+        for ldsu_descriptor in g_ldsu_descriptors:
+            if ldsu_descriptor["UID"] == ldsu_key:
+                obj = ldsu_descriptor["OBJ"]
+                break
+                
+        # generate timestamps and values
+        timestamps = []
+        values = []
+        offset = 0
+        for x in range(num_points):
+            offset += g_timer_thread_timeout
+            timestamps.append(beg_time+offset)
+            values_ldsu = []
+            numdevices = g_device_client.get_obj_numdevices(obj)
+            for number in range(numdevices):
+                descriptor = g_device_client.get_objidx(obj, number)
+                min,max = g_device_client.get_objidx_minmax(descriptor, 0)
+                format = g_device_client.get_objidx_format(descriptor)
+                accuracy = g_device_client.get_objidx_accuracy(descriptor)
+                value = get_random_data_ex(format, int(accuracy), int(min), int(max))
+                values_ldsu.append(str(value))
+            values.append(values_ldsu)
+
+        # form the cached value
+        cached_value = {
+            "UID": ldsu_key,
+            "TS": timestamps,
+            "SNS": values
+        }
+        cached_values.append(cached_value)
+
+        if CONFIG_TEST_CACHED_FIRST_LDSU_ONLY:
+            break
+
+    #printf(cached_values)
+    print("generating data... DONE!")
+    return cached_values
+
+# Store cached LDSU sensor data to cloud
+def store_cached_ldsu_sensor_data(cached_values):
+    print("sending data...")
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_STORE_SENSOR_READING)
+    payload = {"cached": cached_values}
+    #printf_json(payload)
+    publish(topic, payload, debug=False)
+    print("sending data... DONE!")
+
+# Generate and send cached LDSU sensor data
+def gen_and_store_cached_ldsu_sensor_data():
+    print("generating and sending data...")
+    cached_values = []
+    num_points = CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR
+    end_time = int(time.time())
+    beg_time = end_time - (g_timer_thread_timeout * num_points)
+
+    # generate cached values for all device LDSUs
+    ldsu_keys = list(g_ldsu_properties.keys())
+    for ldsu_key in ldsu_keys:
+        # get obj
+        obj = None
+        for ldsu_descriptor in g_ldsu_descriptors:
+            if ldsu_descriptor["UID"] == ldsu_key:
+                obj = ldsu_descriptor["OBJ"]
+                break
+
+        # generate timestamps and values
+        timestamps = []
+        values = []
+        offset = 0
+        for x in range(num_points):
+            offset += g_timer_thread_timeout
+            timestamps.append(beg_time+offset)
+            values_ldsu = []
+            numdevices = g_device_client.get_obj_numdevices(obj)
+            for number in range(numdevices):
+                descriptor = g_device_client.get_objidx(obj, number)
+                min,max = g_device_client.get_objidx_minmax(descriptor, 0)
+                format = g_device_client.get_objidx_format(descriptor)
+                accuracy = g_device_client.get_objidx_accuracy(descriptor)
+                value = get_random_data_ex(format, int(accuracy), int(min), int(max))
+                values_ldsu.append(str(value))
+            values.append(values_ldsu)
+
+        # form the cached value
+        cached_value = {
+            "UID": ldsu_key,
+            "TS": timestamps,
+            "SNS": values
+        }
+        cached_values.append(cached_value)
+
+        # send the data
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_STORE_SENSOR_READING)
+        payload = {"cached": cached_values}
+        #printf_json(payload)
+        publish(topic, payload, debug=False)
+
+        if CONFIG_TEST_CACHED_FIRST_LDSU_ONLY:
+            break
+
+        cached_values.clear()
+
+    print("generating and sending data... DONE!")
+    return True
 
 
 ###################################################################################

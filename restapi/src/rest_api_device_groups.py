@@ -308,13 +308,19 @@ class device_groups:
                 return response, status.HTTP_404_NOT_FOUND
 
 
-            # delete device notifications
+            # delete device notifications and configurations
+            devices = self.database_client.get_devices(entityname)
             try:
-                devices = self.database_client.get_devices(entityname)
                 for devicex in devices:
                     self.database_client.update_device_notification_groupdelete_by_deviceid(devicex["deviceid"], devicegroupname)
             except Exception as e:
                 print("Exception update_device_notification_groupdelete_by_deviceid")
+                print(e)
+            try:
+                for devicex in devices:
+                    self.database_client.update_device_peripheral_configuration_groupdelete_by_deviceid(devicex["deviceid"], devicegroupname)
+            except Exception as e:
+                print("Exception update_device_peripheral_configuration_groupdelete_by_deviceid")
                 print(e)
 
             # delete device group
@@ -673,13 +679,19 @@ class device_groups:
             return response, status.HTTP_409_CONFLICT
 
 
-        # update group name in notifications
+        # update group name in notifications and configurations
+        devices = self.database_client.get_devices(entityname)
         try:
-            devices = self.database_client.get_devices(entityname)
             for devicex in devices:
                 self.database_client.update_device_notification_groupnamechange_by_deviceid(devicex["deviceid"], devicegroupname, data["new_groupname"])
         except Exception as e:
             print("Exception update_device_notification_groupnamechange_by_deviceid")
+            print(e)
+        try:
+            for devicex in devices:
+                self.database_client.update_device_peripheral_configuration_groupnamechange_by_deviceid(devicex["deviceid"], devicegroupname, data["new_groupname"])
+        except Exception as e:
+            print("Exception update_device_peripheral_configuration_groupnamechange_by_deviceid")
             print(e)
 
         # update the device group name

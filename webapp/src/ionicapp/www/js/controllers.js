@@ -8713,36 +8713,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
     
-    $scope.delete_all_device_sensors = function(flag=false) {
-        //
-        // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
-        //
-        // - Request:
-        //   DELETE /devices/sensors/readings/dataset
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: {'devicename': string}
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'DELETE',
-            url: server + '/devices/sensors/readings/dataset',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: {'devicename': $scope.data.devicename}
-        })
-        .then(function (result) {
-            console.log(result.data);
-            
-            if (flag === true) {
-                $scope.submitQuery();
-            }
-        })
-        .catch(function (error) {
-            $scope.handle_error(error);
-        }); 
-    };
 
     $scope.get_all_sensor_configurationsummary = function() {
         //
@@ -9036,6 +9006,99 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.submitQuery(clear=false);
     };
 
+
+    $scope.delete_all_device_sensors = function(flag=false) {
+        //
+        // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
+        //
+        // - Request:
+        //   DELETE /devices/sensors/readings/dataset
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'devicename': string}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/sensors/readings/dataset',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: {'devicename': $scope.data.devicename}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            if (flag === true) {
+                $scope.submitQuery();
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    $scope.delete_device_sensor_data = function(flag=false) {
+        //
+        // DELETE DEVICE SENSOR DATA
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/sensordata
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'devicename': string}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/sensordata',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            if (flag === true) {
+                $scope.submitQuery();
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    $scope.download_device_sensor_data = function() {
+        //
+        // DOWNLOAD DEVICE SENSOR DATA
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/sensordata
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'devicename': string}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/sensordata',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({ title: 'Sensor Data Download', template: result.data.message, buttons: [{text: 'OK', type: 'button-positive'}] });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    $scope.submitDownload = function() {
+        $scope.download_device_sensor_data();
+    };
+    
     $scope.submitDelete = function() {
 
         var template;
@@ -9068,7 +9131,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.submitDeleteAction = function() {
         //$scope.delete_all_device_sensors_enabled_input();
-        $scope.delete_all_device_sensors(flag=true);
+        if ($scope.data.devicename === "All devices") {
+            $scope.delete_all_device_sensors(flag=true);
+        }
+        else {
+            $scope.delete_device_sensor_data(flag=true);
+        }
     };
 
     $scope.submitRefresh = function() {
@@ -15780,8 +15848,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -15841,7 +15910,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -16299,8 +16368,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -16360,7 +16430,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -16818,8 +16888,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -16879,7 +16950,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -17337,8 +17408,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -17398,7 +17470,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -17856,8 +17928,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -17917,7 +17990,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -18375,8 +18448,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -18436,7 +18510,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }

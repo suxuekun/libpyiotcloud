@@ -48,7 +48,8 @@
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_button_fifth_ex">Refresh automatically</ion-toggle>
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle24" ng-model="big_charts" ng-change="changeBigChart(big_charts)" class="widget_button_fifth_ex">Big charts</ion-toggle>
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle27" ng-model="online_charts" ng-change="changeOnlineChart(online_charts)" class="widget_button_fifth_ex">Online charts</ion-toggle>
-      <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block button-outline widget_whole">Reset values</button>
+      <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-assertive button-block button-outline widget_whole">Clear sensor data</button>
+      <button id="sensorDashboard-button247" ng-click="submitDownload()" ng-disabled="refresh_automatically" class="button button-positive button-block button-outline widget_whole">Download sensor data</button>
     </form>
     <div id="sensorDashboard-container22" ng-show="sensors.length == 0">
       <div id="sensorDashboard-markdown441" class="show-list-numbers-and-dots">

@@ -3,6 +3,16 @@ import os
 
 class config:
 
+    # AWS S3 and P inpoint settings
+    CONFIG_ACCESS_KEY                           = os.environ["AWS_ACCESS_KEY_ID"]
+    CONFIG_SECRET_KEY                           = os.environ["AWS_SECRET_ACCESS_KEY"]
+    CONFIG_REGION                               = os.environ["AWS_S3_REGION"]
+    CONFIG_BUCKET                               = os.environ["AWS_S3_BUCKET"]
+    CONFIG_PINPOINT_ID                          = os.environ["AWS_PINPOINT_ID"]
+    CONFIG_PINPOINT_REGION                      = os.environ["AWS_PINPOINT_REGION"]
+    CONFIG_PINPOINT_EMAIL                       = os.environ["AWS_PINPOINT_EMAIL"]
+    CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATA    = "Bridgetek IoT Modem device sensor data"
+
     # General settings
     CONFIG_DEBUG_SENSOR_READING   = False
 
