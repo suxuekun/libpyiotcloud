@@ -520,7 +520,7 @@ DETAIL:
                 "end": int,                           //end timestamp
                 "name": string,
                 "type": string,                       // 'discount' / 'p_discount' / '' 
-                "value": string,                      // a decimal string , if percentage , '0.05' = 5%
+                "value": string,                      // a decimal string , if percentage , '5.0' = 5%
                 "sms": string,                        // sms addon
                 "email": string,                      // email addon
                 "notification": string,               // notification addon
@@ -580,7 +580,7 @@ DETAIL:
                 "end": int,                           //end timestamp
                 "name": string,
                 "type": string,                       // 'discount' / 'p_discount' / '' 
-                "value": string,                      // a decimal string , if percentage , '0.05' = 5%
+                "value": string,                      // a decimal string , if percentage , '5.0' = 5%
                 "sms": string,                        // sms addon
                 "email": string,                      // email addon
                 "notification": string,               // notification addon
@@ -628,11 +628,11 @@ DETAIL:
         - Request:
         GET: /payment/prorate/calc/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        data: { // current PLAN id , and change to PLAN id
-            "new_plan_id": 'Supersize50',
-            "old_plan_id": 'Basic10',
-            "promocode": 'the code' // if have
-        }
+        queryParams:
+            "new_plan_id": string,                //example: 'Supersize50',
+            "old_plan_id": string,                //example: 'Basic10',
+            "promocode": string                   //example: 'the code' // if have
+        
         - Response:
         {
           "status": "OK",
