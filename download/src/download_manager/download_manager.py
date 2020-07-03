@@ -124,9 +124,20 @@ def generate_file(database_client, deviceid, uid, said, format, accuracy):
     write_file(deviceid, "{}-{}".format(uid, said), contents)
 
 def generate_files(database_client, deviceid, ldsus):
+    threaded = True
     create_folder(deviceid)
-    for ldsu in ldsus:
-        generate_file(database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]))
+
+    if not threaded:
+        for ldsu in ldsus:
+            generate_file(database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]))
+    else:
+        thr_list = []
+        for ldsu in ldsus:
+            thr1 = threading.Thread(target = generate_file, args = (database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]), ) )
+            thr1.start()
+            thr_list.append(thr1)
+        for thr in thr_list:
+            thr.join()
 
 def zipdir(path, ziph):
     for root, dirs, files in os.walk(path):
