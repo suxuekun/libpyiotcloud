@@ -448,7 +448,7 @@ angular.module('app.dashboardsCtrl', [])
       };
 
       getChartSensors = () => {
-        let url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors?minutes=60&points=30`
+        let url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors?minutes=5&points=30`
         $http({
             method: 'GET',
             url: url,
@@ -728,6 +728,8 @@ angular.module('app.dashboardsCtrl', [])
       $scope.devicesGroups = [];
       $scope.sensors = [];
       $scope.chartTypes = [];
+      let cachedSensors = [];
+
 
       reset = () => {
         $scope.currentStep = 0;
@@ -735,10 +737,12 @@ angular.module('app.dashboardsCtrl', [])
           'deviceid': '',
           'devicename': ''
         };
+
         $scope.selectedSensor = {
           'id': '',
           'sensorname': ''
         };
+
         $scope.selectedChartType = {
           'id': '',
           'name': ''
@@ -767,13 +771,14 @@ angular.module('app.dashboardsCtrl', [])
           });
           return;
         }
+        $scope.sensors = [];
         getChartTypes();
         $scope.currentStep = 2;
       }
 
-
       $scope.backToSelectionSensorStep = () => {
         $scope.currentStep = 1;
+        $scope.sensors = cachedSensors;
       }
 
       $scope.backToGatewayStep = () => {
@@ -856,6 +861,7 @@ angular.module('app.dashboardsCtrl', [])
           .then(function (result) {
             $scope.sensors = result.data.data;
             console.log("Sensors: ", $scope.sensors);
+            cachedSensors = $scope.sensors;
           })
           .catch(function (error) {
             console.log(error);

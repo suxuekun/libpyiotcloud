@@ -45,7 +45,7 @@ class ChartSensorService:
             if sensor is None:
                 return Response.fail("This device was not existed")
 
-            if sensor["enabled"] != 0:
+            if sensor["enabled"] == 0:
                 return Response.fail("This device should be enabled")
 
             dashboardEntity = self.dashboardRepository.getById(dashboardId)
@@ -134,7 +134,7 @@ class ChartSensorService:
             sensors = self.sensorRepository.gets_with_ids(sensorIds)
             if len(sensors) == 0:
                 return Response.fail("These sensors device are not existed")
-                
+
             firstSensor = sensors[0]
             i = 1
             while i < len(sensors) - 1:
