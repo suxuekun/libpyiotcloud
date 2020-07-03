@@ -53,9 +53,8 @@ class PaymentService():
 
     def _assign_draft(self,subscription,plan):
         draft = NextSubscription()
-        draft.bt_sub = str(ObjectId())
         draft.plan = plan
-        next_month_first_day = timestamp_util.get_next_month_first_day()
+        # next_month_first_day = timestamp_util.get_next_month_first_day()
         draft.start = timestamp_util.get_next_month_first_day_timestamp()
         draft.end = timestamp_util.get_last_day_of_month_timestamp(timestamp_util.get_next_month_first_day())
         draft.validate()
@@ -77,11 +76,13 @@ class PaymentService():
         prorate_dict,_ = self._prorate_without_gst(subscription.next.plan,plan,promocode)
         prorate = prorate_dict.get('prorate')
         self._assign_draft(subscription, plan)
+        subscription.draft.bt_sub = str(ObjectId())
         option = {
             'id':subscription.draft.get_braintree_subscription_id(),
             'payment_method_token': payment_method_token,
             'plan_id': plan.bt_plan_id,
             'price': plan.get_price_str(gst),
+            'first_billing_date':timestamp_util.get_next_month_first_day().date()
         }
         print('new_sub',option,subscription.draft)
         bt_subscription = payment_client.create_subscription(option)
@@ -114,6 +115,7 @@ class PaymentService():
         prorate = prorate_dict.get('prorate')
         sub_id = subscription.next.get_braintree_subscription_id()
         self._assign_draft(subscription, plan)
+        subscription.draft.bt_sub = subscription.next.bt_sub
         option = {
             'payment_method_token': payment_method_token,
             'plan_id': plan.bt_plan_id,
@@ -134,6 +136,7 @@ class PaymentService():
     def _downgrade_subscription(self,payment_method_token,subscription,plan):
         sub_id = subscription.next.get_braintree_subscription_id()
         self._assign_draft(subscription, plan)
+        subscription.draft.bt_sub = subscription.next.bt_sub
         option = {
             'payment_method_token': payment_method_token,
             'plan_id': plan.bt_plan_id,
