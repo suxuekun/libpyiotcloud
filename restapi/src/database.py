@@ -837,9 +837,9 @@ class database_client:
         self._devices.delete_device_sensor_reading(deviceid)
         self._devices.delete_device_sensor_reading_dataset(deviceid)
 
-    def delete_user_sensor_reading(self, username):
-        self._devices.delete_user_sensor_reading(username)
-        self._devices.delete_user_sensor_reading_dataset(username)
+    #def delete_user_sensor_reading(self, username):
+    #    self._devices.delete_user_sensor_reading(username)
+    #    self._devices.delete_user_sensor_reading_dataset(username)
 
     def get_sensor_reading(self, username, devicename, source, number):
         return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, number)
@@ -1534,13 +1534,13 @@ class database_client_mongodb:
 
         # different database for sensor dashboarding
         if "mongodb.net" in config.CONFIG_MONGODB_HOST2:
-            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
+            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_SENSOR_DB + "?retryWrites=true&w=majority"
             SENSOR_CONNECTION = connection_string
             mongo_client_sensor = SensorMongoDb().conn
-            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
+            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_SENSOR_DB]
         else:
-            self.client_sensor = self.client
-            
+            self.client_sensor = mongo_client[config.CONFIG_MONGODB_SENSOR_DB]
+
 
         self.paypal = paypal_client()
         self.paypal.initialize()
@@ -2283,14 +2283,21 @@ class database_client_mongodb:
     def get_menos_num_sensordata(self, deviceid, datestart, dateend):
         size = 0
         items = None
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
-            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["ns"])
-            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["size"])
-            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["storageSize"])
-            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["capped"])
             start = int(time.time())
             if True:
+                try:
+                    #print(self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["ns"])
+                    #print(self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["size"])
+                    #print(self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["storageSize"])
+                    #print(self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["capped"])
+                    size = self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["storageSize"]
+                except:
+                    size = 0
+                    pass
+                print("{} size took {} seconds".format(size, int(time.time()-start)))
+            elif False:
                 # estimate the size based on the size of the first element
                 items = sensorreadings.find({'deviceid': deviceid})
                 for item in items:
@@ -2298,6 +2305,7 @@ class database_client_mongodb:
                         item.pop("_id")
                     size = len(str(item)) * items.count()
                     break
+                print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
             elif False:
                 # using bson
                 items = sensorreadings.find({'deviceid': deviceid})
@@ -2305,6 +2313,7 @@ class database_client_mongodb:
                     if item.get("_id"):
                         item.pop("_id")
                     size += len(bson.BSON.encode(item))
+                print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
             else:
                 # using str
                 items = sensorreadings.find({'deviceid': deviceid})
@@ -2312,7 +2321,7 @@ class database_client_mongodb:
                     if item.get("_id"):
                         item.pop("_id")
                     size += len(str(item))
-            print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
+                print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
         return size
 
 
@@ -3292,7 +3301,7 @@ class database_client_mongodb:
         return None
 
     def get_sensor(self, deviceid, source, number, sensorname):
-        i2csensors = self.get_sensors_document();
+        i2csensors = self.get_sensors_document()
         if i2csensors:
             #for i2csensor in i2csensors.find({'deviceid': deviceid, 'sensorname': sensorname}):
             #    print(i2csensor)
@@ -3301,7 +3310,7 @@ class database_client_mongodb:
             #print(source)
             #print(number)
             #print(sensorname)
-            for i2csensor in i2csensors.find({'deviceid': deviceid, 'sensorname': sensorname, 'source': source, 'number': number}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
                 if i2csensor.get('username'):
                     i2csensor.pop('username')
@@ -3466,16 +3475,18 @@ class database_client_mongodb:
     # sensor readings dataset
     ##########################################################
 
-    def get_sensorreadings_dataset_document(self):
-        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
-        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+    def get_sensorreadings_dataset_document(self, deviceid):
+        # separate collection per device
+        return self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
+        # one collection for all devices
+        #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
     def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
         timestamp = int(time.time())
-        sensorreadings = self.get_sensorreadings_dataset_document();
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         item = {}
-        item['username'] = username
-        item['deviceid'] = deviceid
+        #item['username'] = username
+        #item['deviceid'] = deviceid
         item['source'] = source
         if address is not None:
             item['address'] = address
@@ -3485,9 +3496,9 @@ class database_client_mongodb:
             item['subclass_value'] = subclass_value
 
         if address is not None:
-            readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address})
+            readings = sensorreadings.find({'source': source, 'address': address})
         else:
-            readings = sensorreadings.find({'deviceid': deviceid, 'source': source})
+            readings = sensorreadings.find({'source': source})
         if readings.count() >= config.CONFIG_MAX_DATASET:
             sensorreadings.delete_one(readings[0])
         sensorreadings.insert_one(item)
@@ -3497,10 +3508,10 @@ class database_client_mongodb:
         # if sensor has a subclass data becomes  [[], [], ...]
         # if sensor has no subclass data becomes [[]]
         dataset  = {"labels": [], "data": []}
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
             if address is None:
-                readings = sensorreadings.find({'deviceid': deviceid, 'source': source})
+                readings = sensorreadings.find({'source': source})
                 for sensorreading in readings:
                     #print(sensorreading)
                     if sensorreading.get("value"):
@@ -3517,7 +3528,7 @@ class database_client_mongodb:
                                 dataset["data"].append([])
                             dataset["data"][0].append(sensorreading["value"])
             else:
-                readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address})
+                readings = sensorreadings.find({'source': source, 'address': address})
                 for sensorreading in readings:
                     if sensorreading.get("value"):
                         if sensorreading.get("subclass_value"):
@@ -3539,10 +3550,10 @@ class database_client_mongodb:
         # if sensor has a subclass data becomes  [[], [], ...]
         # if sensor has no subclass data becomes [[]]
         dataset  = {"labels": [], "data": []}
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
             #print("begin:{} end:{}".format(datebegin, dateend))
-            filter = {'deviceid': deviceid, 'source': source}
+            filter = {'source': source}
             filter['timestamp'] = {'$gte': datebegin, '$lt': dateend}
             filter['number'] = number
             readings = sensorreadings.find(filter)
@@ -3780,36 +3791,36 @@ class database_client_mongodb:
         return dataset
 
     def delete_sensor_reading_dataset(self, deviceid, source, number):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
             if number is None:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+                sensorreadings.delete_many({'source': source})
             else:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
+                sensorreadings.delete_many({'source': source, 'number': number})
         except:
             print("delete_sensor_reading_dataset: Exception occurred")
             pass
 
     def delete_device_sensor_reading_dataset(self, deviceid):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
-            sensorreadings.delete_many({'deviceid': deviceid})
+            sensorreadings.delete_many({})
         except:
             print("delete_device_sensor_reading_dataset: Exception occurred")
             pass
 
-    def delete_user_sensor_reading_dataset(self, username):
-        sensorreadings = self.get_sensorreadings_dataset_document()
-        try:
-            sensorreadings.delete_many({'username': username})
-        except:
-            print("delete_user_sensor_reading_dataset: Exception occurred")
-            pass
+    #def delete_user_sensor_reading_dataset(self, username):
+    #    sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
+    #    try:
+    #        sensorreadings.delete_many({'username': username})
+    #    except:
+    #        print("delete_user_sensor_reading_dataset: Exception occurred")
+    #        pass
 
     def delete_sensors_readings_dataset(self, deviceid, source):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
-            sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+            sensorreadings.delete_many({'source': source})
         except:
             print("delete_sensors_readings_dataset: Exception occurred")
             pass

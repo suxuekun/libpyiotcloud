@@ -908,7 +908,9 @@ class device_dashboard_old:
                 return response, status.HTTP_400_BAD_REQUEST
 
             if filter["devicename"] == "All devices":
-                self.database_client.delete_user_sensor_reading(entityname)
+                devices = self.database_client.get_devices(entityname)
+                for device in devices:
+                    self.database_client.delete_device_sensor_reading(entityname, device["devicename"])
             else:
                 self.database_client.delete_device_sensor_reading(entityname, filter["devicename"])
 
