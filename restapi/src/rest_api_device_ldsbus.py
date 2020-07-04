@@ -35,9 +35,10 @@ from rest_api_device import device
 
 class device_ldsbus:
 
-    def __init__(self, database_client, messaging_requests, device_client):
+    def __init__(self, database_client, messaging_requests, messaging_client, device_client):
         self.database_client = database_client
         self.messaging_requests = messaging_requests
+        self.messaging_client = messaging_client
         self.device_client = device_client
 
 
@@ -113,6 +114,13 @@ class device_ldsbus:
             entityname = username
 
 
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Get LDSBUS: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
         if flask.request.method == 'GET':
             if orgname is not None:
                 # check authorization
@@ -120,13 +128,6 @@ class device_ldsbus:
                     response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
                     print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
-
-            # check if device is registered
-            deviceinfo = self.database_client.find_device(entityname, devicename)
-            if not deviceinfo:
-                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-                print('\r\nERROR Get LDSBUS: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
-                return response, status.HTTP_404_NOT_FOUND
 
             #portnumber = "0"
             if portnumber == "0":
@@ -189,15 +190,8 @@ class device_ldsbus:
                     print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            # check if device is registered
-            deviceinfo = self.database_client.find_device(entityname, devicename)
-            if not deviceinfo:
-                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-                print('\r\nERROR Get LDSBUS: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
-                return response, status.HTTP_404_NOT_FOUND
-
             # cleanup sensors of the LDSUs in the specified port
-            device_client = device(self.database_client, self.messaging_requests)
+            device_client = device(self.database_client, self.messaging_requests, self.messaging_client, self.device_client)
             sensors = self.database_client.get_all_device_sensors_by_port_by_deviceid(deviceinfo["deviceid"], portnumber)
             if sensors is not None:
                 for sensor in sensors:
@@ -277,6 +271,14 @@ class device_ldsbus:
         else:
             # no active organization, just a normal user
             entityname = username
+
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Get LDSBUS component: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
 
 
         # get component in database
@@ -370,6 +372,14 @@ class device_ldsbus:
         else:
             # no active organization, just a normal user
             entityname = username
+
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Get LDSBUS: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
 
 
         # get username from token
@@ -550,6 +560,21 @@ class device_ldsbus:
             entityname = username
 
 
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Get LDSU: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, ldsuuuid)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Get LDSU: LDSU is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+
         if flask.request.method == 'GET':
             if orgname is not None:
                 # check authorization
@@ -569,15 +594,8 @@ class device_ldsbus:
                     print('\r\nERROR Delete LDSU: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            # check if device is registered
-            deviceinfo = self.database_client.find_device(entityname, devicename)
-            if not deviceinfo:
-                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-                print('\r\nERROR Delete LDSU: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
-                return response, status.HTTP_404_NOT_FOUND
-
             # cleanup sensors of the LDSUs in the specified port
-            device_client = device(self.database_client, self.messaging_requests)
+            device_client = device(self.database_client, self.messaging_requests, self.messaging_client, self.device_client)
             sensors = self.database_client.get_all_device_sensors_by_source_by_deviceid(deviceinfo["deviceid"], ldsuuuid)
             if sensors is not None:
                 for sensor in sensors:
@@ -660,6 +678,21 @@ class device_ldsbus:
             entityname = username
 
 
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Change LDSU name: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, ldsuuuid)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Change LDSU name: LDSU is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+
         data = flask.request.get_json()
         if data is None or data.get("name") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
@@ -738,6 +771,21 @@ class device_ldsbus:
         else:
             # no active organization, just a normal user
             entityname = username
+
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Identify LDSU: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, ldsuuuid)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Identify LDSU: LDSU is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
 
 
         # get username from token

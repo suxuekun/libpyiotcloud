@@ -256,13 +256,21 @@ class device_peripheral_properties:
         if orgname is not None:
             if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
                 response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Set Uart: Authorization not allowed [{}]\r\n'.format(username))
+                print('\r\nERROR Get Uart: Authorization not allowed [{}]\r\n'.format(username))
                 return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
             # no active organization, just a normal user
             entityname = username
+
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Get Uart: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
 
 
         configuration = self.database_client.get_device_peripheral_configuration(entityname, devicename, "uart", 1, None)
@@ -357,6 +365,14 @@ class device_peripheral_properties:
         else:
             # no active organization, just a normal user
             entityname = username
+
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Set Uart: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
 
 
         # check list of email and sms and devices are valid
@@ -558,11 +574,25 @@ class device_peripheral_properties:
             entityname = username
 
 
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Set {} Sensor: Device is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, xxx)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Set {} Sensor: LDSU is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
         # check if sensor is registered
         sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
         if not sensor:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-            print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            print('\r\nERROR Set {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
@@ -680,6 +710,20 @@ class device_peripheral_properties:
             entityname = username
 
 
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Get {} Sensor: Device is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, xxx)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Get {} Sensor: LDSU is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
         # check if sensor is registered
         sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
         if not sensor:
@@ -725,32 +769,32 @@ class device_peripheral_properties:
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
+            print('\r\nERROR Delete {} Sensor: Invalid authorization header\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
         token = {'access': auth_header_token} 
         # get username from token
         username = self.database_client.get_username_from_token(token)
         if username is None:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
+            print('\r\nERROR Delete {} Sensor: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
         print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
+            print('\r\nERROR Delete {} Sensor: Empty parameter found\r\n'.format(xxx))
             return response, status.HTTP_400_BAD_REQUEST
 
         # check if username and token is valid
         verify_ret, new_token = self.database_client.verify_token(username, token)
         if verify_ret == 2:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
+            print('\r\nERROR Delete {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
             return response, status.HTTP_401_UNAUTHORIZED
         elif verify_ret != 0:
             response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-            print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
+            print('\r\nERROR Delete {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
             return response, status.HTTP_401_UNAUTHORIZED
 
 
@@ -760,7 +804,7 @@ class device_peripheral_properties:
             # check authorization
             if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
                 response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
+                print('\r\nERROR Delete Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
                 return response, status.HTTP_401_UNAUTHORIZED
 
             # has active organization
@@ -770,11 +814,25 @@ class device_peripheral_properties:
             entityname = username
 
 
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Delete {} Sensor: Device is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, xxx)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Delete {} Sensor: LDSU is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
         # check if sensor is registered
         sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
         if not sensor:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-            print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            print('\r\nERROR Delete {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
@@ -850,17 +908,31 @@ class device_peripheral_properties:
             entityname = username
 
 
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Enable {} Sensor: Device is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, xxx)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Enable {} Sensor: LDSU is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
         # check if sensor is registered
         sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
         if not sensor:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-            print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            print('\r\nERROR Enable {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
         # check if sensor is configured
         if sensor["configured"] == 0:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not yet configured'})
-            print('\r\nERROR Get {} Sensor: Sensor is yet configured [{},{}]\r\n'.format(xxx, entityname, devicename))
+            print('\r\nERROR Enable {} Sensor: Sensor is yet configured [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
 
         print('enable_{}_dev {} devicename={} number={}'.format(xxx, entityname, devicename, number))
@@ -964,13 +1036,34 @@ class device_peripheral_properties:
             entityname = username
 
 
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Change Peripheral Sensor Name: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, xxx)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Change {} Sensor Name: LDSU is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if sensor is registered
+        sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, None)
+        if not sensor:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
+            print('\r\nERROR Change {} Sensor Name: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
         # change name
         result = self.database_client.change_sensor_name(entityname, devicename, xxx, number, data["name"])
 
 
-        msg = {'status': 'OK', 'message': 'Peripheral Sensor changed successfully.'}
+        msg = {'status': 'OK', 'message': 'Peripheral Sensor name changed successfully.'}
         response = json.dumps(msg)
-        print('\r\nDelete All Device Sensors Properties successful: {} {}\r\n'.format(username, devicename))
+        print('\r\nPeripheral Sensor name changed successful: {} {}\r\n'.format(username, devicename))
         return response
 
 
@@ -1037,6 +1130,14 @@ class device_peripheral_properties:
         else:
             # no active organization, just a normal user
             entityname = username
+
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Delete All Device Sensors Properties: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
 
         self.database_client.delete_all_device_peripheral_configuration(entityname, devicename)
 
@@ -1114,6 +1215,20 @@ class device_peripheral_properties:
             # no active organization, just a normal user
             entityname = username
 
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Get {} Sensor Readings: Device is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, xxx)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Get {} Sensor Readings: LDSU is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
 
         # check if sensor is registered
         sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
