@@ -2346,7 +2346,9 @@ class database_client_mongodb:
                             continue
 
                     recipients = notification["notification"]["endpoints"]["modem"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)):
@@ -2376,7 +2378,9 @@ class database_client_mongodb:
 
                     notification_new = copy.deepcopy(notification)
                     recipients = notification_new["notification"]["endpoints"]["modem"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
                     #print(recipients_list)
 
                     found = False
@@ -2410,7 +2414,9 @@ class database_client_mongodb:
                        continue
 
                     recipients = notification["notification"]["endpoints"]["modem"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)):
@@ -2441,7 +2447,9 @@ class database_client_mongodb:
 
                     notification_new = copy.deepcopy(notification)
                     recipients = notification_new["notification"]["endpoints"]["modem"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
                     #print(recipients_list)
 
                     found = False
@@ -2610,7 +2618,9 @@ class database_client_mongodb:
                         continue
 
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)):
@@ -2639,7 +2649,9 @@ class database_client_mongodb:
 
                     configuration_new = copy.deepcopy(configuration)
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)-1, -1, -1):
@@ -2670,7 +2682,9 @@ class database_client_mongodb:
                         continue
 
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)):
@@ -2699,7 +2713,9 @@ class database_client_mongodb:
 
                     configuration_new = copy.deepcopy(configuration)
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)-1, -1, -1):

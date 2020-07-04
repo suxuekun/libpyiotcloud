@@ -46,7 +46,9 @@ class device_peripheral_properties:
 
         # email is enabled, so check the recipients
         recipients = email["recipients"]
-        recipients = recipients.replace(" ", "").split(",")
+        recipients = recipients.split(",")
+        for x in range(len(recipients)):
+            recipients[x] = recipients[x].strip()
 
         # check for duplicates
         if len(recipients) != len(set(recipients)):
@@ -72,7 +74,9 @@ class device_peripheral_properties:
 
         # mobile is enabled, so check the recipients
         recipients = mobile["recipients"]
-        recipients = recipients.replace(" ", "").split(",")
+        recipients = recipients.split(",")
+        for x in range(len(recipients)):
+            recipients[x] = recipients[x].strip()
 
         # check for duplicates
         if len(recipients) != len(set(recipients)):
@@ -105,7 +109,9 @@ class device_peripheral_properties:
             isgroup = modem["isgroup"]
 
         recipients = modem["recipients"]
-        recipients = recipients.replace(" ", "").split(",")
+        recipients = recipients.split(",")
+        for x in range(len(recipients)):
+            recipients[x] = recipients[x].strip()
 
         # check for duplicates
         if len(recipients) != len(set(recipients)):
@@ -182,7 +188,9 @@ class device_peripheral_properties:
                 isgroup = configuration["hardware"]["isgroup"]
 
             recipients = configuration["hardware"]["recipients"]
-            recipients = recipients.replace(" ", "").split(",")
+            recipients = recipients.split(",")
+            for x in range(len(recipients)):
+                recipients[x] = recipients[x].strip()
 
             # check for duplicates
             if len(recipients) != len(set(recipients)):
