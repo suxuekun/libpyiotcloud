@@ -2280,23 +2280,36 @@ class database_client_mongodb:
     def get_menos_num_storage(self, deviceid, datestart, dateend):
         return self.get_menos_num_type(deviceid, datestart, dateend, "Storage")
 
+    def display_collection_stats(self, collectioname):
+        print(self.client_sensor.command("collstats", collectioname)["ns"])
+        print(self.client_sensor.command("collstats", collectioname)["size"])
+        print(self.client_sensor.command("collstats", collectioname)["totalIndexSize"])
+        print(self.client_sensor.command("collstats", collectioname)["storageSize"])
+
+        #print(self.client_sensor.command("collstats", collectioname)["wiredTiger"])
+        #print(self.client_sensor.command("collstats", collectioname)["capped"])
+        #print(self.client_sensor.command("collstats", collectioname)["max"])
+        #print(self.client_sensor.command("collstats", collectioname)["maxSize"])
+
     def get_menos_num_sensordata(self, deviceid, datestart, dateend):
         size = 0
         items = None
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
-            start = int(time.time())
+            start = time.time()
             if True:
                 try:
-                    #print(self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["ns"])
-                    #print(self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["size"])
-                    #print(self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["storageSize"])
-                    #print(self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["capped"])
-                    size = self.client_sensor.command("collstats", "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid))["storageSize"]
-                except:
+                    collectioname = "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)
+                    #self.display_collection_stats(collectioname)
+
+                    # use the uncompressed size in memory of all records in the collection - to be billed to customer
+                    # not include the total size of indexes associate with the collection - not to be billed to customer
+                    size = self.client_sensor.command("collstats", collectioname)["size"]
+                    #size += self.client_sensor.command("collstats", collectioname)["totalIndexSize"]
+                except Exception as e:
+                    #print(e)
                     size = 0
-                    pass
-                print("{} size took {} seconds".format(size, int(time.time()-start)))
+                print("{} size took {} seconds".format(size, time.time()-start))
             elif False:
                 # estimate the size based on the size of the first element
                 items = sensorreadings.find({'deviceid': deviceid})
