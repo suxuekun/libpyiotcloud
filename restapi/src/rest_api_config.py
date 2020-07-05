@@ -67,6 +67,7 @@ class config:
     # Database records
     CONFIG_MONGODB_DB                        = "iotcloud-database"
     CONFIG_MONGODB_SENSOR_DB                 = "iotcloud-sensordata-database"
+    CONFIG_MONGODB_HEARTBEAT_DB              = "iotcloud-heartbeat-database"
     CONFIG_MONGODB_TB_PROFILES               = "profiles"
 
     CONFIG_MONGODB_TB_LASTLOGIN              = "login_lastlogin"
