@@ -514,7 +514,7 @@ class device_peripheral_properties:
     # SET LDSU DEVICE PROPERTIES
     #
     # - Request:
-    #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
+    #   POST /devices/device/DEVICENAME/UUID/NUMBER/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #   data: adsasdasdasdasdasdasdasd
     #
@@ -602,7 +602,10 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
             print('\r\nERROR Set {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
-
+        if sensor["sensorname"] != sensorname:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor name is incorrect'})
+            print('\r\nERROR Set {} Sensor: Sensor name is incorrect [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
 
         # no notification data
@@ -658,7 +661,7 @@ class device_peripheral_properties:
     # GET LDSU DEVICE PROPERTIES
     #
     # - Request:
-    #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
+    #   POST /devices/device/DEVICENAME/UUID/NUMBER/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -738,6 +741,10 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
             print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
+        if sensor["sensorname"] != sensorname:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor name is incorrect'})
+            print('\r\nERROR Get {} Sensor: Sensor name is incorrect [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
         # get sensor configuration
         value = {}
@@ -762,7 +769,7 @@ class device_peripheral_properties:
     # DELETE LDSU DEVICE PROPERTIES
     #
     # - Request:
-    #   DELETE /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
+    #   DELETE /devices/device/DEVICENAME/UUID/NUMBER/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -842,7 +849,10 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
             print('\r\nERROR Delete {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
-
+        if sensor["sensorname"] != sensorname:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor name is incorrect'})
+            print('\r\nERROR Delete {} Sensor: Sensor name is incorrect [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
         # delete sensor configuration
         self.database_client.delete_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
@@ -862,7 +872,7 @@ class device_peripheral_properties:
     # ENABLE/DISABLE LDSU DEVICE
     #
     # - Request:
-    #   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
+    #   POST /devices/device/DEVICENAME/UUID/NUMBER/sensors/sensor/SENSORNAME/enable
     #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
     #   data: { 'enable': int }
     #
@@ -936,6 +946,10 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
             print('\r\nERROR Enable {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
+        if sensor["sensorname"] != sensorname:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor name is incorrect'})
+            print('\r\nERROR Enable {} Sensor: Sensor name is incorrect [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
         # check if sensor is configured
         if sensor["configured"] == 0:
@@ -989,7 +1003,7 @@ class device_peripheral_properties:
     # - Request:
     #   POST /devices/device/DEVICENAME/UUID/NUMBER/sensors/sensor/SENSORNAME/enable
     #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-    #   data: { 'enable': int }
+    #   data: { 'name': string }
     #
     # - Response:
     #   { 'status': 'OK', 'message': string }
@@ -1064,6 +1078,10 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
             print('\r\nERROR Change {} Sensor Name: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
+        if sensor["sensorname"] != sensorname:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor name is incorrect'})
+            print('\r\nERROR Enable {} Sensor: Sensor name is incorrect [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
         # change name
         result = self.database_client.change_sensor_name(entityname, devicename, xxx, number, data["name"])
@@ -1164,7 +1182,7 @@ class device_peripheral_properties:
     # GET LDSU DEVICE READINGS
     #
     # - Request:
-    #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/readings
+    #   POST /devices/device/DEVICENAME/UUID/NUMBER/sensors/sensor/<sensorname>/readings
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -1173,7 +1191,6 @@ class device_peripheral_properties:
     #
     ########################################################################################################
     def get_xxx_dev_readings(self, devicename, xxx, number, sensorname):
-        print('get_{}_dev_readings'.format(xxx))
 
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
@@ -1188,7 +1205,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get {} Sensor Readings: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+        print('get_{}_dev_readings {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -1244,12 +1261,19 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
             print('\r\nERROR Get {} Sensor Readings: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
+        if sensor["sensorname"] != sensorname:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor name is incorrect'})
+            print('\r\nERROR Get {} Sensor Readings: Sensor name is incorrect [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+        if not sensor["enabled"]:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor is not enabled'})
+            print('\r\nERROR Get {} Sensor Readings: Sensor is not enabled [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
-        # get the sensor reading for all enabled sensors
-        if sensor["enabled"]:
-            reading = self.database_client.get_sensor_reading(entityname, devicename, xxx, int(number))
-            if reading:
-                sensor["readings"] = reading
+        # get the sensor reading
+        reading = self.database_client.get_sensor_reading(entityname, devicename, xxx, int(number))
+        if reading:
+            sensor["readings"] = reading
 
 
         msg = {'status': 'OK', 'message': 'Sensor readings retrieved successfully.', 'sensor': sensor}

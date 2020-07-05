@@ -238,7 +238,7 @@ class device_ldsbus:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get LDSBUS component: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_lds_bus_sensors {}'.format(username))
+        print('get_lds_bus_component {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -280,15 +280,34 @@ class device_ldsbus:
             print('\r\nERROR Get LDSBUS component: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
+        # check if port number is valid
+        if int(portnumber) < 0 or int(portnumber) > 3:
+            response = json.dumps({'status': 'NG', 'message': 'Port number is not valid'})
+            print('\r\nERROR Get LDSBUS component: Port number is not valid [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
 
         # get component in database
         msg = {'status': 'OK', 'message': 'LDSBUS component queried successfully.'}
         if component == "ldsus":
-            ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
-            if ldsus:
-                msg['ldsus'] = ldsus
+
+            ldsus = []
+
+            if int(portnumber) != 0:
+                ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
+            else:
+                ldsus = self.database_client.get_ldsus(entityname, devicename)
+
+            msg['ldsus'] = ldsus
+
         elif component == "sensors":
-            sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+
+            sensors = []
+
+            if int(portnumber) != 0:
+                sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+            else:
+                sensors = self.database_client.get_all_device_sensors_input(entityname, devicename)
 
             # get the sensor reading for all enabled sensors
             for sensor in sensors:
@@ -296,13 +315,24 @@ class device_ldsbus:
                     reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
                     if reading:
                         sensor["readings"] = reading
+            msg['sensors'] = sensors
 
-            if sensors:
-                msg['sensors'] = sensors
         elif component == "actuators":
-            actuators = None # TODO
-            if actuators:
-                msg['actuators'] = actuators
+
+            actuators = [] # TODO
+
+            if int(portnumber) != 0:
+                pass # TODO
+            else:
+                pass # TODO
+
+            msg['actuators'] = actuators
+
+        else:
+            response = json.dumps({'status': 'NG', 'message': 'Component is not valid'})
+            print('\r\nERROR Get LDSBUS component: Component is not valid [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
 
         if new_token:
             msg['new_token'] = new_token
@@ -329,7 +359,7 @@ class device_ldsbus:
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Get LDSBUS: Invalid authorization header\r\n')
+            print('\r\nERROR Scan LDSBUS: Invalid authorization header\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
         token = {'access': auth_header_token}
 
@@ -337,25 +367,25 @@ class device_ldsbus:
         username = self.database_client.get_username_from_token(token)
         if username is None:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get LDSBUS: Token expired\r\n')
+            print('\r\nERROR Scan LDSBUS: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
         print('scan_lds_bus {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get LDSBUS: Empty parameter found\r\n')
+            print('\r\nERROR Scan LDSBUS: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
         # check if username and token is valid
         verify_ret, new_token = self.database_client.verify_token(username, token)
         if verify_ret == 2:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get LDSBUS: Token expired [{}]\r\n'.format(username))
+            print('\r\nERROR Scan LDSBUS: Token expired [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
         elif verify_ret != 0:
             response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-            print('\r\nERROR Get LDSBUS: Token is invalid [{}]\r\n'.format(username))
+            print('\r\nERROR Scan LDSBUS: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
 
@@ -365,7 +395,7 @@ class device_ldsbus:
             # check authorization
             if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
                 response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
+                print('\r\nERROR Scan LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
                 return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
@@ -378,7 +408,13 @@ class device_ldsbus:
         deviceinfo = self.database_client.find_device(entityname, devicename)
         if not deviceinfo:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Get LDSBUS: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            print('\r\nERROR Scan LDSBUS: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if port number is valid
+        if int(portnumber) < 0 or int(portnumber) > 3:
+            response = json.dumps({'status': 'NG', 'message': 'Port number is not valid'})
+            print('\r\nERROR Scan LDSBUS: Port number is not valid [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
@@ -483,7 +519,7 @@ class device_ldsbus:
         ]
 
 
-        msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
+        msg = {'status': 'OK', 'message': 'LDSBUS triggered scanning successfully.'}
         if ldsbus:
             msg['ldsbus'] = ldsbus
         if new_token:
