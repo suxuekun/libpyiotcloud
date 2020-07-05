@@ -61,7 +61,7 @@ class device_dashboard_old:
 
 
         # query device
-        api = "get_devs"
+        api = "get_status"
         data = {}
         data['token'] = token
         data['devicename'] = devicename
@@ -69,47 +69,51 @@ class device_dashboard_old:
         response, status_return = self.messaging_requests.process(api, data)
         if status_return == 200:
             device['status'] = 1
-            # query database
-            sensors = self.database_client.get_all_device_sensors(entityname, devicename)
 
-            # map queried result with database result
-            #print("from device")
-            response = json.loads(response)
-            #print(response["value"])
+            if False:
+                # query database
+                sensors = self.database_client.get_all_device_sensors(entityname, devicename)
 
-            for sensor in sensors:
-                #print(sensor)
-                found = False
-                peripheral = "{}{}".format(sensor['source'], sensor['number'])
+                # map queried result with database result
+                #print("from device")
+                response = json.loads(response)
+                #print(response["value"])
 
-                if True: #sensor["source"] == "i2c":
-                    if response["value"].get(peripheral):
-                        for item in response["value"][peripheral]:
-                            # match found for database result and actual device result
-                            # set database record to configured and actual device item["enabled"]
-                            if sensor["address"] == item["address"]:
-                                self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                                found = True
-                                break
-                else:
-                    if response["value"].get(peripheral):
-                        for item in response["value"][peripheral]:
-                            if item["class"] == rest_api_utils.utils().get_i2c_device_class(sensor["class"]):
-                                self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                                found = True
-                                break
+                for sensor in sensors:
+                    #print(sensor)
+                    found = False
+                    peripheral = "{}{}".format(sensor['source'], sensor['number'])
 
-                # no match found
-                # set database record to unconfigured and disabled
-                if found == False:
-                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
-            #print()
+                    if True: #sensor["source"] == "i2c":
+                        if response["value"].get(peripheral):
+                            for item in response["value"][peripheral]:
+                                # match found for database result and actual device result
+                                # set database record to configured and actual device item["enabled"]
+                                if sensor["address"] == item["address"]:
+                                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                    found = True
+                                    break
+                    else:
+                        if response["value"].get(peripheral):
+                            for item in response["value"][peripheral]:
+                                if item["class"] == rest_api_utils.utils().get_i2c_device_class(sensor["class"]):
+                                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                    found = True
+                                    break
+
+                    # no match found
+                    # set database record to unconfigured and disabled
+                    if found == False:
+                        self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                #print()
         else:
             device['status'] = 0
-            # cannot communicate with device so set database record to unconfigured and disabled
-            self.database_client.disable_unconfigure_sensors(entityname, devicename)
-            #print('\r\nERROR Get All Device Sensors Dataset: Device is offline\r\n')
-            return response, status_return
+
+            if False:
+                # cannot communicate with device so set database record to unconfigured and disabled
+                self.database_client.disable_unconfigure_sensors(entityname, devicename)
+                #print('\r\nERROR Get All Device Sensors Dataset: Device is offline\r\n')
+                return response, status_return
         return response, 200
 
     def get_sensor_data_threaded(self, sensor, entityname, datebegin, dateend, period, maxpoints, readings, devicename, devices):
@@ -267,9 +271,10 @@ class device_dashboard_old:
             for devicelocation in devicelocations:
                 if device.get("deviceid"):
                     if device["deviceid"] == devicelocation["deviceid"]:
-                        stats['locations']['data'][0] += 1
-                        found = 1
-                        break
+                        if devicelocation["location"]["latitude"] != 0 and devicelocation["location"]["longitude"] != 0:
+                            stats['locations']['data'][0] += 1
+                            found = 1
+                            break
             if found == 0:
                 stats['locations']['data'][1] += 1
 
@@ -376,17 +381,28 @@ class device_dashboard_old:
     def get_device_summary(self, entityname, devices, sensordevicename):
         devices_list = []
 
+        print("get_device_summary 1")
         devicegroups    = self.database_client.get_devicegroups(entityname)
+        print("get_device_summary 2")
         devicelocations = self.database_client.get_devices_location(entityname)
+        print("get_device_summary 3")
+        print(devicegroups)
+        print(devicelocations)
 
         if sensordevicename is not None: #"All devices":
             devices[0]["deviceid"] = self.database_client.get_deviceid(entityname, devices[0]["devicename"])
 
         for device in devices:
+
+            print("get_device_summary 4")
             version = "unknown"
             if device.get("version") is not None:
                 version = device["version"]
+            status = "unknown"
+            if device.get("status") is not None:
+                status = device["status"]
 
+            print("get_device_summary 5")
             group = "no group"
             for devicegroup in devicegroups:
                 if len(devicegroup["devices"]):
@@ -394,19 +410,22 @@ class device_dashboard_old:
                         group = devicegroup["groupname"]
                         break
 
+            print("get_device_summary 6")
             location = "unknown"
             for devicelocation in devicelocations:
                 if device["deviceid"] == devicelocation["deviceid"]:
                     location = json.dumps(devicelocation["location"])
                     break
 
+            print("get_device_summary 7")
             devices_list.append({
                 "devicename": device["devicename"],
                 "version": version,
                 "group": group,
                 "location": location,
-                "status": device["status"],
+                "status": status,
             })
+            print("get_device_summary 8")
 
         return devices_list
 
@@ -421,17 +440,14 @@ class device_dashboard_old:
             if len(sensors):
                 #print(len(sensors))
                 for sensor in sensors:
-                    address = None
-                    if sensor.get("address") is not None:
-                        address = sensor["address"]
-                    configuration = self.database_client.get_device_peripheral_configuration_by_deviceid(device["deviceid"], sensor["source"], int(sensor["number"]), address)
+                    configuration = self.database_client.get_device_peripheral_configuration_by_deviceid(device["deviceid"], sensor["source"], int(sensor["number"]), None)
                     if sensor["type"] == "input":
                         if configuration is not None:
                             mode = configuration["attributes"]["mode"]
                             # check if continuous mode (sensor forwarding) or thresholding mode (notification triggering)
                             if configuration.get("attributes"):
                                 if mode == 2: #MODE_CONTINUOUS: 
-                                    value = configuration["attributes"]["hardware"]["devicename"]
+                                    value = configuration["attributes"]["hardware"]["recipients"]
                                     value = "forward: " + value
                                 else: 
                                     threshold = configuration["attributes"]["threshold"]
@@ -444,7 +460,7 @@ class device_dashboard_old:
                             # handle subclass
                             if configuration["attributes"].get("subattributes"):
                                 if mode == 2: #MODE_CONTINUOUS: 
-                                    subvalue = configuration["attributes"]["subattributes"]["hardware"]["devicename"]
+                                    subvalue = configuration["attributes"]["subattributes"]["hardware"]["recipients"]
                                     subvalue = "forward: " + value
                                 else: 
                                     threshold = configuration["attributes"]["subattributes"]["threshold"]
@@ -514,7 +530,8 @@ class device_dashboard_old:
                         "sensorname": sensor["sensorname"], 
                         "devicename": device["devicename"], 
                         "type": sensor["type"], 
-                        "peripheral": sensor["source"], 
+                        "ldsu": sensor["source"], 
+                        "number": sensor["number"], 
                         "classes": classes, 
                         "configuration": value, 
                         "enabled": sensor["enabled"]})
@@ -765,7 +782,7 @@ class device_dashboard_old:
             if filter.get("checkdevice") is not None:
                 checkdevice = filter["checkdevice"]
             #print(checkdevice)
-            if False: #checkdevice != 0:
+            if checkdevice != 0:
                 thread_list = []
                 for device in devices:
                     devicename = device["devicename"]
@@ -856,29 +873,29 @@ class device_dashboard_old:
                 stats = {"sensors": {}, "devices": {}}
                 try:
                     stats["sensors"] = self.get_sensor_stats(sensors_list+output_sensors_list)
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
                 try:
                     stats["devices"] = self.get_device_stats(entityname, devices, sensordevicename)
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
 
                 # summary
                 summary = {"sensors": [], "devices": []}
                 try:
                     summary["sensors"] = self.get_sensor_summary(entityname, devices, sensordevicename)
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
                 try:
                     summary["devices"] = self.get_device_summary(entityname, devices, sensordevicename)
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
 
                 # comparisons
                 try:
                     comparisons = self.get_sensor_comparisons(devices, sensors_list)
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
 
                 usages = self.get_usage()
 

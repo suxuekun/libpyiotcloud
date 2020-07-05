@@ -3603,9 +3603,12 @@ DETAILED:
 		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
-		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
-		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
+		     'sensors': [
+		                  {
+		                    'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
+		                    'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
+		                    'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}
+		                  }
 		                ],
 		     'stats'  : { 
 		                  'devices': {
@@ -3622,7 +3625,7 @@ DETAILED:
 		                  },
 		                },
 		     'summary': { 
-		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'peripheral': string, 'classes': string, 'configuration': string, 'enabled': int}],
+		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'ldsu': string, 'number': string, 'classes': string, 'configuration': string, 'enabled': int}],
 		                  'devices': [{'devicename': string, 'group': string, 'version': string, 'location': string, 'status': int}],
 		                },
 		     'usages':  {
