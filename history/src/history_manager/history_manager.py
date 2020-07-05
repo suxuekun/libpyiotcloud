@@ -90,6 +90,9 @@ def add_history_publish(history_client, deviceid, topic, payload, direction="Fro
             else:
                 print("{}: {}   {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
         print("")
+    #else:
+    #    histories = history_client.get_device_history(deviceid)
+    #    print("{} {}".format(deviceid, len(histories) ))
 
 
 def add_history_receive(history_client, deviceid, topic, payload, direction="To"):

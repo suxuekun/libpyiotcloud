@@ -392,6 +392,7 @@ class database_client_mongodb:
         #mongo_client = MongoClient(self.host, self.port, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = MongoClient(self.host, self.port)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
+        self.client_menosalert = mongo_client[config.CONFIG_MONGODB_MENOSALERT_DB]
 
 
     ##########################################################
@@ -631,17 +632,20 @@ class database_client_mongodb:
     # menos
     ##########################################################
 
-    def get_menos_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_MENOS]
+    def get_menos_document(self, deviceid):
+        # separate collection per device
+        return self.client_menosalert["{}_{}".format(config.CONFIG_MONGODB_TB_MENOS, deviceid)]
+        # one collection for all devices
+        #return self.client[config.CONFIG_MONGODB_TB_MENOS]
 
     def add_menos_transaction(self, username, deviceid, recipient, message, type, source, number, timestamp, condition, result):
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         item = {}
         item['timestamp'] = timestamp
         item['type'] = type
 
-        item['username'] = username
-        item['deviceid'] = deviceid
+        #item['username'] = username
+        #item['deviceid'] = deviceid
         item['source'] = source
         if number is not None:
             item['number'] = number
@@ -655,18 +659,18 @@ class database_client_mongodb:
         menos.insert_one(item)
 
     def delete_menos_transaction(self, deviceid):
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         try:
-            menos.delete_many({'deviceid': deviceid})
+            menos.delete_many({})
         except:
             print("delete_menos_transaction: Exception occurred")
             pass
 
     def get_menos_transaction(self, deviceid):
         menos_list = []
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos and menos.count():
-            for menos_item in menos.find({'deviceid': deviceid}):
+            for menos_item in menos.find({}):
                 menos_item.pop('_id')
                 menos_list.append(menos_item)
         return menos_list

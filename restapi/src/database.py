@@ -467,9 +467,6 @@ class database_client:
         if devices and devices.count():
             for device in devices.find({'username': username}):
                 histories = self._devices.get_device_history(device["deviceid"])
-                #print(histories)
-                #for history in histories:
-                #    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
                 if histories and len(histories) > 0:
                     user_histories += histories
         user_histories.sort(key=self.sort_by_timestamp, reverse=True)
@@ -496,16 +493,11 @@ class database_client:
         devices = self._devices.get_registered_devices()
         if devices and devices.count():
             for device in devices.find(filter_devices):
-                filter['deviceid'] = device['deviceid']
-                histories = self._devices.get_device_history_filter(filter)
-                #for history in histories:
-                #    #print(history['timestamp'])
-                #    #history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-                #    user_histories.append(history)
+                histories = self._devices.get_device_history_filter(device['deviceid'], filter)
+                for history in histories:
+                    history["devicename"] = device['devicename']
+                    history["deviceid"] = device['deviceid']
                 user_histories += histories
-                #print(len(histories))
-        #print(len(user_histories))
-
         user_histories.sort(key=self.sort_by_timestamp, reverse=True)
         return user_histories
 
@@ -1572,6 +1564,8 @@ class database_client_mongodb:
             self.client_sensor = mongo_client[config.CONFIG_MONGODB_SENSOR_DB]
 
         self.client_heartbeat = mongo_client[config.CONFIG_MONGODB_HEARTBEAT_DB]
+        self.client_menosalert = mongo_client[config.CONFIG_MONGODB_MENOSALERT_DB]
+        self.client_packethistory = mongo_client[config.CONFIG_MONGODB_PACKETHISTORY_DB]
 
         self.paypal = paypal_client()
         self.paypal.initialize()
@@ -2170,47 +2164,44 @@ class database_client_mongodb:
     # history
     ##########################################################
 
-    def get_history_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_HISTORY]
+    def get_history_document(self, deviceid):
+        # separate collection per device
+        return self.client_packethistory["{}_{}".format(config.CONFIG_MONGODB_TB_HISTORY, deviceid)]
+        # one collection for all devices
+        #return self.client[config.CONFIG_MONGODB_TB_HISTORY]
 
     def add_device_history(self, deviceid, topic, payload, direction):
-        history = self.get_history_document();
+        history = self.get_history_document(deviceid)
         timestamp = int(time.time())
         item = {}
         item['timestamp'] = timestamp
         item['direction'] = direction
-        item['deviceid'] = deviceid
         item['topic'] = topic
         item['payload'] = payload
         history.insert_one(item);
 
     def get_device_history(self, deviceid):
         history_list = []
-        histories = self.get_history_document();
+        histories = self.get_history_document(deviceid)
         if histories:
-            for history in histories.find({'deviceid': deviceid}):
-                #print(history["timestamp"])
+            for history in histories.find({}):
                 history.pop('_id')
                 history_list.append(history)
         return history_list
 
-    def get_device_history_filter(self, filter):
+    def get_device_history_filter(self, deviceid, filter):
         history_list = []
-        histories = self.get_history_document();
+        histories = self.get_history_document(deviceid)
         if histories:
-            #if filter.get("timestamp"):
-            #    print("timestampXX {}".format(filter["timestamp"]))
             for history in histories.find(filter):
-                #print(history["timestamp"])
                 history.pop('_id')
                 history_list.append(history)
         return history_list
 
     def delete_device_history(self, deviceid):
-        history = self.get_history_document();
+        history = self.get_history_document(deviceid)
         try:
-            history.delete_many({'deviceid': deviceid})
-            #history.delete_one({'deviceid': deviceid, 'timestamp': timestamp })
+            history.delete_many({})
         except:
             print("delete_device_history: Exception occurred")
             pass
@@ -2220,13 +2211,16 @@ class database_client_mongodb:
     # menos
     ##########################################################
 
-    def get_menos_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_MENOS]
+    def get_menos_document(self, deviceid):
+        # separate collection per device
+        return self.client_menosalert["{}_{}".format(config.CONFIG_MONGODB_TB_MENOS, deviceid)]
+        # one collection for all devices
+        #return self.client[config.CONFIG_MONGODB_TB_MENOS]
 
     def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         item = {}
-        item['deviceid'] = deviceid
+        #item['deviceid'] = deviceid
         item['timestamp'] = timestamp
         item['recipient'] = recipient
         item['messagelen'] = len(message)
@@ -2240,16 +2234,16 @@ class database_client_mongodb:
         menos.insert_one(item)
 
     def delete_menos_transaction(self, deviceid):
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         try:
-            menos.delete_many({'deviceid': deviceid})
+            menos.delete_many({})
         except:
             print("delete_menos_transaction: Exception occurred")
             pass
 
     def get_menos_transaction_by_username(self, username):
         menos_list = []
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos and menos.count():
             for menos_item in menos.find({'username': username}):
                 menos_item.pop('_id')
@@ -2258,20 +2252,20 @@ class database_client_mongodb:
 
     def get_menos_transaction(self, deviceid):
         menos_list = []
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos and menos.count():
-            for menos_item in menos.find({'deviceid': deviceid}):
+            for menos_item in menos.find({}):
                 menos_item.pop('_id')
                 menos_list.append(menos_item)
         return menos_list
 
     def get_menos_transaction_filtered(self, deviceid, type, source, datebegin, dateend):
         menos_list = []
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos and menos.count():
 
             filter = {}
-            filter['deviceid'] = deviceid
+            #filter['deviceid'] = deviceid
             if type is not None:
                 filter['type'] = type
             if source is not None:
@@ -2292,9 +2286,9 @@ class database_client_mongodb:
 
 
     def get_menos_num_type(self, deviceid, datestart, dateend, typex):
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos:
-            items = menos.find({'deviceid': deviceid, 'type': typex, 'timestamp': { '$gt': datestart, '$lte': dateend } })
+            items = menos.find({'type': typex, 'timestamp': { '$gt': datestart, '$lte': dateend } })
             if items:
                 return items.count()
         return 0
@@ -2346,7 +2340,7 @@ class database_client_mongodb:
                 print("{} size took {} seconds".format(size, time.time()-start))
             elif False:
                 # estimate the size based on the size of the first element
-                items = sensorreadings.find({'deviceid': deviceid})
+                items = sensorreadings.find({})
                 for item in items:
                     if item.get("_id"):
                         item.pop("_id")
@@ -2355,7 +2349,7 @@ class database_client_mongodb:
                 print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
             elif False:
                 # using bson
-                items = sensorreadings.find({'deviceid': deviceid})
+                items = sensorreadings.find({})
                 for item in items:
                     if item.get("_id"):
                         item.pop("_id")
@@ -2363,7 +2357,7 @@ class database_client_mongodb:
                 print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
             else:
                 # using str
-                items = sensorreadings.find({'deviceid': deviceid})
+                items = sensorreadings.find({})
                 for item in items:
                     if item.get("_id"):
                         item.pop("_id")
