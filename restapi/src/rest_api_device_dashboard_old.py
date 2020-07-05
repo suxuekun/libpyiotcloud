@@ -381,20 +381,26 @@ class device_dashboard_old:
     def get_device_summary(self, entityname, devices, sensordevicename):
         devices_list = []
 
-        print("get_device_summary 1")
         devicegroups    = self.database_client.get_devicegroups(entityname)
-        print("get_device_summary 2")
         devicelocations = self.database_client.get_devices_location(entityname)
-        print("get_device_summary 3")
-        print(devicegroups)
-        print(devicelocations)
 
         if sensordevicename is not None: #"All devices":
             devices[0]["deviceid"] = self.database_client.get_deviceid(entityname, devices[0]["devicename"])
 
+        timestamp = int(time.time())
         for device in devices:
 
-            print("get_device_summary 4")
+            hbeat_day, hbeatmax_day = self.database_client.get_num_device_heartbeats_by_timestamp_by_day(device["deviceid"], timestamp)
+            hbeat_week, hbeatmax_week = self.database_client.get_num_device_heartbeats_by_timestamp_by_week(device["deviceid"], timestamp)
+            hbeat_month, hbeatmax_month = self.database_client.get_num_device_heartbeats_by_timestamp_by_month(device["deviceid"], timestamp)
+
+            usage_sms = self.database_client.get_menos_num_sms_by_deviceid_by_currmonth(device["deviceid"])
+            usage_email = self.database_client.get_menos_num_email_by_deviceid_by_currmonth(device["deviceid"])
+            usage_notification = self.database_client.get_menos_num_notification_by_deviceid_by_currmonth(device["deviceid"])
+            usage_device = self.database_client.get_menos_num_device_by_deviceid_by_currmonth(device["deviceid"])
+            usage_storage = self.database_client.get_menos_num_storage_by_deviceid_by_currmonth(device["deviceid"])
+            _bytes, _kb, _mb, _gb = self.database_client.get_menos_num_sensordata_by_deviceid_by_currmonth(device["deviceid"])
+
             version = "unknown"
             if device.get("version") is not None:
                 version = device["version"]
@@ -402,7 +408,6 @@ class device_dashboard_old:
             if device.get("status") is not None:
                 status = device["status"]
 
-            print("get_device_summary 5")
             group = "no group"
             for devicegroup in devicegroups:
                 if len(devicegroup["devices"]):
@@ -410,22 +415,32 @@ class device_dashboard_old:
                         group = devicegroup["groupname"]
                         break
 
-            print("get_device_summary 6")
             location = "unknown"
             for devicelocation in devicelocations:
                 if device["deviceid"] == devicelocation["deviceid"]:
                     location = json.dumps(devicelocation["location"])
                     break
 
-            print("get_device_summary 7")
             devices_list.append({
                 "devicename": device["devicename"],
                 "version": version,
                 "group": group,
                 "location": location,
                 "status": status,
+                "online": {
+                    "day": "{}/{}".format(hbeat_day, hbeatmax_day), 
+                    "week": "{}/{}".format(hbeat_week, hbeatmax_week), 
+                    "month": "{}/{}".format(hbeat_month, hbeatmax_month) 
+                },
+                "usage": {
+                    "sms": str(usage_sms),
+                    "email": str(usage_email),
+                    "pushn": str(usage_notification),
+                    "device": str(usage_device),
+                    "storage": str(usage_storage),
+                    "sensordata": "{:.9f} GB".format(_gb),
+                },
             })
-            print("get_device_summary 8")
 
         return devices_list
 
