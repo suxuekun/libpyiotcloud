@@ -1929,9 +1929,9 @@ DETAILED:
 		           "opmode": int,
 		           "mode": int,              // single threshold, dual threshold, continuous
 		           "threshold": {
-		               "value": int/float,   // for single threshold mode, should use the sensor["minmax"][1] as default value, int/float depending on sensor["format"]
-		               "min": int/float,     // for dual threshold mode, should use the sensor["minmax"][0] as default value, int/float depending on sensor["format"]
-		               "max": int/float,     // for dual threshold mode, should use the sensor["minmax"][1] as default value, int/float depending on sensor["format"]
+		               "value": int/float,   // for single threshold mode, should use the sensor["minmax"][1] as default value, int/float depending on sensor["format"], if float should use sensor["accuracy"] for number of decimal points
+		               "min": int/float,     // for dual threshold mode, should use the sensor["minmax"][0] as default value, int/float depending on sensor["format"], if float should use sensor["accuracy"] for number of decimal points
+		               "max": int/float,     // for dual threshold mode, should use the sensor["minmax"][1] as default value, int/float depending on sensor["format"], if float should use sensor["accuracy"] for number of decimal points
 		               "activate": int       // for dual threshold mode
 		           }, 
 		           "alert": {
