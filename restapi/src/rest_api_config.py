@@ -102,6 +102,8 @@ class config:
     CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS    = "oldpayment_transactions"
     CONFIG_MONGODB_TB_PAYMENTPAYERIDS        = "oldpayment_payerids"
 
+    CONFIG_MONGODB_TB_PAYMENTSUBSCRIPTION    = "payment_subscription"
+
 
     # Caching settings
     if debugging:
