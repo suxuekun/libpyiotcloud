@@ -2024,6 +2024,18 @@ DETAILED:
 		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
+		   //
+		   // Sensor data storage has been optimized for size, performance and scalability
+		   // - sensor data is now stored in its own DB table
+		   // - every device now has its own DB collection
+		   //   (previously all devices share the same collection)
+		   // - this makes it possible to:
+		   //   1. efficiently query and store sensor data for a specific device
+		   //   2. compute device sensor data STORAGE USAGE very quick (less than 10 milliseconds)
+		   //   3. count device sensor data points very quick (less than 10 milliseconds)
+		   //   4. automatically set the maximum data storage cap for the device (50M,1GB,3GB,10GB) 
+		   //   - not yet implemented but MongoDB allows this for collections
+		   // - applied also to heartbeat, menos alerts and packet history - as these can really grow big
 
 		O. CHANGE LDSU DEVICE (SENSOR/ACTUATOR) NAME
 		-  Request:
