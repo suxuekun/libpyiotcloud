@@ -9,7 +9,7 @@ angular.module('server', [])
     //////////////////////////////////////////////////////////////////////////////////////////////
     var rest_api = 'https://' + window.__env.apiUrl;
     console.log(rest_api);
-
+    
     var result = { 'rest_api': rest_api };
     return result;
 }]);
