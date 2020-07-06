@@ -9,6 +9,9 @@ class config:
     CONFIG_PINPOINT_ID                          = os.environ["AWS_PINPOINT_ID"]
     CONFIG_PINPOINT_REGION                      = os.environ["AWS_PINPOINT_REGION"]
     CONFIG_PINPOINT_EMAIL                       = os.environ["AWS_PINPOINT_EMAIL"]
+    CONFIG_USE_APIURL                           = os.environ["CONFIG_USE_APIURL"]
+
     CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT       = "Bridgetek IoT Modem receipt"
     CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION  = "Bridgetek IoT Modem organization"
-    CONFIG_USE_APIURL                           = os.environ["CONFIG_USE_APIURL"]
+    CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE   = "Bridgetek IoT Modem usage notice"
+

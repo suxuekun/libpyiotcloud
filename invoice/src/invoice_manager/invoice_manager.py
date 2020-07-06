@@ -67,10 +67,12 @@ CONFIG_SEPARATOR                = '/'
 CONFIG_MODEL_EMAIL                = int(invoice_config.CONFIG_USE_EMAIL_MODEL)
 CONFIG_EMAIL_SUBJECT_RECEIPT      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT
 CONFIG_EMAIL_SUBJECT_ORGANIZATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
+CONFIG_EMAIL_SUBJECT_USAGENOTICE  = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE
 CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
 
 API_SEND_RECEIPT                  = "send_invoice"
 API_SEND_INVITATION_ORGANIZATION  = "send_invitation_organization"
+API_SEND_USAGE_NOTICE             = "send_usage_notice"
 
 
 print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
@@ -172,6 +174,44 @@ def send_invitation_organization(database_client, orgname, topic, payload):
 
 
 ###################################################################################
+# Usage notice
+###################################################################################
+
+def construct_usage_notice_message(deviceid, menos_type, subscription):
+
+    message =  "Hi,\r\n\r\n\r\n"
+
+    message += "One of your devices with UUID {} has consumed all its {} allocation.\r\n\r\n".format(deviceid, menos_type)
+
+    message += "Below is usage summary of this device.\r\n"
+    message += "- sms: {}/{} points\r\n".format(subscription["current"]["sms"], subscription["current"]["plan"]["sms"])
+    message += "- email: {}/{}\r\n".format(subscription["current"]["email"], subscription["current"]["plan"]["email"])
+    message += "- notification: {}/{}\r\n".format(subscription["current"]["notification"], subscription["current"]["plan"]["notification"])
+    message += "- storage: {}/{} GB\r\n".format(subscription["current"]["storage"], subscription["current"]["plan"]["storage"])
+
+    message += "\r\n\r\nBest Regards,\r\n"
+    message += "Bridgetek Pte. Ltd.\r\n"
+    return message
+
+def send_usage_notice(database_client, deviceid, topic, payload):
+
+    payload = json.loads(payload)
+    message = construct_usage_notice_message(deviceid, payload["menos_type"], payload["subscription"])
+    for recipient in payload["recipients"]:
+        try:
+            response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_USAGENOTICE)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("USAGENOTICE {}: {} [{}]".format(deviceid, recipient, result))
+        except Exception as e:
+            print(e)
+
+
+###################################################################################
 # MQTT subscription handling
 ###################################################################################
 
@@ -204,6 +244,16 @@ def on_message(subtopic, subpayload):
             thr.start()
         except Exception as e:
             print("exception API_SEND_RECEIPT")
+            print(e)
+            return
+
+    elif topic == API_SEND_USAGE_NOTICE:
+        deviceid = arr_subtopic[1]
+        try:
+            thr = threading.Thread(target = send_usage_notice, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_SEND_USAGE_NOTICE")
             print(e)
             return
 
@@ -313,9 +363,11 @@ if __name__ == '__main__':
     # Subscribe to messages sent for this device
     time.sleep(1)
     subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_RECEIPT)
-    g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
     subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_INVITATION_ORGANIZATION)
+    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_USAGE_NOTICE)
+    g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
