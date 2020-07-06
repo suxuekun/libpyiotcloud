@@ -1,7 +1,7 @@
 #import os
 #import ssl
 import json
-#import time
+import time
 #import hmac
 #import hashlib
 import flask
@@ -470,5 +470,47 @@ class other_stuffs:
 
         response = json.dumps({'status': 'OK', 'message': 'Compute password successful', 'password': password})
         print('\r\nCompute password successful: {}\r\n'.format(data["uuid"]))
+        return response
+
+
+    ########################################################################################################
+    #
+    # COMPUTE OTA AUTHCODE
+    #
+    # - Request:
+    #   POST /devicesimulator/otaauthcode
+    #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+    #   data: {'username': string, 'password': string}
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def compute_ota_authcode(self):
+
+        # decode the devicetoken and service
+        data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Compute otaauthcode: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("uuid") is None or data.get("username") is None or data.get("password") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Compute otaauthcode: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # compute the password
+        currtime = int(time.time())
+        params = {
+            "username": data["username"],
+            "password": data["password"],
+            "iat": currtime,
+            "exp": currtime + 10
+        }
+        otaauthcode = jwt.encode(params, config.CONFIG_JWT_SECRET_KEY_DEVICE, algorithm='HS256')
+        otaauthcode = otaauthcode.decode("utf-8")
+
+        response = json.dumps({'status': 'OK', 'message': 'Compute otaauthcode successful', 'otaauthcode': otaauthcode})
+        print('\r\nCompute otaauthcode successful: {}\r\n'.format(data["uuid"]))
         return response
 

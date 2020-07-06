@@ -639,7 +639,7 @@ class database_client_mongodb:
         return device_list
 
     def add_device(self, username, devicename, cert, pkey):
-        timestamp = str(int(time.time()))
+        timestamp = int(time.time())
         deviceid = database_utils().compute_deviceid(timestamp, username, devicename)
         device = {}
         device['username']   = username
@@ -683,7 +683,9 @@ class database_client_mongodb:
         if devices:
             for device in devices.find({'deviceid': deviceid}):
                 new_device = copy.deepcopy(device)
-                new_device['heartbeat'] = str(int(time.time()))
+                new_device['heartbeat'] = int(time.time())
+                if type(new_device['timestamp']) is str:
+                    new_device['timestamp'] = int(new_device['timestamp'])
                 devices.replace_one(device, new_device)
                 return device['heartbeat']
         return None

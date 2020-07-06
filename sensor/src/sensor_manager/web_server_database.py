@@ -202,6 +202,15 @@ class database_client:
 
     # sensor readings datasets
 
+    def add_ldsus_batch_ldsu_sensor_reading_dataset(self, username, deviceid, cached):
+        self._devices.add_ldsus_batch_ldsu_sensor_reading_dataset(username, deviceid, cached)
+
+    def add_batch_ldsu_sensor_reading_dataset(self, username, deviceid, source, values_set, timestamp_set):
+        self._devices.add_batch_ldsu_sensor_reading_dataset(username, deviceid, source, values_set, timestamp_set)
+
+    def add_ldsu_sensor_reading_dataset(self, username, deviceid, source, values, timestamp):
+        self._devices.add_ldsu_sensor_reading_dataset(username, deviceid, source, values, timestamp)
+
     def add_sensor_reading_dataset(self, username, deviceid, source, number, value, timestamp):
         self._devices.add_sensor_reading_dataset(username, deviceid, source, number, value, timestamp)
 
@@ -255,6 +264,14 @@ class database_client:
 
     def get_username_devicename(self, deviceid):
         return self._devices.get_username_devicename(deviceid)
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def get_devicegroup(self, username, groupname):
+        return self._devices.get_devicegroup(username, groupname)
 
 
 class database_utils:
@@ -704,6 +721,70 @@ class database_client_mongodb:
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
+    def add_ldsus_batch_ldsu_sensor_reading_dataset(self, username, deviceid, cached):
+        sensorreadings = self.get_sensorreadings_dataset_document()
+
+        items = []
+
+        for ldsu in cached:
+            if ldsu.get("UID") is None or ldsu.get("SNS") is None or ldsu.get("TS") is None:
+                print("batch_store_sensor_reading: invalid parameters")
+                continue
+            if len(ldsu["TS"]) != len(ldsu["SNS"]):
+                print("batch_store_sensor_reading: cached TS length is not equal to SNS length")
+                continue
+            for y in range(len(ldsu["TS"])):
+                for x in range(len(ldsu["SNS"][y])):
+                    if ldsu["SNS"][y][x] != "NaN":
+                        item = {}
+                        # add username in order to optimize querying of all sensors of a user
+                        item['username'] = username
+                        item['deviceid'] = deviceid
+                        item['source'] = ldsu["UID"]
+                        item['number'] = x
+                        item['timestamp'] = ldsu["TS"][y]
+                        item['value'] = float(ldsu["SNS"][y][x])
+                        items.append(item)
+
+        sensorreadings.insert_many(items)
+
+    def add_batch_ldsu_sensor_reading_dataset(self, username, deviceid, source, values_set, timestamp_set):
+        sensorreadings = self.get_sensorreadings_dataset_document()
+
+        items = []
+        for y in range(len(timestamp_set)):
+            for x in range(len(values_set[y])):
+                if values_set[y][x] != "NaN":
+                    item = {}
+                    # add username in order to optimize querying of all sensors of a user
+                    item['username'] = username
+                    item['deviceid'] = deviceid
+                    item['source'] = source
+                    item['number'] = x
+                    item['timestamp'] = timestamp_set[y]
+                    item['value'] = float(values_set[y][x])
+                    items.append(item)
+
+        sensorreadings.insert_many(items)
+
+    def add_ldsu_sensor_reading_dataset(self, username, deviceid, source, values, timestamp):
+        sensorreadings = self.get_sensorreadings_dataset_document()
+
+        items = []
+        for x in range(len(values)):
+            if values[x] != "NaN":
+                item = {}
+                # add username in order to optimize querying of all sensors of a user
+                item['username'] = username
+                item['deviceid'] = deviceid
+                item['source'] = source
+                item['number'] = x
+                item['timestamp'] = timestamp
+                item['value'] = float(values[x])
+                items.append(item)
+
+        sensorreadings.insert_many(items)
+
     def add_sensor_reading_dataset(self, username, deviceid, source, number, value, timestamp):
         #print("add_sensor_reading_dataset {} ".format(timestamp))
         if timestamp is None:
@@ -870,6 +951,24 @@ class database_client_mongodb:
             for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename': 1}):
                 return device['username'], device['devicename']
         return None, None
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def get_registered_devicegroups(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS]
+
+    def get_devicegroup(self, username, groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                devicegroup.pop('_id')
+                devicegroup.pop('groupid')
+                devicegroup.pop('username')
+                return devicegroup
+        return None
 
 
 class database_client_postgresql:

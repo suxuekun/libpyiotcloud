@@ -50,23 +50,29 @@ services:
       - AWS_COGNITO_CLIENT_ID
       - AWS_COGNITO_USERPOOL_ID
       - AWS_COGNITO_USERPOOL_REGION
-      - CONFIG_USE_ECC
-      - PAYPAL_MODE
-      - PAYPAL_CLIENT_ID
-      - PAYPAL_CLIENT_SECRET
-      - CONFIG_USE_MQTT_DEFAULT_USER
-      - CONFIG_USE_MQTT_DEFAULT_PASS
-      - CONFIG_USE_JWT_SECRET_KEY
-      - CONFIG_USE_JWT_SECRET_KEY_DEVICE
+      - AWS_COGNITO_OAUTH_DOMAIN
       - AWS_S3_REGION
       - AWS_S3_BUCKET
       - AWS_S3_FILE_I2C_DEVICES
       - AWS_S3_FILE_SENSOR_DEVICES
       - AWS_S3_FILE_FIRMWARE_UPDATES
-      - AWS_COGNITO_OAUTH_DOMAIN
+      - AWS_S3_FILE_PROMOCODE
+      - PAYPAL_MODE
+      - PAYPAL_CLIENT_ID
+      - PAYPAL_CLIENT_SECRET
+      - BRAINTREE_MODE
+      - BRAINTREE_MERCHANT_ID
+      - BRAINTREE_PUBLIC_KEY
+      - BRAINTREE_PRIVATE_KEY
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_JWT_SECRET_KEY
+      - CONFIG_USE_JWT_SECRET_KEY_DEVICE
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
       - CONFIG_USE_MONGODB_ATLAS
+      - CONFIG_USE_DEBUG_MODE
   webapp:
     build: 
       context: ./webapp
@@ -134,6 +140,7 @@ services:
       - AWS_S3_BUCKET
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
+      - AWS_S3_FILE_SMS_COUNTRY_POINTS
   invoice:
     build: ./invoice
     restart: always
@@ -181,6 +188,28 @@ services:
       - rabbitmq
       - mongodb
     environment:
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+      - CONFIG_USE_MONGODB_ATLAS
+  download:
+    build: ./download
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_S3_REGION
+      - AWS_S3_BUCKET
+      - AWS_PINPOINT_ID
+      - AWS_PINPOINT_REGION
+      - AWS_PINPOINT_EMAIL
       - CONFIG_USE_ECC
       - CONFIG_USE_MQTT_DEFAULT_USER
       - CONFIG_USE_MQTT_DEFAULT_PASS

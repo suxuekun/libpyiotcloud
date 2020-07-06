@@ -4,7 +4,7 @@ from schematics.exceptions import ValidationError
 
 
 class BaseSimpleApiService():
-    def __init__(self,model,repo,**kwargs):
+    def __init__(self,model,repo,*args,**kwargs):
         self.repo = repo
         self.model = model
     def rawlist(self,filter = None):
@@ -124,7 +124,7 @@ class BaseMongoService(BaseSimpleApiService):
     @throw_bad_db_query()
     def update(self,id,model_instance):
         raw_entity = self.repo.getById(id)
-        entity = self.model(raw_entity)
+        entity = self.model(raw_entity,strict=False)
         entity.import_data(model_instance.to_primitive())
         entity.validate()
         res = self.repo.update(id, entity.to_primitive())

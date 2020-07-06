@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from schematics import Model
-from schematics.types import DateTimeType, BooleanType, TimestampType, StringType, UUIDType
+from schematics.types import DateTimeType, BooleanType, TimestampType, StringType, UUIDType, IntType
 
 from shared.utils import timestamp_util
 
@@ -13,6 +13,7 @@ class UUIDMixin(Model):
 
 class MongoIdMixin(Model):
     _id = StringType()
+
 
 class BaseMongoModel(BaseModel,MongoIdMixin):
     pass
@@ -28,12 +29,12 @@ class DeviceMixin(Model):
     devicename = StringType()
 
 class TimeStampMixin(Model):
-    createdAt = StringType(default=timestamp_util.get_timestamp)
-    modifiedAt = StringType(default=timestamp_util.get_timestamp)
+    createdAt = IntType(default=timestamp_util.get_timestamp)
+    modifiedAt = IntType(default=timestamp_util.get_timestamp)
 
 class PeriodMixin(Model):
-    start = StringType()
-    end = StringType()
+    start = IntType()
+    end = IntType()
 
     def set_this_month(self):
         #TODO
@@ -48,9 +49,15 @@ class PeriodMixin(Model):
         # TODO
         pass
 
+class MonthPeriodMixin(PeriodMixin):
+    start = IntType(default = timestamp_util.get_timestamp)
+    end = IntType(default = timestamp_util.get_last_day_of_month_timestamp)
+
+
 class DateMixin(Model):
-    date = StringType()
+    date = IntType()
     def set_now(self):
+        # TODO
         pass
 
 class ActiveMixin(Model):

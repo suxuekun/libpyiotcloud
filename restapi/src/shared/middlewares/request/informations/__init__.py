@@ -29,6 +29,16 @@ def get_org_name(request):
 def get_org_id(request):
     return get_org(request).get('orgid')
 
+def get_user_created(request):
+    return get_user(request).get('created')
+
+def get_user_created_timestamp(request):
+    return str(int(get_user_created(request).timestamp()))
+
+def get_user_last_modified(request):
+    return get_user(request).get('last_modified')
+
+
 def get_entityname_query(request):
     entityname = get_entityname(request)
     return {

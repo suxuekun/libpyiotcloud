@@ -178,8 +178,8 @@ class database_client:
     # menos
     ##########################################################
 
-    def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
-        self._devices.add_menos_transaction(deviceid, recipient, message, type, source, sensorname, timestamp, condition, result)
+    def add_menos_transaction(self, username, deviceid, recipient, message, type, source, number, timestamp, condition, result):
+        self._devices.add_menos_transaction(username, deviceid, recipient, message, type, source, number, timestamp, condition, result)
 
     def delete_menos_transaction(self, deviceid):
         self._devices.delete_menos_transaction(deviceid)
@@ -246,6 +246,14 @@ class database_client:
 
     def get_devicename(self, deviceid):
         return self._devices.get_devicename(deviceid)
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def get_devicegroup(self, username, groupname):
+        return self._devices.get_devicegroup(username, groupname)
 
 
 class database_utils:
@@ -626,17 +634,21 @@ class database_client_mongodb:
     def get_menos_document(self):
         return self.client[config.CONFIG_MONGODB_TB_MENOS]
 
-    def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
+    def add_menos_transaction(self, username, deviceid, recipient, message, type, source, number, timestamp, condition, result):
         menos = self.get_menos_document()
         item = {}
-        item['deviceid'] = deviceid
         item['timestamp'] = timestamp
+        item['type'] = type
+
+        item['username'] = username
+        item['deviceid'] = deviceid
+        item['source'] = source
+        if number is not None:
+            item['number'] = number
+
         item['recipient'] = recipient
         item['messagelen'] = len(message)
-        item['type'] = type
-        item['source'] = source
-        if sensorname is not None:
-            item['sensorname'] = sensorname
+
         if condition is not None:
             item['condition'] = condition
         item['result'] = result
@@ -831,6 +843,24 @@ class database_client_mongodb:
         if devices:
             for device in devices.find({'deviceid': deviceid},{'devicename': 1}):
                 return device['devicename']
+        return None
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def get_registered_devicegroups(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS]
+
+    def get_devicegroup(self, username, groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                devicegroup.pop('_id')
+                devicegroup.pop('groupid')
+                devicegroup.pop('username')
+                return devicegroup
         return None
 
 

@@ -14,6 +14,10 @@ cd heartbeat\src\heartbeat_manager
 START heartbeat_manager_ecc.bat
 cd ..\..\..\
 
+cd download\src\download_manager
+START download_manager_ecc.bat
+cd ..\..\..\
+
 cd invoice\src\invoice_manager
 START invoice_manager_ecc.bat
 cd ..\..\..\

@@ -16,33 +16,40 @@ class NextSubscriptionDTO(SubscriptionItemDTO):
 class SubscriptionDTO(BaseDTO,AbstractSubscription):
     current = ModelType(CurrentSubscriptionDTO)
     next = ModelType(NextSubscriptionDTO)
-    draft = ModelType(NextSubscriptionDTO)
+    # draft = ModelType(NextSubscriptionDTO)
 
-    def _check_draft(self,draft):
-        if (not draft):
-            self.draft = None
+    # def _check_draft(self,draft):
+    #     if (not draft):
+    #         self.draft = None
 
     def _normal_status(self):
         self.next = None
-        self._check_draft(self.draft)
-    # def _cancel_status(self):
-    #     # self.next = None
-    #     pass
+        # self._check_draft(self.draft)
+    def _cancel_status(self):
+        self.next = None
+        pass
     # def _downgrade_status(self):
     #     pass
     transform_mapping = {
         SubScriptionStatus.NORMAL: _normal_status,
-        # SubScriptionStatus.CANCEL: _cancel_status,
+        SubScriptionStatus.CANCEL: _cancel_status,
         # SubScriptionStatus.DOWNGRADE: _downgrade_status,
     }
-    def transform(self,raw):
-        self.import_data(raw)
-        self.validate()
+    def from_model(self,model_instance):
+        super(SubscriptionDTO,self).from_model(model_instance)
         f = self.transform_mapping.get(self.status)
         if (f):
             f(self)
             self.validate()
         return self
+    # def transform(self,raw):
+    #     self.import_data(raw)
+    #     self.validate()
+    #     f = self.transform_mapping.get(self.status)
+    #     if (f):
+    #         f(self)
+    #         self.validate()
+    #     return self
 
 
 

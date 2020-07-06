@@ -75,9 +75,14 @@
       <div id="humidity-markdown319" class="show-list-numbers-and-dots">
         <p style="color:#3C5A99;">Hardware</p>
       </div>
+      <ion-checkbox id="humidity-checkbox89" ng-model="data.attributes.hardware.enable">Send to IoT Modem</ion-checkbox>
+      <ion-checkbox id="humidity-checkbox102" ng-model="data.attributes.hardware.isgroup">... check if recipients is device groups instead of devices</ion-checkbox>
+      <label class="item item-input" id="humidity-input243">
+        <input type="text" placeholder="" ng-model="data.attributes.hardware.recipients">
+      </label>
       <label class="item item-select" id="humidity-select15">
         <span class="input-label">IoT Modem</span>
-        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices"></select>
+        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices" ng-show="0"></select>
       </label>
     </form>
     <form id="humidity-form174" class="list" ng-show="data.attributes.mode!=2">
@@ -114,9 +119,13 @@
         <input type="text" placeholder="****************" ng-model="data.attributes.notification.endpoints.notification.recipients" readonly="">
       </label>
       <ion-checkbox id="humidity-checkbox10" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <ion-checkbox id="humidity-checkbox96" ng-model="data.attributes.notification.endpoints.modem.isgroup">... check if recipients is device groups instead of devices</ion-checkbox>
+      <label class="item item-input" id="humidity-input247">
+        <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.modem.recipients">
+      </label>
       <label class="item item-select" id="humidity-select36">
         <span class="input-label"></span>
-        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename" ng-show="0"></select>
       </label>
       <ion-checkbox id="humidity-checkbox51" ng-model="data.attributes.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
       <div id="humidity-container15" ng-show="data.attributes.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import time
 import calendar
 
@@ -9,12 +9,38 @@ def get_timestamp_int():
     return int(get_timestamp_float())
 
 def get_timestamp():
-    return str(int((datetime.now().timestamp())))
+    return get_timestamp_int()
 
 def totalday_of_month(from_date=None):
-    from_date = from_date or  datetime.now()
+    from_date = from_date or datetime.now()
     total_days = calendar.monthrange(from_date.year, from_date.month)[1]
     return total_days
+
+def get_first_day_of_month(from_date = None):
+    from_date = from_date or datetime.now()
+    res_date = from_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    return res_date
+
+def get_first_day_of_month_timestamp(from_date = None):
+    return int(get_first_day_of_month(from_date).timestamp())
+
+def get_next_month_first_day(from_date = None):
+    from_date = from_date or datetime.now()
+    days_in_month = lambda dt: calendar.monthrange(dt.year, dt.month)[1]
+    next_month_first_day = from_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0) + timedelta(days_in_month(from_date))
+    return next_month_first_day
+
+def get_next_month_first_day_timestamp(from_date = None):
+    next_month_first_day = get_next_month_first_day(from_date)
+    return int(next_month_first_day.timestamp())
+
+def get_last_day_of_month(from_date = None):
+    next_month_first_day = get_next_month_first_day(from_date)
+    res_date = next_month_first_day - timedelta(seconds=1)
+    return res_date
+
+def get_last_day_of_month_timestamp(from_date = None):
+    return int(get_last_day_of_month(from_date).timestamp())
 
 def remaining_days_of_month(from_date=None):
     from_date = from_date or datetime.now()
@@ -27,15 +53,23 @@ def percent_of_month_left(from_date=None):
     remaining_days = total_days - from_date.day + 1
     return remaining_days/total_days,remaining_days,total_days
 
-if __name__ == "__main__":
-    r = percent_of_month_left()
-    print (r)
+def datetime_from_string(date_string,string_format = '%m/%d/%Y'):
+    return datetime.strptime(date_string,string_format)
+
+def timestamp_from_date_string(date_string,string_format = '%m/%d/%Y'):
+    d = datetime_from_string(date_string,string_format)
+    return int(d.timestamp())
+
+# if __name__ == "__main__":
+#     r = percent_of_month_left()
+#     print (r)
 
 if __name__ == "__main__":
+    # print(int(time.time()),int(datetime.now().timestamp()))
     d_now = datetime.now()# get local time naive time , no time zone awared
     d_utc = datetime.utcnow()# get local time as utc time // bug or feature ? this utc time is no time zone awared!!!
     correct_utc = d_utc.replace(tzinfo=timezone.utc)
-
+    print(int(time.time()), int(datetime.now().timestamp()),int(correct_utc.timestamp()))
     timestamp_from_now = d_now.timestamp()#this is real unix timestamp
     timestamp_from_utc = d_utc.timestamp()#this is not correct unix timestamp , this is utc time using local time zone problem
     timestamp_correct = correct_utc.timestamp()#this is correct unix timestamp,utc time using utc timezone,you need to manually assign utc time to a utcnow()!!!
@@ -61,5 +95,30 @@ if __name__ == "__main__":
 
     print('also int(time.time()) is same with int(datetime.now().timestamp())')
     print('int(time.time()) = ',int(time.time()),'int(datetime.now().timestamp()) =',int(datetime.now().timestamp()))
+
+    # print(d_now.strftime("%Y-%m-%d %H %M %S"))
+    sd = datetime.strptime('7/1/2018','%m/%d/%Y')
+    print (sd.timestamp())
+
+    print (d_now.month)
+
+    d2_now = datetime.now()
+
+    d2_now = d_now.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
+    last_day = get_last_day_of_month_timestamp()
+    print(d2_now,last_day)
+
+    next_first_day = get_next_month_first_day()
+    next_last_day = get_last_day_of_month(next_first_day)
+    print(next_first_day,next_last_day)
+
+    next_month_first_day_timestamp = get_next_month_first_day_timestamp()
+    next_month_last_day_timestamp = get_last_day_of_month_timestamp(next_first_day)
+
+    print(next_month_first_day_timestamp,next_month_last_day_timestamp)
+
+    print(datetime.fromtimestamp(int(next_month_first_day_timestamp)),datetime.fromtimestamp(int(next_month_last_day_timestamp)))
+
+
 
 

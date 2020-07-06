@@ -3,29 +3,40 @@
     <button class="button button-positive icon ion-refresh" ng-click=""></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header" overflow-scroll="true">
+    <form name="form">
     <div class="list">
-    	<label class="item item-input">
-            <input placeholder ="Name" class="item-input" ng-model = "data.name"/>
-        </label>
         <label class="item item-input">
-            <input placeholder ="Billing Address" class="item-input" ng-model = "data.billing_address"/>
+            <input name ="name" placeholder ="Name" class="item-input" required ng-model = "data.name"/>
         </label>
+        <error ng-if = 'form.name.$error.required'><span style="color:red">Name required</span></error>
         <label class="item item-input">
-            <input placeholder ="Country" class="item-input" ng-model = "data.country"/>
+            <input name ="address" placeholder ="Billing Address" class="item-input" required ng-model = "data.billing_address"/>
         </label>
-        <label class="item item-input">
-            <input placeholder ="City" class="item-input" ng-model = "data.city"/>
-        </label>
-        <label class="item item-input">
-            <input placeholder ="Zip/Postal code" class="item-input" ng-model = "data.postal"/>
-        </label>
-        <label class="item item-input">
-            <input placeholder ="State/Province/Region" class="item-input" ng-model = "data.region"/>
-        </label>
+        <error ng-if = 'form.address.$error.required'><span style="color:red">Billing Address required</span></error>
 
+        <label class="item item-input">
+            <input name ="country" placeholder ="Country" class="item-input" required ng-model = "data.country"/>
+        </label>
+        <error ng-if = 'form.country.$error.required'><span style="color:red">Country required</span></error>
+
+        <label class="item item-input">
+            <input name="city" placeholder ="City" class="item-input" required ng-model = "data.city"/>
+        </label>
+        <error ng-if = 'form.city.$error.required'><span style="color:red">City required</span></error>
+
+        <label class="item item-input">
+            <input name="zip" placeholder ="Zip/Postal code" class="item-input" required ng-model = "data.postal"/>
+        </label>
+        <error ng-if = 'form.zip.$error.required'><span style="color:red">Zip/Postal code required</span></error>
+
+        <label class="item item-input">
+            <input name="state" placeholder ="State/Province/Region" class="item-input" required ng-model = "data.region"/>
+        </label>
+        <error ng-if = 'form.state.$error.required'><span style="color:red">State/Province/Region required</span></error>
     </div>
-    <button id="topUpCredits-button13" ng-click="update_address()" class="button button-positive button-block">UPDATE</button>
     
+    <button id="topUpCredits-button13" ng-click="update_address(form.$valid)" class="button button-positive button-block">UPDATE</button>
+    </form>
   </ion-content>
 </ion-view>
 

@@ -1,5 +1,9 @@
+from decimal import Decimal
+
 from schematics.types import StringType
 from shared.core.model import TimeStampMixin, UserMixin, BaseModel, MongoIdMixin
+from shared.utils import decimal_util
+
 
 class CountryCode():
     SG = 'Singapore'
@@ -18,7 +22,7 @@ class AbstractBillingAddress(BaseModel):
 
     def get_gst(self):
         if self.country:
-            return _GST.get(self.country.lower()) or 0.00
+            return _GST.get(self.country.lower()) or Decimal(0.00)
         return 0.00
 
     def __str__(self):

@@ -1,6 +1,6 @@
 <ion-view title="Subscription Detail" hide-back-button="true" nav-transition="none" id="pagesubdetail" class="page_width">
   <ion-nav-buttons side="left" class="has-header">
-    <button class="button button-icon icon ion-android-close" ng-click="back()"></button>
+    <button class="button button-icon icon ion-arrow-left-c" ng-click="back()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header" overflow-scroll="true">
     <label class="item item-input">
@@ -28,7 +28,7 @@
       <span class="input-label">Storage</span>
     </label>
       <label class="item item-input item-divider">
-        <span class="input-label">{{data.subscription.current.storage}} / {{data.subscription.current.plan.storage}}</span>
+        <span class="input-label">{{data.subscription.current.storage}} / {{data.subscription.current.plan.storage}} GB</span>
         <span class="input-label"></span>
       </label>
     <button id="topUpCredits-button13" ng-click="upgrade()" class="button button-positive button-block">UPGRADE SUBSCRIPTION</button>

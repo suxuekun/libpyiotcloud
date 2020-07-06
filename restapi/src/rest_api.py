@@ -1,8 +1,6 @@
 import os
 import flask
-import datetime
-import calendar
-
+#from example_module.app import ExampleApp
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from flask_cors import CORS
 from flask_api import status
@@ -10,12 +8,7 @@ from flask_api import status
 from messaging_client import messaging_client
 from rest_api_config import config
 from database import database_categorylabel, database_crudindex
-from flask_cors import CORS
-from flask_api import status
-import jwt
-#from jose import jwk, jwt
 from s3_client import s3_client
-import threading
 from redis_client import redis_client
 from device_client import device_client
 #import ssl
@@ -31,7 +24,7 @@ from device_client import device_client
 #import http.client
 #import threading
 #import copy
-import statistics
+#import statistics
 from message_broker_api import message_broker_api
 from rest_api_messaging_requests import messaging_requests
 from rest_api_identity_authentication import identity_authentication
@@ -48,11 +41,16 @@ from rest_api_device_ldsbus import device_ldsbus
 from rest_api_device_dashboard_old import device_dashboard_old
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
-###################################################################################
-# Some configurations
-###################################################################################
 from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
+from dashboards.dashboards_app import DashboardsApp
+from payment.app import PaymentApp
+
+
+
+########################################################################################################
+# Some configurations
+########################################################################################################
 
 CONFIG_DEVICE_ID            = "restapi_manager"
 CONFIG_SEPARATOR            = '/'
@@ -699,6 +697,15 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
     return g_device.get_xxx_sensor(devicename, xxx, number, sensorname)
 
 
+@app.route('/devices/device/<devicename>/sensordata', methods=['POST'])
+def download_device_sensor_data(devicename):
+    return g_device.download_device_sensor_data(devicename)
+
+@app.route('/devices/device/<devicename>/sensordata', methods=['DELETE'])
+def clear_device_sensor_data(devicename):
+    return g_device.download_device_sensor_data(devicename)
+
+
 g_device_list = [
     { "name": "GET DEVICES",                  "func": get_device_list,           "api": "/devices",                                "method": "GET"    },
     { "name": "GET DEVICES (FILTERED)",       "func": get_device_list_filtered,  "api": "/devices/filter/<filter>",                "method": "GET"    },
@@ -719,6 +726,9 @@ g_device_list = [
     { "name": "REGISTER PERIPHERAL SENSOR",   "func": register_xxx_sensor,       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "POST"   },
     { "name": "UNREGISTER PERIPHERAL SENSOR", "func": register_xxx_sensor,       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "DELETE" },
     { "name": "GET PERIPHERAL SENSOR",        "func": get_xxx_sensor,            "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "GET"    },
+
+    { "name": "DOWNLOAD DEVICE SENSOR DATA",  "func": download_device_sensor_data, "api": "/devices/device/<devicename>/sensordata", "method": "POST"   },
+    { "name": "CLEAR DEVICE SENSOR DATA",     "func": clear_device_sensor_data,    "api": "/devices/device/<devicename>/sensordata", "method": "DELETE" },
 ]
 
 
@@ -906,12 +916,18 @@ def get_supported_sensors():
 def get_device_firmware_updates():
     return g_other_stuffs.get_device_firmware_updates()
 
-# This is for the device simulator.
+
+# This is for the device simulator. 
 # This can be easily blocked by removing entry in nginx.conf.
 @app.route('/devicesimulator/devicepassword', methods=['GET'])
 def compute_device_password():
     return g_other_stuffs.compute_device_password()
 
+# This is for the device simulator. 
+# This can be easily blocked by removing entry in nginx.conf.
+@app.route('/devicesimulator/otaauthcode', methods=['GET'])
+def compute_ota_authcode():
+    return g_other_stuffs.compute_ota_authcode()
 
 
 
@@ -968,8 +984,6 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 # Main entry point
 ###################################################################################
-from dashboards.dashboards_app import DashboardsApp
-# from payment.app import PaymentApp
 
 def initialize():
 
@@ -1021,9 +1035,8 @@ def initialize():
             print("Could not connect to message broker! exception! {}".format(e))
 
     # Initialize Database client
-
-    print("g_database_client")
     g_database_client = db_client
+
     # Initialize S3 client
     g_storage_client = s3_client
 
@@ -1044,14 +1057,16 @@ def initialize():
     g_device_otaupdates            = device_otaupdates(g_database_client, g_storage_client, g_messaging_requests)
     g_device_hierarchies           = device_hierarchies(g_database_client, g_messaging_requests)
     g_device_histories             = device_histories(g_database_client)
-    g_device                       = device(g_database_client, g_messaging_requests)
+    g_device                       = device(g_database_client, g_messaging_requests, g_messaging_client, g_device_client)
     g_device_ldsbus                = device_ldsbus(g_database_client, g_messaging_requests, g_device_client)
     g_device_peripheral_properties = device_peripheral_properties(g_database_client, g_messaging_requests)
     g_other_stuffs                 = other_stuffs(g_database_client, g_storage_client)
     g_utils                        = rest_api_utils.utils()
 
     dashboardsApp = DashboardsApp(app)
-    # paymentapp = PaymentApp(app)
+    paymentapp = PaymentApp(app)
+    #exampleapp = ExampleApp(app,prefix = "/example")
+    # To be replaced
     g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
     g_device_dashboard_old         = device_dashboard_old(g_database_client, g_messaging_requests)
 
@@ -1077,6 +1092,6 @@ if __name__ == '__main__':
         host     = config.CONFIG_HTTP_HOST,
         port     = port,
         threaded = True,
-        debug    = True)
+        debug    = (config.debugging==1))
 
 

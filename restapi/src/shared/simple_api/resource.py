@@ -41,10 +41,8 @@ class BaseResource():
     service = None
     wrapper_class = None
     def _get_default_filter(self):
-        print (self.FILTER)
         if self.FILTER:
             if callable(self.FILTER):
-                print(self.FILTER())
                 return self.FILTER()
             else:
                 return self.FILTER

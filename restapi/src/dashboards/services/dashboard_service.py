@@ -99,7 +99,7 @@ class DashboardService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
 
-    def remove_chart_gateway(self, dashboardId: str, chartId: str):
+    def remove_chartId(self, dashboardId: str, chartId: str):
         try:
             entity = self.dashboardRepository.getById(dashboardId)
             dashboard = Dashboard.to_domain(entity)
@@ -117,24 +117,6 @@ class DashboardService:
             LoggerService().error(str(e), tag=self.tag)
             return False
 
-    def remove_chart_sensor(self, dashboardId: str, chartId: str):
-        try:
-            entity = self.dashboardRepository.getById(dashboardId)
-            dashboard = Dashboard.to_domain(entity)
-            dashboard.remove_chart_sensor(chartId)
-
-            self.dashboardRepository.update(
-                dashboardId, dashboard.model.to_primitive())
-            return True
-
-        except UpdatedException as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return False
-
-        except Exception as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return False
-        
     #  Param chartWithDashboard
     def remove_many_charts_in_many_dashboards(self, chartWithDashboard: {}):
         try:

@@ -16,6 +16,7 @@ _device_simulator/localhost/*.cfg
 _device_simulator/javascript
 _device_simulator/*.cfg
 _device_simulator/*.bat
+_device_simulator/*.sh
 _device_simulator/*.bin
 _device_simulator/*.ver
 _device_simulator/*.sns
@@ -31,12 +32,16 @@ start.sh
 stop.sh
 _client_simulator
 _client_simulator/__pycache__
-redis/src/*
+redis/src/redis-2.4.5-win32-win64/
+redis/src/dump.rdb
 webapp/src/ionicapp/www/js/env.js
 get_logs.py
 _test_regression/*
 .idea/*
 _ota_uploader/*.sh
+notification/src/notification_manager/*.csv
+restapi/src/.vscode
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -159,3 +164,4 @@ restapi/src/.idea
 restapi/src/test
 password
 .git.bfg-report
+restapi/src/.vscode

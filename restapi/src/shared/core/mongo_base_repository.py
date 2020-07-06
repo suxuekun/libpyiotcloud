@@ -12,6 +12,25 @@ class IMongoBaseRepository:
 
     def gets(self, query=None, projection=None):
         pass
+    
+    def drop(self):
+        pass
+    
+    def get_one(self,query):
+        pass
+    
+    def create_many(self, inputs):
+        pass
+
+    def delete_many_by_id(self, ids):
+        pass
+
+    def update_many(self, ids, inputs):
+        pass
+
+    def gets_with_ids(self, ids, projection=None):
+        pass
+
 
     def drop(self):
         pass
@@ -50,6 +69,17 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
 
             res = self.collection.insert_one(input)
             return str(res.inserted_id)
+<<<<<<< HEAD
+=======
+        except Exception as e:
+            print(e)
+            raise CreatedExeception(str(e))
+
+    def create_many(self, inputs):
+        try:
+            self.collection.insert_many(inputs)
+            return True
+>>>>>>> dev
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))
@@ -70,9 +100,9 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
             if input["_id"] is not None:
                 input.pop("_id")
 
-            # always update modifiedAt
-            input["modifiedAt"] = timestamp_util.get_timestamp()
-            if 'createdAt' in input:  # no touch create for update , so will be no changes on this field
+            if 'modifiedAt' in input:# always update modifiedAt if exist
+                input["modifiedAt"] = timestamp_util.get_timestamp()
+            if 'createdAt' in input:# no touch create for update , so will be no changes on this field
                 input.pop('createdAt')
             self.collection.update_one(query, {"$set": input})
             return True

@@ -41,7 +41,7 @@ angular.module('notifications', [])
                     //result.data.transactions[indexy].source = result.data.transactions[indexy].source.toUpperCase(); 
                 }
                 
-                return result.data.transactions;
+                return result.data;
             })
             .catch(function (error) {
                 // Handle failed login
@@ -111,7 +111,7 @@ angular.module('notifications', [])
                     //result.data.transactions[indexy].source = result.data.transactions[indexy].source.toUpperCase(); 
                 }
                 
-                return result.data.transactions;
+                return result.data;
             })
             .catch(function (error) {
                 // Handle failed login

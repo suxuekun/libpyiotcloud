@@ -521,6 +521,115 @@ class device_dashboard_old:
         return sensors_list
 
 
+    #
+    # Below is the design of timerange filtering for sensor data dashboard...
+    # - Users can select filtering by timeranges of minutes, hours, weeks, months or years.
+    # - All timeranges will be divided into 60 periods.
+    # - A maximum of 60 datapoints, corresponding to 60 periods, is always returned by the backend.
+    # - Each period (or data point) will have average, minimum and maximum
+    # - The backend returns arrays for:
+    #   labels : timestamp for a max of 60 datapoints, corresponding computed begintime of the 60 periods
+    #   data : 60 points max, corresponding to the average value for each period
+    #   low : 60 points max, corresponding to the minimum value for each period
+    #   high : 60 points max, corresponding to the maximum value for each period
+    # - for mobile apps, since screen is small, it shall pass 30 points as a parameter so that backend will use 30 period instead of 60
+    # 
+    # Computation of time range and period:
+    # TimeRange  5 mins    300 secs  =    5 secs Period x 60 points - no averaging (actual values are returned)
+    # TimeRange 15 mins    900 secs  =   15 secs Period x 60 points - average all points w/in 15secs
+    # TimeRange 30 mins   1800 secs  =   30 secs Period x 60 points - average all points w/in 30secs
+    # TimeRange 60 mins   3600 secs  =   60 secs Period x 60 points - ...
+    # TimeRange  3 hrs   10800 secs  =  180 secs Period x 60 points - ...
+    # TimeRange  6 hrs   21600 secs  =  360 secs Period x 60 points - ...
+    # TimeRange 12 hrs   43200 secs  =  720 secs Period x 60 points - ...
+    # TimeRange 24 hrs   86400 secs  = 1440 secs Period x 60 points - ...
+    # 
+    # 7 days    86400*7=604800
+    # 
+    # 4 weeks   604800*4=2419200
+    # 
+    # 12 months 2419200=29030400
+    # 
+    # TimeRange 3  days
+    # TimeRange 7  days
+    # TimeRange 2  weeks
+    # TimeRange 4  weeks
+    # TimeRange 3  months
+    # TimeRange 6  months
+    # TimeRange 12 months
+    # 
+    # Consider the simplest use case: 
+    # sensor data is sending every 5 seconds, time range=15 mins, 15 secs Period
+    # - there will be 60 periods
+    # - for every period, there will be at most 15/5=3 datapoints
+    # - for every period, the average, minimum and maximum will be computed
+    # Computing for endtime and begintime:
+    # - endtime = int(currenttime/period)*period
+    #   begintime = endtime-timerange+period
+    # - endtime must be computed with /period x period to round down the nearest divisible by period, so that begintime can be the same for the upcoming data points of the 60th period, that is, all periods 1st-59th will be constant, except for the last period, 60th
+    # 
+    #   ex. timerange=15mins, period=15secs
+    #   begintime: 8:45:15 - begintime is the same for the endtimes 9:00:00-9:00:14
+    #     1st period
+    #        8:45:15
+    #        8:45:20
+    #        8:45:25
+    #      60th period
+    #        endtime: 9:00:00 
+    #          9:00:00 
+    #        endtime: 9:00:05
+    #          9:00:00 
+    #          9:00:05 
+    #        endtime: 9:00:10
+    #          9:00:00 
+    #          9:00:05 
+    #          9:00:10 
+    #      begintime: 8:45:30 - begintime is the same for the endtimes 9:00:15-9:00:29
+    #      1st period
+    #        8:45:15
+    #        8:45:20
+    #        8:45:25
+    #      60th period
+    #        endtime: 9:00:15 - 1st
+    #        endtime: 9:00:20 - 2nd
+    #        endtime: 9:00:25 - 3rd
+    #
+    # - when sensordata is sent every 5secs, since timerange=15mins, period=15secs, then 1 period will cover 15/5=3 datapoints.
+    #  then for 1st,2nd,3rd datapoint of every period, all preceding periods will be constant (the same points are for averaging)
+    #  that is, only the last period will change computation until the (15/5=3) 3rd data point of the 60th period arrives.
+    #
+    #- otherwise, if this is not done, everytime there is a new data, different datapoints will be average for every period (as shown below), thus making the graph constantly changing everything, not good to look at.
+    #      endtime: 9:00:00
+    #      1st period
+    #        8:45:15
+    #        8:45:20
+    #        8:45:25
+    #      endtime: 9:00:05
+    #      1st period
+    #        8:45:20
+    #        8:45:25
+    #        8:45:30
+    #
+    #- with the adaptive endtime and begintime computation, the graph changes and only "shifts to the left" every after period (in this case, period=15 seconds) instead of every after new sensor data publish (5seconds).
+    #
+    #
+    # what get_sensor_reading_dataset_by_deviceid_timebound() does is 
+    #
+    # for every datapoint in a period, it will put it in a bucket.
+    # on last datapoint of the period, it will take the average, minimum and maximum of the datapoints in the temporary bucket
+    # then it repeats this until all periods within datebegin and dateend are all covered
+    #
+    # date[0] = datestart
+    # date[1]
+    # ..
+    # date[61] = dateend
+    #
+    # date[0]-date[1] is 1 period // can contain multiple data points
+    #   ex. 1 period is 30 secs; if rate is 5 seconds of the sensor, then you have 6 datapoints in 1 period
+    #   you get the average, minimum and maximum of that 6 datapoints.
+    #   and that will correspond to data[0], low[0], high[0]
+    #
+
     ########################################################################################################
     #
     # GET PERIPHERAL SENSOR READINGS DATASET (FILTERED)

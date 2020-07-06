@@ -433,6 +433,14 @@ class identity_authentication:
     ########################################################################################################
     def resend_confirmation_code(self):
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Resend Confirmation: Empty parameter found [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get('username') is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Resend Confirmation: Empty parameter found [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
         username = data['username']
         print('resend_confirmation_code username={}'.format(username))
 
@@ -440,6 +448,12 @@ class identity_authentication:
         if len(username) == 0:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Resend Confirmation: Empty parameter found [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if a valid user
+        if not self.database_client.find_user(username):
+            response = json.dumps({'status': 'NG', 'message': 'Invalid user'})
+            print('\r\nERROR Resend Confirmation: Invalid user [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
         # confirm user in database
@@ -562,6 +576,14 @@ class identity_authentication:
         print('confirm_forgot_password username={}'.format(username))
 
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Reset Password: Empty parameter found [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get('confirmationcode') is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Reset Password: Empty parameter found [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
         confirmationcode = data['confirmationcode']
         #print('confirm_forgot_password username={} confirmationcode={} password={}'.format(username, confirmationcode, password))
 
@@ -590,7 +612,7 @@ class identity_authentication:
                 msg = 'Internal error'
             response = json.dumps({'status': 'NG', 'message': msg})
             print('\r\nERROR Reset Password: {} [{}]\r\n'.format(msg, username))
-            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+            return response, status.HTTP_400_BAD_REQUEST
 
         # delete the couter for failed logins
         attempts = self.redis_client.login_failed_get_attempts(username)
@@ -616,34 +638,46 @@ class identity_authentication:
     #
     ########################################################################################################
     def logout(self):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Logout: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Logout: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Logout: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
         try:
-            # get token from Authorization header
-            auth_header_token = rest_api_utils.utils().get_auth_header_token()
-            if auth_header_token:
-                token = {'access': auth_header_token}
+            #print("")
+            #devicetoken = self.database_client.get_all_mobile_device_token(username)
+            #print(len(devicetoken))
+            #print(devicetoken)
 
-                # get username from token
-                username = self.database_client.get_username_from_token(token)
-                if username is not None:
+            # delete mobile device tokens
+            self.database_client.delete_mobile_device_token(username, token['access'])
+            #self.database_client.delete_all_mobile_device_token(username)
+            #print('\r\nDeleted mobile device token')
 
-                    #print("")
-                    #devicetoken = self.database_client.get_all_mobile_device_token(username)
-                    #print(len(devicetoken))
-                    #print(devicetoken)
+            #devicetoken = self.database_client.get_all_mobile_device_token(username)
+            #print(len(devicetoken))
+            #print(devicetoken)
+            #print("")
 
-                    # delete mobile device tokens
-                    self.database_client.delete_mobile_device_token(username, token['access'])
-                    #self.database_client.delete_all_mobile_device_token(username)
-                    #print('\r\nDeleted mobile device token')
-
-                    #devicetoken = self.database_client.get_all_mobile_device_token(username)
-                    #print(len(devicetoken))
-                    #print(devicetoken)
-                    #print("")
-
-                # there's only global_sign_out, no sign_out so just skip calling it logout
-                # self.database_client.logout(token['access'])
-                print('logout {}\r\n'.format(username))
+            # there's only global_sign_out, no sign_out so just skip calling it logout
+            # self.database_client.logout(token['access'])
+            print('logout {}\r\n'.format(username))
         except:
             print('\r\nERROR Logout: exception\r\n')
 
@@ -751,10 +785,11 @@ class identity_authentication:
 
             # add last login information
             last_login = self.database_client.get_last_login(username)
-            if 'lastsuccess' in last_login:
-                info['last_login'] = last_login['lastsuccess']
-            if 'lastfailed' in last_login:
-                info['last_failed_login'] = last_login['lastfailed']
+            if last_login is not None:
+                if 'lastsuccess' in last_login:
+                    info['last_login'] = last_login['lastsuccess']
+                if 'lastfailed' in last_login:
+                    info['last_failed_login'] = last_login['lastfailed']
 
 
         msg = {'status': 'OK', 'message': 'Userinfo queried successfully.'}
@@ -1369,6 +1404,10 @@ class identity_authentication:
 
         # get the input parameters
         data = flask.request.get_json()
+        if data.get('name') is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Update user: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get('phone_number') is not None:
             phonenumber = data['phone_number']
         else:
@@ -1413,6 +1452,23 @@ class identity_authentication:
             # handle no family name
             givenname = names[0]
             familyname = "NONE"
+
+
+        # when changing number (and MFA is enabled), disable MFA first
+        try:
+            info = self.database_client.get_user_info(token['access'])
+            if info:
+                if info.get("mfa_enabled") is not None:
+                    if info["mfa_enabled"]:
+                        # mfa is enabled
+                        if info.get("phone_number") is not None:
+                            if info["phone_number"] != phonenumber:
+                                # phone number has been changed
+                                # disable MFA
+                                self.database_client.enable_mfa(token['access'], False)
+        except:
+            pass
+
 
         # change user
         result = self.database_client.update_user(token["access"], phonenumber, givenname, familyname)

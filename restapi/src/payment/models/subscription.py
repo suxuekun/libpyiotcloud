@@ -5,7 +5,7 @@ from schematics.types import StringType, ModelType, BooleanType
 
 from payment.models.plan import Plan, Usage
 from shared.client.db.mongo.test import TestMongoDB
-from shared.core.model import UserMixin, BaseIotModel, DeviceMixin, PeriodMixin
+from shared.core.model import UserMixin, BaseIotModel, DeviceMixin, PeriodMixin, MonthPeriodMixin
 from shared.utils import timestamp_util
 
 class SubScriptionStatus():
@@ -14,11 +14,16 @@ class SubScriptionStatus():
     DOWNGRADE = "downgrade" # current = paid plan subscription != next = paid plan subscription , next.plan.price < current.plan.price, switch plan to a lower plan in ext month
     # DRAFT = "draft" # draft, submitted but not yet confirm paid from payment side
 
+class SubScriptionCancelReason():
+    USER_INTERNAL = 'user_internal'
+    USER_EXTERNAL = 'user_external'
+    SYSTEM = 'system'
+
 class AbstractSubscription(BaseIotModel,DeviceMixin):
     status = StringType()
-    draft_status = BooleanType(default=False)
+    cancel_reason = StringType()
 
-class AbstractSubscriptionHistory(BaseIotModel,Usage,PeriodMixin):
+class AbstractSubscriptionHistory(BaseIotModel,Usage,MonthPeriodMixin):
     pass
 
 class SubscriptionItem(BaseIotModel):
@@ -41,6 +46,7 @@ class Subscription(AbstractSubscription,UserMixin):
     current = ModelType(CurrentSubscription)
     next = ModelType(NextSubscription)
     draft = ModelType(NextSubscription)
+    draft_status = BooleanType(default=False)
 
     def make_for_new_device(self,freeplan,validate=False):
         self.status = SubScriptionStatus.NORMAL

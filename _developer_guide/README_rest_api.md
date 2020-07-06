@@ -119,6 +119,11 @@ SUMMARY:
 		R. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
 		S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
 
+		//
+		// device-sensor data
+		T. DOWNLOAD DEVICE SENSOR DATA    - POST   /devices/device/DEVICENAME/sensordata
+		U. CLEAR DEVICE SENSOR DATA       - DELETE /devices/device/DEVICENAME/sensordata
+
 
 	4. Device group registration and management APIs
 
@@ -415,6 +420,15 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		D. FORGOT PASSWORD
 		-  Request:
@@ -452,7 +466,16 @@ DETAILED:
 		     )));
 		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
 		   Double check your results here: https://jwt.io/
-
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
+		   
 		F. LOGIN
 		-  Request:
 		   POST /user/login
@@ -591,6 +614,15 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		N. CHANGE PASSWORD
 		-  Request:
@@ -743,6 +775,15 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 		   MFA must be manually enabled before Login within MFA
 		   MFA code has 3 minutes validity. It cannot be modified in Cognito.
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		S. GET ORGANIZATIONS
 		-  Request:
@@ -1069,7 +1110,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': int, 'heartbeat': int, 'version': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time (in seconds) the device was registered/added
@@ -1086,7 +1127,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': int, 'heartbeat': int, 'version': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // filter will be applied to devicename and deviceid
 		   // if devicename or deviceid contains the filter string, the device will be returned
@@ -1100,12 +1141,14 @@ DETAILED:
 		   // deviceid refers to UUID and must be unique
 		   // serialnumber is some derivative of UUID
 		   // poemacaddress is a unique mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
-		   // format of UUID and Serial Number has not yet been finalized by Sree
-		   // currently no checking is performed on the UUID and Serial Number format
-		   // web prototype temporarily uses the format from PanL
-		   //   UUID: PH80XXRRMMDDYYzz (16 characters)
-		   //   SerialNumber: SSSSS (5 digits)
-		   //   where ZZ hexadecimal is equivalent to SSSSS in decimal
+		   //
+		   //   Actual definition of UUID and Serial Number is not yet fully defined
+		   //   For now, below are the KNOWN restrictions:
+		   //
+		   //     UUID: PH80XXRRMMDDYYZZ (16 characters - digits and uppercase letters) 
+		   //     SerialNumber: SSSSS (5 characters - digits and uppercase letters)
+		   //     POE MAC Address: 00:00:00:00:00:00 (17 characters - digits and A-F uppercase letters)
+		   //
 		   // registering a device using an already used devicename returns HTTP_409_CONFLICT with 'Device name is already taken'
 		   // registering a device using an already used deviceid returns HTTP_409_CONFLICT with 'Device UUID is already registered'
 		-  Response:
@@ -1136,7 +1179,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string }}
+		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': int, 'heartbeat': int, 'version': string }}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time (in seconds) the device was registered/added
@@ -1185,7 +1228,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // locations will not be present if no device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		I. SET DEVICES LOCATION
 		-  Request:
@@ -1204,6 +1247,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+		   // This will just reset location to latitude = 0, longitude = 0 of all devices
 
 		K. GET DEVICE LOCATION
 		-  Request:
@@ -1213,7 +1257,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // location will not be present if device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		L. SET DEVICE LOCATION
 		-  Request:
@@ -1232,6 +1276,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+		   // This will just reset location to latitude = 0, longitude = 0
 
 		N. UPDATE FIRMWARE
 		-  Request:
@@ -1314,6 +1359,64 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // active is 1 or 0 to indicate if online/offline or enabled/disabled
 
+
+		T. DOWNLOAD DEVICE SENSOR DATA
+		-  Request:
+		   POST /devices/device/DEVICENAME/sensordata
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+			//
+			// Downloading of device sensor datasets is now supported.
+			// -  a ZIP file containing CSV files for each sensor of each LDSU of the device is generated
+			// -  then uploaded to AWS S3 before sending an email containing the AWS S3 URL
+			// -  refer to DOWNLOAD DEVICE SENSOR DATA api
+			// 
+			// -  additional info:
+			// 1. current performance (local setup):
+			//    10K  data points across 16 sensors - 3 seconds
+			//    100K data points across 16 sensors - 8 seconds
+			//    1M   data points across 16 sensors - 31 seconds
+			//    to test more data points; can still be optimized
+			// 
+			// 2. the CSV file is just a 2-column table with timestamp and value
+			// 3. timestamp is the epoch time in seconds (no formatting done so that filesize doesn't become big)
+			// 4. value is formatted according to the corresponding sensor format and accuracy
+			// 5. the filename of the CSV file is <LDSUUUID>-<LDSUSAID>.csv
+			// 6. the filename of the ZIP file is <DEVICEID>.zip
+			// 7. if a device has 1 LDSU and that LDSU has 4 sensors, the zip file contains 4 CSV files.
+			//    all files are generated even when no data is available for specific sensors.
+			// 8. format of the email is below:
+			//    Hi <full name>,
+			// 
+			//    Sensor data for device Dev1 with UUID PH80XXRR0507208E is now available.
+			//    Click the link below to download.
+			//    https:// ft900-iot-portal.s3.amazonaws.com/sensordata/PH80XXRR0507208E.zip
+			// 
+			//    Best Regards,
+			//    Bridgetek Pte. Ltd.
+			// 
+			// 9. to test using web app, go to the OLD sensor dashboard page, 
+			//    (in the figma UI, this is located in the device subscription page)
+			// 
+			//    select a device and click download sensor data button.
+			//    you shall receive an email containing the link.
+			//    it can take seconds to minutes depending on the size of the sensor data.
+			//
+			// 10. if a device has 4 LDSUs with 4 sensors each => 16 sensors total 
+			//     then there will be 16 CSV files in the ZIP file
+			//
+
+		U. CLEAR DEVICE SENSOR DATA
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/sensordata
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+
 	4. Device group registration and management APIs
 
 		A. GET DEVICE GROUPS
@@ -1327,7 +1430,7 @@ DETAILED:
 		         'groupname': string, 'timestamp': int, 
 		         'devices': [
 		           {
-		             'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string,
+		             'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': int, 'heartbeat': int, 'version': string,
 		             'location': {'latitude': float, 'longitude': float}
 		           },...
 		         ]
@@ -1374,7 +1477,7 @@ DETAILED:
 		       'groupname': string, 'timestamp': int, 
 		       'devices': array[
 		         {
-		           'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string,
+		           'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': int, 'heartbeat': int, 'version': string,
 		           'location': {'latitude': float, 'longitude': float}
 		         }, ...
 		       ]
@@ -1429,7 +1532,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 
 		     'devices': array[
 		       {
-		         'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string,
+		         'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': int, 'heartbeat': int, 'version': string,
 		         'location': {'latitude': float, 'longitude': float}
 		       }, ...
 		     ]
@@ -1446,7 +1549,7 @@ DETAILED:
 		     'data': {
 		       'devices': array[
 		         {
-		           'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, 
+		           'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': int, 'heartbeat': int, 'version': string, 
 		           'location': {'latitude': float, 'longitude': float}
 		         }, ...
 		       ],
@@ -1455,7 +1558,7 @@ DETAILED:
 		           'groupname': string, 'timestamp': int, 
 		           'devices': [
 		             {
-		               'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, 
+		               'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': int, 'heartbeat': int, 'version': string, 
 		               'location': {'latitude': float, 'longitude': float}
 		             }, ...
 		           ]
@@ -1474,7 +1577,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // locations will not be present if no device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		M. SET DEVICE GROUP LOCATION
 		-  Request:
@@ -1493,7 +1596,8 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
-
+		   // This will just reset location to latitude = 0, longitude = 0 of each device in the group
+	
 		O. GET DEVICE GROUP OTA STATUSES
 		-  Request:
 		   GET /devicegroups/group/DEVICEGROUPNAME/ota
@@ -1811,6 +1915,7 @@ DETAILED:
 		                'modem': {
 		                    'enable': boolean,
 		                    'recipients': string, // can be multiple items separated by comma
+		                    'isgroup': boolean    // true if all recipients are device groups, false if all recipients are devices
 		                },
 		                'storage': {
 		                    'enable': boolean,
@@ -1819,24 +1924,26 @@ DETAILED:
 		            }
 		        }
 		   //
-		   // TEMPERATURE class
+		   // TEMPERATURE/HUMIDITY/AMBIENTLIGHT/MOTIONSENSOR/CO2GAS/VOCGAS class
 		   data: {
 		           "opmode": int,
-		           "mode": int, 
-		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
-		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
-		           "notification": json_obj,
-		      }
-		   //
-		   // HUMIDITY class
-		   data: {
-		           "opmode": int,
-		           "mode": int, 
-		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
-		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
-		           "notification": json_obj,
+		           "mode": int,              // single threshold, dual threshold, continuous
+		           "threshold": {
+		               "value": int,         // for single threshold mode
+		               "min": int,           // for dual threshold mode
+		               "max": int,           // for dual threshold mode
+		               "activate": int       // for dual threshold mode
+		           }, 
+		           "alert": {
+		               "type": int, 
+		               "period": int
+		           }, 
+		           "hardware": {             // for continuous mode
+		               'enable': boolean
+		               'recipients': string, // can be multiple items separated by comma
+		               'isgroup': boolean    // true if all recipients are device groups, false if all recipients are devices
+		           }, 
+		           "notification": json_obj, // see above
 		      }
 		   //
 		   //   mode is an index to the list of modes
@@ -1853,8 +1960,13 @@ DETAILED:
 		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
 		   //   notification refers to the the same notification settings for MENOS alerting
 		   //   hardware
-		   //     appears when mode is continuous
-		   //
+		   //     appears when mode is Continuous
+		   //     enable
+		   //       default value is false in UI
+		   //       if true, data is to be forwarded to an actuator given the specified devicename
+		   //       else, data is not to be forwarded to an actuator
+		   //     devicename
+		   //       used when enable is set to true
 
 		L. GET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
@@ -1869,7 +1981,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 		   //
@@ -1879,7 +1991,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 
@@ -2072,6 +2184,7 @@ DETAILED:
 		                'modem': {
 		                    'enable': boolean,
 		                    'recipients': string,   // can be multiple items separated by comma
+		                    'isgroup': boolean      // true if all recipients are device groups, false if all recipients are devices
 		                },
 		                'storage': {
 		                    'enable': boolean,
@@ -2411,7 +2524,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be SPEAKER, DISPLAY, LIGHT, POTENTIOMETER, TEMPERATURE
@@ -2422,7 +2535,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
@@ -2433,7 +2546,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -2443,7 +2556,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -2453,7 +2566,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -2876,7 +2989,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be ANEMOMETER
@@ -2887,7 +3000,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
@@ -2898,7 +3011,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -3153,7 +3266,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be TEMPERATURE
@@ -3164,7 +3277,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -3174,7 +3287,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -3309,7 +3422,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be TEMPERATURE with subclass of HUMIDITY
@@ -3320,7 +3433,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
@@ -3331,7 +3444,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -3490,7 +3603,7 @@ DETAILED:
 		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
+		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
 		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
 		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
 		                ],
