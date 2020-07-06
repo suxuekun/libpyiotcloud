@@ -1929,9 +1929,9 @@ DETAILED:
 		           "opmode": int,
 		           "mode": int,              // single threshold, dual threshold, continuous
 		           "threshold": {
-		               "value": int,         // for single threshold mode
-		               "min": int,           // for dual threshold mode
-		               "max": int,           // for dual threshold mode
+		               "value": int/float,   // for single threshold mode, should use the sensor["minmax"][1] as default value, int/float depending on sensor["format"], if float should use sensor["accuracy"] for number of decimal points
+		               "min": int/float,     // for dual threshold mode, should use the sensor["minmax"][0] as default value, int/float depending on sensor["format"], if float should use sensor["accuracy"] for number of decimal points
+		               "max": int/float,     // for dual threshold mode, should use the sensor["minmax"][1] as default value, int/float depending on sensor["format"], if float should use sensor["accuracy"] for number of decimal points
 		               "activate": int       // for dual threshold mode
 		           }, 
 		           "alert": {
@@ -2024,6 +2024,18 @@ DETAILED:
 		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
+		   //
+		   // Sensor data storage has been optimized for size, performance and scalability
+		   // - sensor data is now stored in its own DB table
+		   // - every device now has its own DB collection
+		   //   (previously all devices share the same collection)
+		   // - this makes it possible to:
+		   //   1. efficiently query and store sensor data for a specific device
+		   //   2. compute device sensor data STORAGE USAGE very quick (less than 10 milliseconds)
+		   //   3. count device sensor data points very quick (less than 10 milliseconds)
+		   //   4. automatically set the maximum data storage cap for the device (50M,1GB,3GB,10GB) 
+		   //   - not yet implemented but MongoDB allows this for collections
+		   // - applied also to heartbeat, menos alerts and packet history - as these can really grow big
 
 		O. CHANGE LDSU DEVICE (SENSOR/ACTUATOR) NAME
 		-  Request:
@@ -3603,9 +3615,12 @@ DETAILED:
 		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
-		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
-		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
+		     'sensors': [
+		                  {
+		                    'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
+		                    'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
+		                    'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}
+		                  }
 		                ],
 		     'stats'  : { 
 		                  'devices': {
@@ -3622,7 +3637,7 @@ DETAILED:
 		                  },
 		                },
 		     'summary': { 
-		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'peripheral': string, 'classes': string, 'configuration': string, 'enabled': int}],
+		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'ldsu': string, 'number': string, 'classes': string, 'configuration': string, 'enabled': int}],
 		                  'devices': [{'devicename': string, 'group': string, 'version': string, 'location': string, 'status': int}],
 		                },
 		     'usages':  {

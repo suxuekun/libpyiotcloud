@@ -324,7 +324,10 @@ def forward_sensor_reading(database_client, username, devicename, deviceid, sour
                         return
                     # continuous mode (sensor forwarding)
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients = recipients.replace(" ", "").split(",")
+                    recipients = recipients.split(",")
+                    for x in range(len(recipients)):
+                        recipients[x] = recipients[x].strip()
+
 
                     sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, str(number))
                     if sensor is not None:

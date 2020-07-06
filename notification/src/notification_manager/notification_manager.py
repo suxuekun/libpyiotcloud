@@ -257,7 +257,9 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
         if modem.get("isgroup") is not None:
             isgroup = modem["isgroup"]
 
-        recipients = recipient.replace(" ", "").split(",")
+        recipients = recipient.split(",")
+        for x in range(len(recipients)):
+            recipients[x] = recipients[x].strip()
 
         if isgroup == False:
             # send to all devices in the list
@@ -321,7 +323,10 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
         #
         # Email
         #
-        recipients = recipient.replace(" ", "").split(",")
+        recipients = recipient.split(",")
+        for x in range(len(recipients)):
+            recipients[x] = recipients[x].strip()
+
         for recipient in recipients:
             try:
                 response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
@@ -342,7 +347,10 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
         #
         # Mobile (sms)
         #
-        recipients = recipient.replace(" ", "").split(",")
+        recipients = recipient.split(",")
+        for x in range(len(recipients)):
+            recipients[x] = recipients[x].strip()
+
         for recipient in recipients:
             country, isocode, networkcarrier = get_sms_details(recipient)
 

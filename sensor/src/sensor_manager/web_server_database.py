@@ -413,11 +413,11 @@ class database_client_mongodb:
 
         # different database for sensor dashboarding
         if "mongodb.net" in config.CONFIG_MONGODB_HOST2: 
-            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
+            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_SENSOR_DB + "?retryWrites=true&w=majority"
             mongo_client_sensor = MongoClient(connection_string)
-            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
+            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_SENSOR_DB]
         else:
-            self.client_sensor = self.client
+            self.client_sensor = mongo_client[config.CONFIG_MONGODB_SENSOR_DB]
 
 
     ##########################################################
@@ -717,12 +717,14 @@ class database_client_mongodb:
     # sensor readings dataset
     ##########################################################
 
-    def get_sensorreadings_dataset_document(self):
-        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
-        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+    def get_sensorreadings_dataset_document(self, deviceid):
+        # separate collection per device
+        return self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
+        # one collection for all devices
+        #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
     def add_ldsus_batch_ldsu_sensor_reading_dataset(self, username, deviceid, cached):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
 
         items = []
 
@@ -738,8 +740,8 @@ class database_client_mongodb:
                     if ldsu["SNS"][y][x] != "NaN":
                         item = {}
                         # add username in order to optimize querying of all sensors of a user
-                        item['username'] = username
-                        item['deviceid'] = deviceid
+                        #item['username'] = username
+                        #item['deviceid'] = deviceid
                         item['source'] = ldsu["UID"]
                         item['number'] = x
                         item['timestamp'] = ldsu["TS"][y]
@@ -749,7 +751,7 @@ class database_client_mongodb:
         sensorreadings.insert_many(items)
 
     def add_batch_ldsu_sensor_reading_dataset(self, username, deviceid, source, values_set, timestamp_set):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
 
         items = []
         for y in range(len(timestamp_set)):
@@ -757,8 +759,8 @@ class database_client_mongodb:
                 if values_set[y][x] != "NaN":
                     item = {}
                     # add username in order to optimize querying of all sensors of a user
-                    item['username'] = username
-                    item['deviceid'] = deviceid
+                    #item['username'] = username
+                    #item['deviceid'] = deviceid
                     item['source'] = source
                     item['number'] = x
                     item['timestamp'] = timestamp_set[y]
@@ -768,15 +770,15 @@ class database_client_mongodb:
         sensorreadings.insert_many(items)
 
     def add_ldsu_sensor_reading_dataset(self, username, deviceid, source, values, timestamp):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
 
         items = []
         for x in range(len(values)):
             if values[x] != "NaN":
                 item = {}
                 # add username in order to optimize querying of all sensors of a user
-                item['username'] = username
-                item['deviceid'] = deviceid
+                #item['username'] = username
+                #item['deviceid'] = deviceid
                 item['source'] = source
                 item['number'] = x
                 item['timestamp'] = timestamp
@@ -789,17 +791,17 @@ class database_client_mongodb:
         #print("add_sensor_reading_dataset {} ".format(timestamp))
         if timestamp is None:
             timestamp = int(time.time())
-        sensorreadings = self.get_sensorreadings_dataset_document();
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         item = {}
         # add username in order to optimize querying of all sensors of a user
-        item['username'] = username
-        item['deviceid'] = deviceid
+        #item['username'] = username
+        #item['deviceid'] = deviceid
         item['source'] = source
         item['number'] = number
         item['timestamp'] = timestamp
         item['value'] = value
 
-        readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'number': number})
+        readings = sensorreadings.find({'source': source, 'number': number})
         if readings.count() >= config.CONFIG_MAX_DATASET:
             sensorreadings.delete_one(readings[0])
         sensorreadings.insert_one(item)
@@ -807,26 +809,26 @@ class database_client_mongodb:
 
     def get_sensor_reading_dataset_by_deviceid(self, deviceid, source, number):
         dataset = []
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
-            readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'number': number}, {'timestamp': 1, 'sensor_readings': 1})
+            readings = sensorreadings.find({'source': source, 'number': number})
             for sensorreading in readings:
                 sensorreading.pop('_id')
                 dataset.append(sensorreading)
         return dataset
 
     def delete_sensor_reading_dataset(self, deviceid, source, number):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
-            sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
+            sensorreadings.delete_many({'source': source, 'number': number})
         except:
             print("delete_sensor_reading_dataset: Exception occurred")
             pass
 
     def delete_sensors_readings_dataset(self, deviceid, source):
-        sensorreadings = self.get_sensorreadings_dataset_document();
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
-            sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+            sensorreadings.delete_many({'source': source})
         except:
             print("delete_sensors_readings_dataset: Exception occurred")
             pass

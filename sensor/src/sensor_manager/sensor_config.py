@@ -17,6 +17,10 @@ class config:
     CONFIG_MONGODB_HOST2                     = os.environ["CONFIG_USE_MONGODB_ATLAS"]
     CONFIG_MONGODB_PORT                      = 27017
     CONFIG_MONGODB_DB                        = "iotcloud-database"
+    CONFIG_MONGODB_SENSOR_DB                 = "iotcloud-sensordata-database"
+    CONFIG_MONGODB_HEARTBEAT_DB              = "iotcloud-heartbeat-database"
+    CONFIG_MONGODB_MENOSALERT_DB             = "iotcloud-menosalert-database"
+    CONFIG_MONGODB_PACKETHISTORY_DB          = "iotcloud-packethistory-database"
     CONFIG_MONGODB_TB_PROFILES               = "profiles"
 
     CONFIG_MONGODB_TB_DEVICES                = "devices"
