@@ -362,46 +362,76 @@ class database_client:
     ##########################################################
 
     def record_device_heartbeat(self, deviceid, timestamp):
-        if not self._devices.find_device_heartbeats_by_timestamp(deviceid, timestamp):
-            self._devices.record_device_heartbeat(deviceid, timestamp)
+        try:
+            if not self._devices.find_device_heartbeats_by_timestamp(deviceid, timestamp):
+                self._devices.record_device_heartbeat(deviceid, timestamp)
+        except:
+            pass
 
     def delete_device_heartbeats_by_deviceid(self, deviceid):
-        self._devices.delete_device_heartbeats(deviceid)
+        try:
+            self._devices.delete_device_heartbeats(deviceid)
+        except:
+            pass
 
     def delete_device_heartbeats(self, username, devicename):
-        self._devices.delete_device_heartbeats(self._devices.get_deviceid(username, devicename))
+        try:
+            self._devices.delete_device_heartbeats(self._devices.get_deviceid(username, devicename))
+        except:
+            pass
 
 
     def delete_device_heartbeats_by_timestamp(self, deviceid, timestamp):
-        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        try:
+            self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        except:
+            pass
 
     def get_num_device_heartbeats_by_timestamp_by_day(self, deviceid, timestamp):
-        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
-        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_DAY_RANGE), config.CONFIG_HEARBEAT_DAY_MAX
+        try:
+            self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+            return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_DAY_RANGE), config.CONFIG_HEARBEAT_DAY_MAX
+        except:
+            return 0, config.CONFIG_HEARBEAT_DAY_MAX
 
     def get_num_device_heartbeats_by_timestamp_by_week(self, deviceid, timestamp):
-        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
-        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_WEEK_RANGE), config.CONFIG_HEARBEAT_WEEK_MAX
+        try:
+            self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+            return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_WEEK_RANGE), config.CONFIG_HEARBEAT_WEEK_MAX
+        except:
+            return 0, config.CONFIG_HEARBEAT_WEEK_MAX
 
     def get_num_device_heartbeats_by_timestamp_by_month(self, deviceid, timestamp):
-        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
-        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_MONTH_RANGE), config.CONFIG_HEARBEAT_MONTH_MAX
+        try:
+            self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+            return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_MONTH_RANGE), config.CONFIG_HEARBEAT_MONTH_MAX
+        except:
+            return 0, config.CONFIG_HEARBEAT_MONTH_MAX
 
 
     def get_num_device_heartbeats_by_devicename_by_timestamp_by_day(self, username, devicename, timestamp):
-        deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
-        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_DAY_RANGE), config.CONFIG_HEARBEAT_DAY_MAX
+        try:
+            deviceid = self._devices.get_deviceid(username, devicename)
+            self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+            return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_DAY_RANGE), config.CONFIG_HEARBEAT_DAY_MAX
+        except:
+            return 0, config.CONFIG_HEARBEAT_DAY_MAX
 
     def get_num_device_heartbeats_by_devicename_by_timestamp_by_week(self, username, devicename, timestamp):
-        deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
-        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_WEEK_RANGE), config.CONFIG_HEARBEAT_WEEK_MAX
+        try:
+            deviceid = self._devices.get_deviceid(username, devicename)
+            self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+            return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_WEEK_RANGE), config.CONFIG_HEARBEAT_WEEK_MAX
+        except:
+            return 0, config.CONFIG_HEARBEAT_WEEK_MAX
 
     def get_num_device_heartbeats_by_devicename_by_timestamp_by_month(self, username, devicename, timestamp):
-        deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
-        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_MONTH_RANGE), config.CONFIG_HEARBEAT_MONTH_MAX
+        try:
+            deviceid = self._devices.get_deviceid(username, devicename)
+            self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+            return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_MONTH_RANGE), config.CONFIG_HEARBEAT_MONTH_MAX
+        except:
+            return 0, config.CONFIG_HEARBEAT_MONTH_MAX
 
 
     ##########################################################
@@ -437,9 +467,6 @@ class database_client:
         if devices and devices.count():
             for device in devices.find({'username': username}):
                 histories = self._devices.get_device_history(device["deviceid"])
-                #print(histories)
-                #for history in histories:
-                #    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
                 if histories and len(histories) > 0:
                     user_histories += histories
         user_histories.sort(key=self.sort_by_timestamp, reverse=True)
@@ -466,16 +493,11 @@ class database_client:
         devices = self._devices.get_registered_devices()
         if devices and devices.count():
             for device in devices.find(filter_devices):
-                filter['deviceid'] = device['deviceid']
-                histories = self._devices.get_device_history_filter(filter)
-                #for history in histories:
-                #    #print(history['timestamp'])
-                #    #history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-                #    user_histories.append(history)
+                histories = self._devices.get_device_history_filter(device['deviceid'], filter)
+                for history in histories:
+                    history["devicename"] = device['devicename']
+                    history["deviceid"] = device['deviceid']
                 user_histories += histories
-                #print(len(histories))
-        #print(len(user_histories))
-
         user_histories.sort(key=self.sort_by_timestamp, reverse=True)
         return user_histories
 
@@ -837,9 +859,9 @@ class database_client:
         self._devices.delete_device_sensor_reading(deviceid)
         self._devices.delete_device_sensor_reading_dataset(deviceid)
 
-    def delete_user_sensor_reading(self, username):
-        self._devices.delete_user_sensor_reading(username)
-        self._devices.delete_user_sensor_reading_dataset(username)
+    #def delete_user_sensor_reading(self, username):
+    #    self._devices.delete_user_sensor_reading(username)
+    #    self._devices.delete_user_sensor_reading_dataset(username)
 
     def get_sensor_reading(self, username, devicename, source, number):
         return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, number)
@@ -1534,13 +1556,16 @@ class database_client_mongodb:
 
         # different database for sensor dashboarding
         if "mongodb.net" in config.CONFIG_MONGODB_HOST2:
-            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
+            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_SENSOR_DB + "?retryWrites=true&w=majority"
             SENSOR_CONNECTION = connection_string
             mongo_client_sensor = SensorMongoDb().conn
-            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
+            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_SENSOR_DB]
         else:
-            self.client_sensor = self.client
-            
+            self.client_sensor = mongo_client[config.CONFIG_MONGODB_SENSOR_DB]
+
+        self.client_heartbeat = mongo_client[config.CONFIG_MONGODB_HEARTBEAT_DB]
+        self.client_menosalert = mongo_client[config.CONFIG_MONGODB_MENOSALERT_DB]
+        self.client_packethistory = mongo_client[config.CONFIG_MONGODB_PACKETHISTORY_DB]
 
         self.paypal = paypal_client()
         self.paypal.initialize()
@@ -2091,42 +2116,45 @@ class database_client_mongodb:
     # heartbeat
     ##########################################################
 
-    def get_heartbeat_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_HEARTBEAT]
+    def get_heartbeat_document(self, deviceid):
+        # separate collection per device
+        return self.client_heartbeat["{}_{}".format(config.CONFIG_MONGODB_TB_HEARTBEAT, deviceid)]
+        # one collection for all devices
+        #return self.client[config.CONFIG_MONGODB_TB_HEARTBEAT]
 
     def record_device_heartbeat(self, deviceid, timestamp):
-        heartbeat = self.get_heartbeat_document()
+        heartbeat = self.get_heartbeat_document(deviceid)
         item = {}
-        item['timestamp'] = timestamp
-        item['deviceid'] = deviceid
+        item['TS'] = timestamp
+        #item['deviceid'] = deviceid
         heartbeat.insert_one(item)
 
     def delete_device_heartbeats(self, deviceid):
-        heartbeat = self.get_heartbeat_document()
+        heartbeat = self.get_heartbeat_document(deviceid)
         try:
-            heartbeat.delete_many({'deviceid': deviceid})
+            heartbeat.delete_many({})
         except:
             print("delete_device_heartbeats: Exception occurred")
 
     def delete_device_heartbeats_by_timestamp(self, deviceid, timestamp):
-        heartbeat = self.get_heartbeat_document()
+        heartbeat = self.get_heartbeat_document(deviceid)
         try:
-            heartbeat.delete_many({'deviceid': deviceid, 'timestamp': { '$lte': timestamp-config.CONFIG_HEARBEAT_MAX_RANGE } })
+            heartbeat.delete_many({'TS': { '$lte': timestamp-config.CONFIG_HEARBEAT_MAX_RANGE } })
         except:
             print("delete_device_heartbeats_by_timestamp: Exception occurred")
 
     def find_device_heartbeats_by_timestamp(self, deviceid, timestamp):
-        heartbeat = self.get_heartbeat_document()
+        heartbeat = self.get_heartbeat_document(deviceid)
         if heartbeat:
-            items = heartbeat.find({'deviceid': deviceid, 'timestamp': { '$gt': timestamp-config.CONFIG_HEARBEAT_MIN_RANGE } })
+            items = heartbeat.find({'TS': { '$gt': timestamp-config.CONFIG_HEARBEAT_MIN_RANGE } })
             if items and items.count():
                 return True
         return False
 
     def get_num_device_heartbeats_by_timestamp(self, deviceid, timestamp):
-        heartbeat = self.get_heartbeat_document()
+        heartbeat = self.get_heartbeat_document(deviceid)
         if heartbeat:
-            items = heartbeat.find({'deviceid': deviceid, 'timestamp': { '$gt': timestamp } })
+            items = heartbeat.find({'TS': { '$gt': timestamp } })
             if items:
                 return items.count()
         return 0
@@ -2136,47 +2164,44 @@ class database_client_mongodb:
     # history
     ##########################################################
 
-    def get_history_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_HISTORY]
+    def get_history_document(self, deviceid):
+        # separate collection per device
+        return self.client_packethistory["{}_{}".format(config.CONFIG_MONGODB_TB_HISTORY, deviceid)]
+        # one collection for all devices
+        #return self.client[config.CONFIG_MONGODB_TB_HISTORY]
 
     def add_device_history(self, deviceid, topic, payload, direction):
-        history = self.get_history_document();
+        history = self.get_history_document(deviceid)
         timestamp = int(time.time())
         item = {}
         item['timestamp'] = timestamp
         item['direction'] = direction
-        item['deviceid'] = deviceid
         item['topic'] = topic
         item['payload'] = payload
         history.insert_one(item);
 
     def get_device_history(self, deviceid):
         history_list = []
-        histories = self.get_history_document();
+        histories = self.get_history_document(deviceid)
         if histories:
-            for history in histories.find({'deviceid': deviceid}):
-                #print(history["timestamp"])
+            for history in histories.find({}):
                 history.pop('_id')
                 history_list.append(history)
         return history_list
 
-    def get_device_history_filter(self, filter):
+    def get_device_history_filter(self, deviceid, filter):
         history_list = []
-        histories = self.get_history_document();
+        histories = self.get_history_document(deviceid)
         if histories:
-            #if filter.get("timestamp"):
-            #    print("timestampXX {}".format(filter["timestamp"]))
             for history in histories.find(filter):
-                #print(history["timestamp"])
                 history.pop('_id')
                 history_list.append(history)
         return history_list
 
     def delete_device_history(self, deviceid):
-        history = self.get_history_document();
+        history = self.get_history_document(deviceid)
         try:
-            history.delete_many({'deviceid': deviceid})
-            #history.delete_one({'deviceid': deviceid, 'timestamp': timestamp })
+            history.delete_many({})
         except:
             print("delete_device_history: Exception occurred")
             pass
@@ -2186,13 +2211,16 @@ class database_client_mongodb:
     # menos
     ##########################################################
 
-    def get_menos_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_MENOS]
+    def get_menos_document(self, deviceid):
+        # separate collection per device
+        return self.client_menosalert["{}_{}".format(config.CONFIG_MONGODB_TB_MENOS, deviceid)]
+        # one collection for all devices
+        #return self.client[config.CONFIG_MONGODB_TB_MENOS]
 
     def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         item = {}
-        item['deviceid'] = deviceid
+        #item['deviceid'] = deviceid
         item['timestamp'] = timestamp
         item['recipient'] = recipient
         item['messagelen'] = len(message)
@@ -2206,16 +2234,16 @@ class database_client_mongodb:
         menos.insert_one(item)
 
     def delete_menos_transaction(self, deviceid):
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         try:
-            menos.delete_many({'deviceid': deviceid})
+            menos.delete_many({})
         except:
             print("delete_menos_transaction: Exception occurred")
             pass
 
     def get_menos_transaction_by_username(self, username):
         menos_list = []
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos and menos.count():
             for menos_item in menos.find({'username': username}):
                 menos_item.pop('_id')
@@ -2224,20 +2252,20 @@ class database_client_mongodb:
 
     def get_menos_transaction(self, deviceid):
         menos_list = []
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos and menos.count():
-            for menos_item in menos.find({'deviceid': deviceid}):
+            for menos_item in menos.find({}):
                 menos_item.pop('_id')
                 menos_list.append(menos_item)
         return menos_list
 
     def get_menos_transaction_filtered(self, deviceid, type, source, datebegin, dateend):
         menos_list = []
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos and menos.count():
 
             filter = {}
-            filter['deviceid'] = deviceid
+            #filter['deviceid'] = deviceid
             if type is not None:
                 filter['type'] = type
             if source is not None:
@@ -2258,9 +2286,9 @@ class database_client_mongodb:
 
 
     def get_menos_num_type(self, deviceid, datestart, dateend, typex):
-        menos = self.get_menos_document()
+        menos = self.get_menos_document(deviceid)
         if menos:
-            items = menos.find({'deviceid': deviceid, 'type': typex, 'timestamp': { '$gt': datestart, '$lte': dateend } })
+            items = menos.find({'type': typex, 'timestamp': { '$gt': datestart, '$lte': dateend } })
             if items:
                 return items.count()
         return 0
@@ -2280,39 +2308,61 @@ class database_client_mongodb:
     def get_menos_num_storage(self, deviceid, datestart, dateend):
         return self.get_menos_num_type(deviceid, datestart, dateend, "Storage")
 
+    def display_collection_stats(self, collectioname):
+        print(self.client_sensor.command("collstats", collectioname)["ns"])
+        print(self.client_sensor.command("collstats", collectioname)["size"])
+        print(self.client_sensor.command("collstats", collectioname)["totalIndexSize"])
+        print(self.client_sensor.command("collstats", collectioname)["storageSize"])
+
+        #print(self.client_sensor.command("collstats", collectioname)["wiredTiger"])
+        #print(self.client_sensor.command("collstats", collectioname)["capped"])
+        #print(self.client_sensor.command("collstats", collectioname)["max"])
+        #print(self.client_sensor.command("collstats", collectioname)["maxSize"])
+
     def get_menos_num_sensordata(self, deviceid, datestart, dateend):
         size = 0
         items = None
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
-            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["ns"])
-            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["size"])
-            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["storageSize"])
-            #print(self.client.command("collstats", config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET)["capped"])
-            start = int(time.time())
+            start = time.time()
             if True:
+                try:
+                    collectioname = "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)
+                    #self.display_collection_stats(collectioname)
+
+                    # use the uncompressed size in memory of all records in the collection - to be billed to customer
+                    # not include the total size of indexes associate with the collection - not to be billed to customer
+                    size = self.client_sensor.command("collstats", collectioname)["size"]
+                    #size += self.client_sensor.command("collstats", collectioname)["totalIndexSize"]
+                except Exception as e:
+                    #print(e)
+                    size = 0
+                print("{} size took {} seconds".format(size, time.time()-start))
+            elif False:
                 # estimate the size based on the size of the first element
-                items = sensorreadings.find({'deviceid': deviceid})
+                items = sensorreadings.find({})
                 for item in items:
                     if item.get("_id"):
                         item.pop("_id")
                     size = len(str(item)) * items.count()
                     break
+                print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
             elif False:
                 # using bson
-                items = sensorreadings.find({'deviceid': deviceid})
+                items = sensorreadings.find({})
                 for item in items:
                     if item.get("_id"):
                         item.pop("_id")
                     size += len(bson.BSON.encode(item))
+                print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
             else:
                 # using str
-                items = sensorreadings.find({'deviceid': deviceid})
+                items = sensorreadings.find({})
                 for item in items:
                     if item.get("_id"):
                         item.pop("_id")
                     size += len(str(item))
-            print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
+                print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
         return size
 
 
@@ -2337,7 +2387,9 @@ class database_client_mongodb:
                             continue
 
                     recipients = notification["notification"]["endpoints"]["modem"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)):
@@ -2367,7 +2419,9 @@ class database_client_mongodb:
 
                     notification_new = copy.deepcopy(notification)
                     recipients = notification_new["notification"]["endpoints"]["modem"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
                     #print(recipients_list)
 
                     found = False
@@ -2401,7 +2455,9 @@ class database_client_mongodb:
                        continue
 
                     recipients = notification["notification"]["endpoints"]["modem"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)):
@@ -2432,7 +2488,9 @@ class database_client_mongodb:
 
                     notification_new = copy.deepcopy(notification)
                     recipients = notification_new["notification"]["endpoints"]["modem"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
                     #print(recipients_list)
 
                     found = False
@@ -2601,7 +2659,9 @@ class database_client_mongodb:
                         continue
 
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)):
@@ -2630,7 +2690,9 @@ class database_client_mongodb:
 
                     configuration_new = copy.deepcopy(configuration)
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)-1, -1, -1):
@@ -2661,7 +2723,9 @@ class database_client_mongodb:
                         continue
 
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)):
@@ -2690,7 +2754,9 @@ class database_client_mongodb:
 
                     configuration_new = copy.deepcopy(configuration)
                     recipients = configuration["attributes"]["hardware"]["recipients"]
-                    recipients_list = recipients.replace(" ", "").split(",")
+                    recipients_list = recipients.split(",")
+                    for x in range(len(recipients_list)):
+                        recipients_list[x] = recipients_list[x].strip()
 
                     found = False
                     for x in range(len(recipients_list)-1, -1, -1):
@@ -3292,7 +3358,7 @@ class database_client_mongodb:
         return None
 
     def get_sensor(self, deviceid, source, number, sensorname):
-        i2csensors = self.get_sensors_document();
+        i2csensors = self.get_sensors_document()
         if i2csensors:
             #for i2csensor in i2csensors.find({'deviceid': deviceid, 'sensorname': sensorname}):
             #    print(i2csensor)
@@ -3301,7 +3367,7 @@ class database_client_mongodb:
             #print(source)
             #print(number)
             #print(sensorname)
-            for i2csensor in i2csensors.find({'deviceid': deviceid, 'sensorname': sensorname, 'source': source, 'number': number}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
                 if i2csensor.get('username'):
                     i2csensor.pop('username')
@@ -3466,16 +3532,18 @@ class database_client_mongodb:
     # sensor readings dataset
     ##########################################################
 
-    def get_sensorreadings_dataset_document(self):
-        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
-        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+    def get_sensorreadings_dataset_document(self, deviceid):
+        # separate collection per device
+        return self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
+        # one collection for all devices
+        #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
     def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
         timestamp = int(time.time())
-        sensorreadings = self.get_sensorreadings_dataset_document();
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         item = {}
-        item['username'] = username
-        item['deviceid'] = deviceid
+        #item['username'] = username
+        #item['deviceid'] = deviceid
         item['source'] = source
         if address is not None:
             item['address'] = address
@@ -3485,9 +3553,9 @@ class database_client_mongodb:
             item['subclass_value'] = subclass_value
 
         if address is not None:
-            readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address})
+            readings = sensorreadings.find({'source': source, 'address': address})
         else:
-            readings = sensorreadings.find({'deviceid': deviceid, 'source': source})
+            readings = sensorreadings.find({'source': source})
         if readings.count() >= config.CONFIG_MAX_DATASET:
             sensorreadings.delete_one(readings[0])
         sensorreadings.insert_one(item)
@@ -3497,10 +3565,10 @@ class database_client_mongodb:
         # if sensor has a subclass data becomes  [[], [], ...]
         # if sensor has no subclass data becomes [[]]
         dataset  = {"labels": [], "data": []}
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
             if address is None:
-                readings = sensorreadings.find({'deviceid': deviceid, 'source': source})
+                readings = sensorreadings.find({'source': source})
                 for sensorreading in readings:
                     #print(sensorreading)
                     if sensorreading.get("value"):
@@ -3517,7 +3585,7 @@ class database_client_mongodb:
                                 dataset["data"].append([])
                             dataset["data"][0].append(sensorreading["value"])
             else:
-                readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address})
+                readings = sensorreadings.find({'source': source, 'address': address})
                 for sensorreading in readings:
                     if sensorreading.get("value"):
                         if sensorreading.get("subclass_value"):
@@ -3539,10 +3607,10 @@ class database_client_mongodb:
         # if sensor has a subclass data becomes  [[], [], ...]
         # if sensor has no subclass data becomes [[]]
         dataset  = {"labels": [], "data": []}
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
             #print("begin:{} end:{}".format(datebegin, dateend))
-            filter = {'deviceid': deviceid, 'source': source}
+            filter = {'source': source}
             filter['timestamp'] = {'$gte': datebegin, '$lt': dateend}
             filter['number'] = number
             readings = sensorreadings.find(filter)
@@ -3780,36 +3848,36 @@ class database_client_mongodb:
         return dataset
 
     def delete_sensor_reading_dataset(self, deviceid, source, number):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
             if number is None:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+                sensorreadings.delete_many({'source': source})
             else:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
+                sensorreadings.delete_many({'source': source, 'number': number})
         except:
             print("delete_sensor_reading_dataset: Exception occurred")
             pass
 
     def delete_device_sensor_reading_dataset(self, deviceid):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
-            sensorreadings.delete_many({'deviceid': deviceid})
+            sensorreadings.delete_many({})
         except:
             print("delete_device_sensor_reading_dataset: Exception occurred")
             pass
 
-    def delete_user_sensor_reading_dataset(self, username):
-        sensorreadings = self.get_sensorreadings_dataset_document()
-        try:
-            sensorreadings.delete_many({'username': username})
-        except:
-            print("delete_user_sensor_reading_dataset: Exception occurred")
-            pass
+    #def delete_user_sensor_reading_dataset(self, username):
+    #    sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
+    #    try:
+    #        sensorreadings.delete_many({'username': username})
+    #    except:
+    #        print("delete_user_sensor_reading_dataset: Exception occurred")
+    #        pass
 
     def delete_sensors_readings_dataset(self, deviceid, source):
-        sensorreadings = self.get_sensorreadings_dataset_document()
+        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
-            sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+            sensorreadings.delete_many({'source': source})
         except:
             print("delete_sensors_readings_dataset: Exception occurred")
             pass

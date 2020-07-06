@@ -103,17 +103,23 @@
           <tbody>
             <tr>
               <th style="width:3%">&nbsp;</th>
-              <th style="width:25%">
+              <th style="width:15%">
                 <b>Device</b>
               </th>
-              <th style="width:20%">
+              <th style="width:9%">
                 <b>Version</b>
               </th>
-              <th style="width:20%">
+              <th style="width:12%">
                 <b>Group</b>
               </th>
-              <th style="width:32%">
+              <th style="width:15%">
                 <b>Location</b>
+              </th>
+              <th style="width:23%">
+                <b>Heartbeat</b>
+              </th>
+              <th style="width:23%">
+                <b>Alerts</b>
               </th>
             </tr>
           </tbody>
@@ -132,10 +138,12 @@
                 </div>
 
               </td>
-              <td style="width:25%">{{ device.devicename }}</td>
-              <td style="width:20%">{{ device.version }}</td>
-              <td style="width:20%">{{ device.group }}</td>
-              <td style="width:32%">{{ device.location }}</td>
+              <td style="width:15%">{{ device.devicename }}</td>
+              <td style="width:9%">{{ device.version }}</td>
+              <td style="width:12%">{{ device.group }}</td>
+              <td style="width:15%">{{ device.location }}</td>
+              <td style="width:23%">{{ device.online }}</td>
+              <td style="width:23%">{{ device.usage }}</td>
             </tr>
           </tbody>
         </table>
@@ -200,10 +208,13 @@
               <th style="width:8%">
                 <b>LDSU</b>
               </th>
+              <th style="width:7%">
+                <b>Number</b>
+              </th>
               <th style="width:17%">
                 <b>Class</b>
               </th>
-              <th style="width:35%">
+              <th style="width:28%">
                 <b>Configuration</b>
               </th>
             </tr>
@@ -226,9 +237,10 @@
               <td style="width:17%">{{ sensor.sensorname }}</td>
               <td style="width:13%">{{ sensor.devicename }}</td>
               <td style="width:7%">{{ sensor.type }}</td>
-              <td style="width:8%">{{ sensor.peripheral }}</td>
+              <td style="width:8%">{{ sensor.ldsu }}</td>
+              <td style="width:7%">{{ sensor.number }}</td>
               <td style="width:17%">{{ sensor.classes }}</td>
-              <td style="width:35%">{{ sensor.configuration }}</td>
+              <td style="width:28%">{{ sensor.configuration }}</td>
             </tr>
           </tbody>
         </table>

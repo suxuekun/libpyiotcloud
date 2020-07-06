@@ -14,11 +14,11 @@ def get_usage(data):
     sms = db_client.get_menos_num_sms_by_deviceid_by_currmonth(data.deviceid)
     email = db_client.get_menos_num_email_by_deviceid_by_currmonth(data.deviceid)
     notification = db_client.get_menos_num_notification_by_deviceid_by_currmonth(data.deviceid)
-    # storage = db_client.get_menos_num_sensordata_by_deviceid_by_currmonth(data.deviceid)
-    data.sms = sms
-    data.email = email
-    data.notification = notification
-    # data.storage = storage
+    _b, _kb, _mb, _gb = db_client.get_menos_num_sensordata_by_deviceid_by_currmonth(data.deviceid)
+    data.current.sms = str(sms)
+    data.current.email = str(email)
+    data.current.notification = str(notification)
+    data.current.storage = "{:.9f}".format(_gb)
     data.validate()
 
 class SubscriptionResource(Resource,GetMixin):

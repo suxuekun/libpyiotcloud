@@ -110,44 +110,13 @@ class database_client:
     ##########################################################
 
     def add_device_history(self, deviceid, topic, payload, direction):
-        devices = self.get_registered_devices()
-        if devices:
-            for device in devices.find({'deviceid': deviceid},{'devicename':1, 'deviceid': 1}):
-                self._devices.add_device_history(device['devicename'], deviceid, topic, payload, direction)
-                break
-
-            # limit device history to CONFIG_MAX_HISTORY_PER_DEVICE for each devices
-            if config.CONFIG_ENABLE_MAX_HISTORY:
-                devices_list = self._devices.get_device_history(deviceid, removeID=False)
-                if devices_list:
-                    devices_list.sort(key=self.sort_user_history, reverse=True)
-                    try:
-                        while len(devices_list) > config.CONFIG_MAX_HISTORY_PER_DEVICE:
-                            self._devices.delete_device_history(devices_list[-1]['deviceid'], devices_list[-1]['timestamp'], devices_list[-1]['_id'])
-                            devices_list.remove(devices_list[-1])
-                    except:
-                        print("add_device_history Exception occurred")
-                        pass
+        self._devices.add_device_history(None, deviceid, topic, payload, direction)
 
     def get_device_history(self, deviceid):
         return self._devices.get_device_history(deviceid)
 
     def sort_user_history(self, elem):
         return elem['timestamp']
-
-    def get_user_history(self, username):
-        user_histories = []
-        users = self._users.get_registered_users()
-        devices = self._devices.get_registered_devices()
-        if devices and devices.count():
-            for device in devices.find({'username': username}):
-                histories = self._devices.get_device_history(device["deviceid"])
-                for history in histories:
-                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-                if histories and len(histories) > 0:
-                    user_histories += histories
-        user_histories.sort(key=self.sort_user_history, reverse=True)
-        return user_histories
 
 
     ##########################################################
@@ -354,6 +323,7 @@ class database_client_mongodb:
         #mongo_client = MongoClient(self.host, self.port, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = MongoClient(self.host, self.port)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
+        self.client_packethistory = mongo_client[config.CONFIG_MONGODB_PACKETHISTORY_DB]
 
 
     ##########################################################
@@ -472,39 +442,41 @@ class database_client_mongodb:
     # history
     ##########################################################
 
-    def get_history_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_HISTORY]
+    def get_history_document(self, deviceid):
+        # separate collection per device
+        return self.client_packethistory["{}_{}".format(config.CONFIG_MONGODB_TB_HISTORY, deviceid)]
+        # one collection for all devices
+        #return self.client[config.CONFIG_MONGODB_TB_HISTORY]
 
     def add_device_history(self, devicename, deviceid, topic, payload, direction):
-        history = self.get_history_document();
+        history = self.get_history_document(deviceid)
         timestamp = int(time.time())
         item = {}
         item['timestamp'] = timestamp
         item['direction'] = direction
-        item['deviceid'] = deviceid
-        item['devicename'] = devicename
         item['topic'] = topic
         item['payload'] = payload
         history.insert_one(item);
 
-    def get_device_history(self, deviceid, removeID=True):
+        # limit device history to CONFIG_MAX_HISTORY_PER_DEVICE for each devices
+        if config.CONFIG_ENABLE_MAX_HISTORY:
+            collectioname = "{}_{}".format(config.CONFIG_MONGODB_TB_HISTORY, deviceid)
+            try:
+                count = self.client_packethistory.command("collstats", collectioname)["count"]
+            except:
+                count = 0
+            while count > config.CONFIG_MAX_HISTORY_PER_DEVICE:
+                history.delete_one({})
+                count -= 1
+
+    def get_device_history(self, deviceid):
         history_list = []
-        histories = self.get_history_document();
+        histories = self.get_history_document(deviceid)
         if histories:
-            for history in histories.find({'deviceid': deviceid}):
-                if removeID==True:
-                    history.pop('_id')
+            for history in histories.find({}):
+                history.pop('_id')
                 history_list.append(history)
         return history_list
-
-    def delete_device_history(self, deviceid, timestamp, id):
-        history = self.get_history_document();
-        try:
-            history.delete_one({'_id': id})
-            #history.delete_one({'deviceid': deviceid, 'timestamp': timestamp })
-        except:
-            print("delete_device_history: Exception occurred")
-            pass
 
 
     ##########################################################

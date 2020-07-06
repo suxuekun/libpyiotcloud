@@ -67,6 +67,10 @@ class config:
 
     # Database records
     CONFIG_MONGODB_DB                        = "iotcloud-database"
+    CONFIG_MONGODB_SENSOR_DB                 = "iotcloud-sensordata-database"
+    CONFIG_MONGODB_HEARTBEAT_DB              = "iotcloud-heartbeat-database"
+    CONFIG_MONGODB_MENOSALERT_DB             = "iotcloud-menosalert-database"
+    CONFIG_MONGODB_PACKETHISTORY_DB          = "iotcloud-packethistory-database"
     CONFIG_MONGODB_TB_PROFILES               = "profiles"
 
     CONFIG_MONGODB_TB_LASTLOGIN              = "login_lastlogin"
@@ -143,6 +147,6 @@ class config:
     CONFIG_MEGABYTE_MiB              = 1048576    # 1024*1024
     CONFIG_KILOBYTE_KB               = 1000       # 1000
     CONFIG_KILOBYTE_KiB              = 1024       # 1024
-    CONFIG_GIGABYTE_CONVERSION       = CONFIG_GIGABYTE_GB
-    CONFIG_MEGABYTE_CONVERSION       = CONFIG_MEGABYTE_MB
-    CONFIG_KILOBYTE_CONVERSION       = CONFIG_KILOBYTE_KB
+    CONFIG_GIGABYTE_CONVERSION       = CONFIG_GIGABYTE_GB # MongoDB Compass uses GB not GiB
+    CONFIG_MEGABYTE_CONVERSION       = CONFIG_MEGABYTE_MB # MongoDB Compass uses MB not MiB
+    CONFIG_KILOBYTE_CONVERSION       = CONFIG_KILOBYTE_KB # MongoDB Compass uses KB not KiB

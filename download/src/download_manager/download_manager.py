@@ -244,8 +244,8 @@ def download_device_sensor_data(database_client, deviceid, topic, payload):
             if url:
                 send_email(payload["name"], payload["email"], url, payload["devicename"], deviceid)
 
-    #delete_folder(deviceid)
-    #delete_zipfile(deviceid)
+    delete_folder(deviceid)
+    delete_zipfile(deviceid)
 
 
     # print elapsed time
