@@ -3,6 +3,7 @@ stages:
   - deploy
 
 before_script:
+  - echo $PATH
   - docker info
   - docker-compose --version
 
