@@ -245,7 +245,7 @@ def check_balance(username, deviceid, type, cost):
         elif new_usage >= allowance:
             if subscription['current'].get('notice'):
                 if subscription['current']['notice']['sms']:
-                    return False
+                    return False, 0
             subscription['current']['sms'] = str(new_usage)
 
             # send notice regarding sms fully consumed
@@ -269,7 +269,7 @@ def check_balance(username, deviceid, type, cost):
         elif new_usage == allowance:
             if subscription['current'].get('notice'):
                 if subscription['current']['notice']['email']:
-                    return False
+                    return False, 0
             subscription['current']['email'] = str(new_usage)
 
             # send notice regarding email fully consumed
@@ -293,7 +293,7 @@ def check_balance(username, deviceid, type, cost):
         elif new_usage == allowance:
             if subscription['current'].get('notice'):
                 if subscription['current']['notice']['notification']:
-                    return False
+                    return False, 0
             subscription['current']['notification'] = str(new_usage)
 
             # send notice regarding push notification fully consumed
