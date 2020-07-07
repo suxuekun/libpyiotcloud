@@ -16,7 +16,7 @@ build:
     - docker-compose rm -f
     - docker network prune -f
     - docker-compose -f docker-compose.yml config
-    - docker-compose build
+    - docker-compose build --no-cache
 
 deploy:
   stage: deploy
