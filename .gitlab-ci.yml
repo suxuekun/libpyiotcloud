@@ -1,0 +1,22 @@
+image: docker:latest
+
+stages:
+  - build
+  - deploy
+
+before_script:
+  - docker info
+
+build:
+  stage: build
+  script:
+    - docker-compose down
+      docker-compose rm -f
+      docker network prune -f
+      docker-compose -f docker-compose.yml config
+      docker-compose build
+
+deploy:
+  script:
+    - docker-compose up -d
+
