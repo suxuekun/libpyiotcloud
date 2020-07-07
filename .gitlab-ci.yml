@@ -4,6 +4,7 @@ stages:
 
 before_script:
   - docker info
+  - docker-compose --version
 
 build:
   stage: build
