@@ -84,7 +84,19 @@ class SubscriptionService(BaseMongoService):
 
     def cancel_subscription_by_bt_id(self,bt_sub_id):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
-        # sub.status = SubScriptionStatus.CANCEL
+        return self.cancel_subscription(sub)
+
+    def subscription_recurring_paid_by_bt_id(self,bt_sub_id):
+        sub = self.get_subscription_by_bt_id(bt_sub_id)
+        return self.subscription_recurring_paid(sub)
+
+    def subscription_recurring_fail_by_bt_id(self,bt_sub_id):
+        sub = self.get_subscription_by_bt_id(bt_sub_id)
+        return self.subscription_recurring_fail(sub)
+
+    def subscription_recurring_overdue_by_bt_id(self,bt_sub_id):
+        sub = self.get_subscription_by_bt_id(bt_sub_id)
+        return self.subscription_recurring_overdue(sub)
 
     def cancel_subscription(self,subscription):
         #TODO
