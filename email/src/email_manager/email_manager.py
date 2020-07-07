@@ -1,6 +1,7 @@
 from aws_config import config as aws_config
 from email_client import email_client
 from email_config import config as email_config
+from email_templates import email_templates
 from web_server_database import database_client
 from datetime import datetime
 import json
@@ -36,6 +37,7 @@ CONFIG_DBHOST = email_config.CONFIG_MONGODB_HOST
 g_messaging_client = None
 g_email_client = None
 g_database_client = None
+g_email_templates = None
 
 
 
@@ -68,12 +70,14 @@ CONFIG_MODEL_EMAIL                = int(email_config.CONFIG_USE_EMAIL_MODEL)
 CONFIG_EMAIL_SUBJECT_RECEIPT      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT
 CONFIG_EMAIL_SUBJECT_ORGANIZATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
 CONFIG_EMAIL_SUBJECT_USAGENOTICE  = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE
+CONFIG_EMAIL_SUBJECT_SENSORDATADL = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL
+
 CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
 
 API_SEND_RECEIPT                  = "send_invoice"
 API_SEND_INVITATION_ORGANIZATION  = "send_invitation_organization"
 API_SEND_USAGE_NOTICE             = "send_usage_notice"
-
+API_SEND_SENSORDATA_DOWNLOAD_LINK = "send_sensordata_download_link"
 
 print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
 
@@ -82,19 +86,6 @@ print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
 ###################################################################################
 # Invoice/Receipt
 ###################################################################################
-
-def construct_invoice_message(name, payment):
-
-    message =  "Hi {},\r\n\r\n\r\n".format(name)
-
-    message += "A Paypal payment of {} USD for {} credits was processed successfully.\r\n".format(payment["amount"], payment["value"])
-    message += "To confirm your Paypal transaction, visit the Paypal website and check the transaction ID: {}.\r\n\r\n".format(payment["id"])
-
-    message += "If unauthorised, please contact customer support.\r\n\r\n"
-
-    message += "\r\nBest Regards,\r\n"
-    message += "Bridgetek Pte. Ltd.\r\n"
-    return message
 
 def get_name(database_client, username):
 
@@ -121,7 +112,7 @@ def send_invoice(database_client, paymentid, topic, payload):
         #print(payment)
         name, info = get_name(database_client, payment["username"])
         recipient = info["email"]
-        message = construct_invoice_message(name, payment)
+        message = g_email_templates.construct_invoice_message(name, payment)
         response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_RECEIPT)
     except Exception as e:
         print(e)
@@ -138,27 +129,10 @@ def send_invoice(database_client, paymentid, topic, payload):
 # Invitation organization
 ###################################################################################
 
-def construct_invitation_organization_message(orgname, orgowner):
-
-    message =  "Hi,\r\n\r\n\r\n"
-
-    message += "You have been invited to join the {} organization by {}.\r\n".format(orgname, orgowner)
-    message += "This allows you to manage, operate, monitor or view IoT gateway devices of your organization based on assigned roles and permissions.\r\n\r\n"
-
-    message += "Please download the Bridgetek IoT Portal mobile app or visit the website:\r\n".format(CONFIG_USE_APIURL)
-    message += "- Android app at Google Play\r\n"
-    message += "- iOS app at Apple App Store\r\n"
-    message += "- Website at https://{}\r\n".format(CONFIG_USE_APIURL)
-    message += "If you don't have an account yet, sign up for an account then go to the Organization page to accept the invitation.\r\n\r\n"
-
-    message += "\r\nBest Regards,\r\n"
-    message += "Bridgetek Pte. Ltd.\r\n"
-    return message
-
 def send_invitation_organization(database_client, orgname, topic, payload):
 
     payload = json.loads(payload)
-    message = construct_invitation_organization_message(orgname, payload["owner"])
+    message = g_email_templates.construct_invitation_organization_message(orgname, payload["owner"])
     for recipient in payload["recipients"]:
         try:
             response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_ORGANIZATION)
@@ -174,29 +148,35 @@ def send_invitation_organization(database_client, orgname, topic, payload):
 
 
 ###################################################################################
-# Usage notice
+# Sensor data download link
 ###################################################################################
 
-def construct_usage_notice_message(deviceid, menos_type, subscription):
+def send_sensordata_download_link(database_client, deviceid, topic, payload):
 
-    message =  "Hi,\r\n\r\n\r\n"
+    payload = json.loads(payload)
+    message = g_email_templates.construct_sensordata_download_link_message(payload["name"], payload["url"], payload["devicename"], deviceid)
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_SENSORDATADL)
+        except Exception as e:
+            print(e)
+            return
 
-    message += "One of your devices with UUID {} has consumed all its {} allocation.\r\n\r\n".format(deviceid, menos_type)
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("SENSORDATADL {}: {} [{}]".format(deviceid, recipient, result))
+        except Exception as e:
+            print(e)
 
-    message += "Below is usage summary of this device.\r\n"
-    message += "- sms: {}/{} points\r\n".format(subscription["current"]["sms"], subscription["current"]["plan"]["sms"])
-    message += "- email: {}/{}\r\n".format(subscription["current"]["email"], subscription["current"]["plan"]["email"])
-    message += "- notification: {}/{}\r\n".format(subscription["current"]["notification"], subscription["current"]["plan"]["notification"])
-    message += "- storage: {}/{} GB\r\n".format(subscription["current"]["storage"], subscription["current"]["plan"]["storage"])
 
-    message += "\r\n\r\nBest Regards,\r\n"
-    message += "Bridgetek Pte. Ltd.\r\n"
-    return message
+###################################################################################
+# Usage notice
+###################################################################################
 
 def send_usage_notice(database_client, deviceid, topic, payload):
 
     payload = json.loads(payload)
-    message = construct_usage_notice_message(deviceid, payload["menos_type"], payload["subscription"])
+    message = g_email_templates.construct_usage_notice_message(deviceid, payload["menos_type"], payload["subscription"])
     for recipient in payload["recipients"]:
         try:
             response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_USAGENOTICE)
@@ -209,6 +189,7 @@ def send_usage_notice(database_client, deviceid, topic, payload):
             print("USAGENOTICE {}: {} [{}]".format(deviceid, recipient, result))
         except Exception as e:
             print(e)
+
 
 
 ###################################################################################
@@ -254,6 +235,16 @@ def on_message(subtopic, subpayload):
             thr.start()
         except Exception as e:
             print("exception API_SEND_USAGE_NOTICE")
+            print(e)
+            return
+
+    elif topic == API_SEND_SENSORDATA_DOWNLOAD_LINK:
+        deviceid = arr_subtopic[1]
+        try:
+            thr = threading.Thread(target = send_sensordata_download_link, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_SEND_SENSORDATA_DOWNLOAD_LINK")
             print(e)
             return
 
@@ -338,6 +329,10 @@ if __name__ == '__main__':
         print("Could not initialize invoice model! exception!")
 
 
+    # Initialize email templates
+    g_email_templates = email_templates()
+
+
     # Initialize MQTT/AMQP client
     print("Using {} for device-messagebroker communication!".format("AMQP" if CONFIG_USE_AMQP else "MQTT"))
     if CONFIG_USE_AMQP:
@@ -365,9 +360,11 @@ if __name__ == '__main__':
     subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_RECEIPT)
     subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_INVITATION_ORGANIZATION)
     subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_USAGE_NOTICE)
+    subtopic4 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_SENSORDATA_DOWNLOAD_LINK)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic4, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
