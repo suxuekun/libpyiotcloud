@@ -51,7 +51,9 @@ class Dashboard:
                 return
     
     def remove_chart_sensor(self, chartId: str):
-        for id in self.model.gateways:
+        print("Remove chartId")
+        print(chartId)
+        for id in self.model.sensors:
             if id == chartId:
                 self.model.sensors.remove(id)
                 self.model.modifiedAt = timestamp_util.get_timestamp()

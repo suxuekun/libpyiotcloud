@@ -9,43 +9,52 @@ from dashboards.dtos.chart_sensor_dto import ChartSensorDto
 GATEWAYS = "GATEWAYS"
 SENSORS = "SENSORS"
 
+
 class DashboardDevice(BaseModel):
     deviceUUID = StringType()
     type = StringType(default="")
+
 
 class ChartModel(BaseModel, MongoIdMixin, TimeStampMixin):
     userId = StringType()
     dashboardId = StringType()
     deviceId = StringType()
     chartTypeId = StringType()
-    type = StringType()
-    
-    # Attribute is optional
+
+
+class ChartGatewayModel(ChartModel):
     attributeId = IntType()
 
 
-class Chart:
+class ChartSensorModel(ChartModel):
+    pass
 
-    def __init__(self, model: ChartModel):
+
+class ChartGateway:
+
+    def __init__(self, model: ChartGatewayModel):
         self.model = model
 
     @staticmethod
-    def create_for_gateway(dashboardId: str, userId: str, dto: ChartGatewayDto):
-        model = ChartModel()
+    def create(dashboardId: str, userId: str, dto: ChartGatewayDto):
+        model = ChartGatewayModel()
         model.userId = userId
         model.dashboardId = dashboardId
         model.deviceId = dto.deviceId
-        model.type = GATEWAYS
         model.chartTypeId = dto.chartTypeId
         model.attributeId = dto.attributeId
-        return Chart(model)
+        return ChartGateway(model)
+
+
+class ChartSensor:
+    def __init__(self, model: ChartSensorModel):
+        self.model = model
 
     @staticmethod
-    def create_for_sensor(dashboardId: str, userId: str, dto: ChartSensorDto):
-        model = ChartModel()
+    def create(dashboardId: str, userId: str, dto: ChartSensorDto):
+        model = ChartSensorModel()
         model.userId = userId
         model.dashboardId = dashboardId
         model.deviceId = dto.deviceId
-        model.type = SENSORS
         model.chartTypeId = dto.chartTypeId
-        return Chart(model)
+        return ChartSensor(model)

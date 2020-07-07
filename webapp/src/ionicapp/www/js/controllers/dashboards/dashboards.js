@@ -154,7 +154,7 @@ angular.module('app.dashboardsCtrl', [])
           getChartSensors();
           timerChartSensor = setInterval(() => {
             getChartSensors();
-          }, 3000);
+          }, 5000);
           return;
         }
         clearInterval(timerChartSensor);
@@ -371,7 +371,7 @@ angular.module('app.dashboardsCtrl', [])
                   })
                   .then(function (result) {
                     console.log(result.data);
-                    $scope.sensorsView.splice($scope.chartsGatewaysView.findIndex((d) => d.id === chartId), 1)
+                    $scope.sensorsView.splice($scope.sensorsView.findIndex((d) => d.id === chartId), 1)
                   })
                   .catch(function (error) {
                     console.error(error);

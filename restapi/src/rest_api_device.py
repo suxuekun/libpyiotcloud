@@ -27,7 +27,7 @@ import threading
 import rest_api_utils
 from database import database_categorylabel, database_crudindex
 from message_broker_api import message_broker_api
-from dashboards.ioc import init_chart_gateway_service
+from dashboards.ioc import init_chart_gateway_service, init_chart_sensor_service
 from payment.services import subscription_service
 import re
 
@@ -197,6 +197,7 @@ class device:
         # delete dashboard related items
         try:
             init_chart_gateway_service().delete_by_deviceId(deviceid)
+            init_chart_sensor_service().delete_by_deviceId(deviceid)
         except Exception as e:
             print("Exception init_chart_gateway_service().delete_by_deviceId")
             print(e)

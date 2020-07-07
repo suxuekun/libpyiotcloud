@@ -4,41 +4,29 @@ from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRep
 from bson.objectid import ObjectId
 
 
-class IChartRepository(BaseRepository, IMongoBaseRepository):
+class IChartGatewayRepository(BaseRepository, IMongoBaseRepository):
 
-    def get_charts_gateway(self, dashboardId, userId):
+    def get_charts(self, dashboardId, userId):
         pass
     
-    def get_charts_sensor(self, dashboardId, userId):
-        pass
-
-    def get_detail(self, dashboardId, userId, chartId, query: {}):
+    def get_detail(self, dashboardId, userId, chartId):
         pass
     
-    def get_same_chart_gateway(self, dashboardId, deviceId, attributeId, chartTypeId):
+    def get_same_chart(self, dashboardId, deviceId, attributeId, chartTypeId):
         pass
     
     def get_chart_by_device(self, deviceId):
         pass
     
-class ChartRepository(MongoBaseRepository, IChartRepository):
+class ChartGatewayRepository(MongoBaseRepository, IChartGatewayRepository):
 
-    def get_charts_sensor(self, dashboardId, userId):
-        query = {
-            'dashboardId': dashboardId,
-            'userId': userId,
-            'type': "SENSORS"
-        }
-        return super().gets(query=query)
-
-    def get_charts_gateway(self, dashboardId, userId):
+    def get_charts(self, dashboardId, userId):
 
         pipeline = [
             {
                 "$match": {
                     'dashboardId': dashboardId,
                     'userId': userId,
-                    "type": "GATEWAYS"
                 },
             },
             {
@@ -70,7 +58,7 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
         results = list(map(lambda r: self._cast_object_without_objectId(r), cursors))
         return results
 
-    def get_detail(self, dashboardId, userId, chartId, queyr: {}):
+    def get_detail(self, dashboardId, userId, chartId):
         pipeline = [
             {
                 "$match": {
@@ -114,12 +102,12 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
         results = list(map(lambda r: self._cast_object_without_objectId(r), cursors))
         return results[0]
     
-    def get_same_chart_gateway(self, dashboardId, deviceId, attributeId, chartTypeId):
+    def get_same_chart(self, dashboardId, deviceId, attributeId, chartTypeId):
         query = {
             "dashboardId": dashboardId,
             "deviceId": deviceId,
             "attributeId": attributeId,
-            "chartTypeId": chartTypeId
+            "chartTypeId": chartTypeId,
         }
         
         chart = self.get_one(query)

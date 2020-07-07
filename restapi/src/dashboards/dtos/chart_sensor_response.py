@@ -3,6 +3,17 @@ from schematics import Model
 from schematics.types import StringType, ModelType, IntType, ListType, FloatType
 from dashboards.dtos.attribute_response import AttributeResponse
 
+
+class MobileDatasetSensorResponse(Model):
+    # Timestamp
+    x = IntType()   
+
+    # Value of data
+    y = FloatType()
+
+    low = FloatType()
+    high = FloatType()
+
 class DatasetSensorResponse(Model):
     data = ListType(FloatType)
     labels = ListType(IntType)
@@ -27,7 +38,13 @@ class ChartSensorReponse(Model):
     id = StringType()
     chartTypeId = IntType()
     device = ModelType(SensorResponse)
-    dataset = ModelType(DatasetSensorResponse)
     readings = ModelType(ReadingSensorResponse)
     
+
+class WebChartSensorResponse(ChartSensorReponse):
+    dataset = ModelType(DatasetSensorResponse)
+
+class MobileChartSensorResponse(ChartSensorReponse):
+    datasetsEx = ListType(ModelType(MobileDatasetSensorResponse))
+
     

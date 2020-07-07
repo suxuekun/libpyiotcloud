@@ -7,7 +7,7 @@ from dashboards.routes.chart_types_route import chart_types_blueprint
 from dashboards.routes.gateway_attributes_route import gateway_attributes_blueprint
 from dashboards.routes.charts_gateway_route import charts_gateway_blueprint
 from dashboards.routes.charts_sensor_route import charts_sensor_blueprint
-from dashboards.routes.sensors_route import sensors_blueprint
+
 class DashboardsApp:
 
     def __init__(self, app):
@@ -16,4 +16,3 @@ class DashboardsApp:
         app.register_blueprint(chart_types_blueprint, url_prefix='/dashboards/charts/types')
         app.register_blueprint(gateway_attributes_blueprint, url_prefix='/dashboards/gateway/attributes')
         app.register_blueprint(dashboards_blueprint, url_prefix='/dashboards')
-        app.register_blueprint(sensors_blueprint, url_prefix='/gateways/<gatewayId>/sensors')
