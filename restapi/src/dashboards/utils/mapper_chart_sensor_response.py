@@ -67,7 +67,7 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery) -> Sens
     response.chartTypeId = chart["chartTypeId"]
 
     device = SensorResponse()
-    device.id = sensor["_id"]
+    device.id = sensor["sensorId"]
     device.source = sensor["source"]
     device.number = sensor["number"]
     device.sensorName = sensor["sensorname"]
@@ -80,13 +80,11 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery) -> Sens
         sensor["dataset"], query)
     response.dataset = dataset
 
-    readings = sensor["readings"]
-    if len(readings) > 0:
-        sensorReadings = readings[0]["sensor_readings"]
-        readingsResponse = ReadingSensorResponse()
-        readingsResponse.value = sensorReadings["value"]
-        readingsResponse.highest = sensorReadings["highest"]
-        readingsResponse.lowest = sensorReadings["lowest"]
-        response.readings = readingsResponse
+    sensorReadings = sensor["sensor_readings"]
+    readingsResponse = ReadingSensorResponse()
+    readingsResponse.value = sensorReadings["value"]
+    readingsResponse.highest = sensorReadings["highest"]
+    readingsResponse.lowest = sensorReadings["lowest"]
+    response.readings = readingsResponse
 
     return response.to_primitive()

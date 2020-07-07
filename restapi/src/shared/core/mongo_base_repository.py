@@ -69,8 +69,6 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
 
             res = self.collection.insert_one(input)
             return str(res.inserted_id)
-<<<<<<< HEAD
-=======
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))
@@ -79,7 +77,6 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
         try:
             self.collection.insert_many(inputs)
             return True
->>>>>>> dev
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))

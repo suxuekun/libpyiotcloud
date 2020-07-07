@@ -3,7 +3,6 @@ from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
 from datetime import datetime, timezone
 
-
 class ISensorRepository(BaseRepository, IMongoBaseRepository):
 
     def get_sensor_detail(self, id: str):
@@ -52,7 +51,7 @@ class SensorRepository(MongoBaseRepository, ISensorRepository):
                 '$project': {
                     'source': 1,
                     'number': 1,
-                    'enable': 1,
+                    'enabled': 1,
                     'sensorname': 1,
                     'port': 1,
                     'name': 1,

@@ -23,7 +23,6 @@ class IChartRepository(BaseRepository, IMongoBaseRepository):
     
 class ChartRepository(MongoBaseRepository, IChartRepository):
 
-<<<<<<< HEAD
     def get_charts_sensor(self, dashboardId, userId):
         query = {
             'dashboardId': dashboardId,
@@ -32,8 +31,6 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
         }
         return super().gets(query=query)
 
-=======
->>>>>>> dev
     def get_charts_gateway(self, dashboardId, userId):
 
         pipeline = [
@@ -134,8 +131,4 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
             "deviceId": deviceId,
         }
         charts = self.gets(query)
-<<<<<<< HEAD
         return charts
-=======
-        return charts
->>>>>>> dev

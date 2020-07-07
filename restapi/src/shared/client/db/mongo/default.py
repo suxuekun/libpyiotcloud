@@ -13,15 +13,14 @@ class DefaultMongoDB(IotDBConnection, IotMongoDB):
         self._conn = DefaultMongoConnection().conn
         self._db = self.conn[config.CONFIG_MONGODB_DB]
 
-SENSOR_CONNECTION = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
-
-class SensorMongoDb(IotDBConnection, IotMongoDB):
+SENSOR_DATA_CONNECTION = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
+class SensorDataMongoDb(IotDBConnection, IotMongoDB):
     def __init__(self):
-        super(SensorMongoDb, self).__init__()
+        super(SensorDataMongoDb, self).__init__()
         if "mongodb.net" in config.CONFIG_MONGODB_HOST2:
-            self._conn = MongoClient(SENSOR_CONNECTION)
-            self._db = self.conn[config.CONFIG_MONGODB_DB]
+            self._conn = MongoClient(SENSOR_DATA_CONNECTION)
+            self._db = self.conn[config.CONFIG_MONGODB_SENSOR_DB]
         else:
             self._conn = DefaultMongoConnection().conn
-            self._db = self.conn[config.CONFIG_MONGODB_DB]
+            self._db = self.conn[config.CONFIG_MONGODB_SENSOR_DB]
 
