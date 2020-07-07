@@ -1,6 +1,6 @@
 from aws_config import config as aws_config
-from invoice_client import invoice_client
-from invoice_config import config as invoice_config
+from email_client import email_client
+from email_config import config as email_config
 from web_server_database import database_client
 from datetime import datetime
 import json
@@ -24,7 +24,7 @@ CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = False
-CONFIG_DBHOST = invoice_config.CONFIG_MONGODB_HOST
+CONFIG_DBHOST = email_config.CONFIG_MONGODB_HOST
 ###################################################################################
 
 
@@ -34,7 +34,7 @@ CONFIG_DBHOST = invoice_config.CONFIG_MONGODB_HOST
 ###################################################################################
 
 g_messaging_client = None
-g_invoice_client = None
+g_email_client = None
 g_database_client = None
 
 
@@ -43,19 +43,19 @@ g_database_client = None
 # MQTT and AMQP default configurations
 ###################################################################################
 
-CONFIG_DEVICE_ID                = "invoice_manager"
+CONFIG_DEVICE_ID                = "email_manager"
 
-CONFIG_USERNAME                 = invoice_config.CONFIG_MQTT_DEFAULT_USER
-CONFIG_PASSWORD                 = invoice_config.CONFIG_MQTT_DEFAULT_PASS
+CONFIG_USERNAME                 = email_config.CONFIG_MQTT_DEFAULT_USER
+CONFIG_PASSWORD                 = email_config.CONFIG_MQTT_DEFAULT_PASS
 
 if CONFIG_USE_ECC:
     CONFIG_TLS_CA               = "../cert_ecc/rootca.pem"
-    CONFIG_TLS_CERT             = "../cert_ecc/invoice_manager_cert.pem"
-    CONFIG_TLS_PKEY             = "../cert_ecc/invoice_manager_pkey.pem"
+    CONFIG_TLS_CERT             = "../cert_ecc/email_manager_cert.pem"
+    CONFIG_TLS_PKEY             = "../cert_ecc/email_manager_pkey.pem"
 else:
     CONFIG_TLS_CA               = "../cert/rootca.pem"
-    CONFIG_TLS_CERT             = "../cert/invoice_manager_cert.pem"
-    CONFIG_TLS_PKEY             = "../cert/invoice_manager_pkey.pem"
+    CONFIG_TLS_CERT             = "../cert/email_manager_cert.pem"
+    CONFIG_TLS_PKEY             = "../cert/email_manager_pkey.pem"
 
 CONFIG_HOST                     = "localhost"
 CONFIG_MQTT_TLS_PORT            = 8883
@@ -64,7 +64,7 @@ CONFIG_AMQP_TLS_PORT            = 5671
 CONFIG_PREPEND_REPLY_TOPIC      = "server"
 CONFIG_SEPARATOR                = '/'
 
-CONFIG_MODEL_EMAIL                = int(invoice_config.CONFIG_USE_EMAIL_MODEL)
+CONFIG_MODEL_EMAIL                = int(email_config.CONFIG_USE_EMAIL_MODEL)
 CONFIG_EMAIL_SUBJECT_RECEIPT      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT
 CONFIG_EMAIL_SUBJECT_ORGANIZATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
 CONFIG_EMAIL_SUBJECT_USAGENOTICE  = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE
@@ -122,7 +122,7 @@ def send_invoice(database_client, paymentid, topic, payload):
         name, info = get_name(database_client, payment["username"])
         recipient = info["email"]
         message = construct_invoice_message(name, payment)
-        response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_RECEIPT)
+        response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_RECEIPT)
     except Exception as e:
         print(e)
         return
@@ -161,7 +161,7 @@ def send_invitation_organization(database_client, orgname, topic, payload):
     message = construct_invitation_organization_message(orgname, payload["owner"])
     for recipient in payload["recipients"]:
         try:
-            response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_ORGANIZATION)
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_ORGANIZATION)
         except Exception as e:
             print(e)
             return
@@ -199,7 +199,7 @@ def send_usage_notice(database_client, deviceid, topic, payload):
     message = construct_usage_notice_message(deviceid, payload["menos_type"], payload["subscription"])
     for recipient in payload["recipients"]:
         try:
-            response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_USAGENOTICE)
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_USAGENOTICE)
         except Exception as e:
             print(e)
             return
@@ -263,7 +263,7 @@ def on_message(subtopic, subpayload):
 def on_mqtt_message(client, userdata, msg):
 
     try:
-        if invoice_config.CONFIG_DEBUG_INVOICE:
+        if email_config.CONFIG_DEBUG_INVOICE:
             print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
         on_message(msg.topic, msg.payload)
     except:
@@ -272,7 +272,7 @@ def on_mqtt_message(client, userdata, msg):
 def on_amqp_message(ch, method, properties, body):
 
     try:
-        if invoice_config.CONFIG_DEBUG_INVOICE:
+        if email_config.CONFIG_DEBUG_INVOICE:
             print("RCV: AMQP {} {}".format(method.routing_key, body))
         on_message(method.routing_key, body)
     except:
@@ -331,9 +331,9 @@ if __name__ == '__main__':
 
 
     # Initialize Notification client (Pinpoint, SNS, Twilio or Nexmo)
-    g_invoice_client = invoice_client()
+    g_email_client = email_client()
     try:
-        g_invoice_client.initialize()
+        g_email_client.initialize()
     except:
         print("Could not initialize invoice model! exception!")
 
