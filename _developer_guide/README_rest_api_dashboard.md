@@ -551,7 +551,7 @@ DETAIL:
             - chartsId: string (example: &chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2 )
 
         Example request:
-        /dashboards/dashboard/5ef998655de8966f2de5064e/sensors/comparison?chartsId=5efc2c38cc25092a0c952291&chartsId=5efc3128c6c8bd539d036f28
+        /dashboards/dashboard/5ef998655de8966f2de5064e/sensors/comparison?chartsId=5efc2c38cc25092a0c952291,5efc3128c6c8bd539d036f28
 
         - Response:
         {
