@@ -321,5 +321,5 @@ June 30, 2020
 
 July 8, 2020
 
-66. Currency conversion not returned in Calculation Prorate API
+66. Currency conversion (USD/SGD) not returned in Calculation Prorate API
 
