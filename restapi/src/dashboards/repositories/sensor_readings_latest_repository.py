@@ -116,7 +116,6 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
         return reports
 
     def _get_sensor_report_detail(self, source: str, number: int, reports):
-        print("Start to get")
         for r in reports:
             if r["source"] == source and r["number"] == number:
                 return r
