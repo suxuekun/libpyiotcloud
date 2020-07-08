@@ -43,6 +43,9 @@
                         <strong ng-show="sensor.enabled == 0">{{sensor.sensorname}}</strong>
                         <strong ng-show="sensor.enabled == 1" style="color: green">{{sensor.sensorname}}</strong>
                         <p>Sensor class: {{sensor.class}}</p>
+                        <p>Port: {{sensor.port}}</p>
+                        <p>UUID: {{sensor.source}}</p>
+
                     </div>
                     <input type="radio"
                             style="float:right; height: 40px;width: 20px;"

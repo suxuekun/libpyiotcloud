@@ -113,12 +113,14 @@ def find_value_with_timestamp_in_range(readings, timeStart: int, timeEnd: int):
 
 def map_to_charts_sensor_response(charts, dictSensors: {}, query: ChartSensorQuery):
     response = list(map(lambda chart: map_to_chart_sensor_response(
-        chart, dictSensors[chart["deviceId"]], query), charts))
+        chart, dictSensors.get(chart.get("deviceId")), query), charts))
     return response
-
 
 def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customMinutes: int = 0) -> SensorResponse:
 
+    # print("Sensor: ")
+    # print(sensor)
+        
     device = SensorResponse()
     device.id = sensor["sensorId"]
     device.source = sensor["source"]
@@ -130,9 +132,15 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
 
     sensorReadings = sensor["sensor_readings"]
     readingsResponse = ReadingSensorResponse()
-    readingsResponse.value = sensorReadings["value"]
-    readingsResponse.highest = sensorReadings["highest"]
-    readingsResponse.lowest = sensorReadings["lowest"]
+    if sensor["sensor_readings"] is not None:
+        readingsResponse.value = sensorReadings["value"]
+        readingsResponse.highest = sensorReadings["highest"]
+        readingsResponse.lowest = sensorReadings["lowest"]
+    else:
+        readingsResponse.value = 0
+        readingsResponse.highest = 0
+        readingsResponse.lowest = 0
+    
 
     if query.isMobile:
         mobileResponse = MobileChartSensorResponse()
@@ -140,8 +148,10 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
         mobileResponse.chartTypeId = chart["chartTypeId"]
         mobileResponse.device = device
         mobileResponse.readings = readingsResponse
-        mobileResponse.datasetsEx = (
-            map_to_sensor_dataset_mobile(sensor["dataset"], query))
+        mobileResponse.datasetsEx = []
+        if sensor["dataset"] is not None:
+            mobileResponse.datasetsEx = (
+                map_to_sensor_dataset_mobile(sensor["dataset"], query))
 
         return mobileResponse.to_primitive()
 
@@ -150,8 +160,11 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
     response.chartTypeId = chart["chartTypeId"]
     response.device = device
     response.readings = readingsResponse
-    dataset = map_to_sensor_dataset(
-        sensor["dataset"], query, customMinutes=customMinutes)
+
+    dataset = DatasetSensorResponse()
+    if sensor["dataset"] is not None:
+        dataset = map_to_sensor_dataset(
+            sensor["dataset"], query, customMinutes=customMinutes)
 
     response.dataset = dataset
 

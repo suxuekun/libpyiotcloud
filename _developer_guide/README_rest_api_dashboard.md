@@ -526,15 +526,6 @@ DETAIL:
         - Request:
         DELETE: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
-        queryParams:
-            - minutes: int  (optional,)
-            - timestamp: int (optional)
-            - points: int  (optional)
-
-            * Note:
-            - minutes: int  (default = 5 min, should convert hour or day to minutes)
-            - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
-            - points: int  (default = 30, Just use only 30 & 60 points)
         - Response:
         {
             'status': 'OK',

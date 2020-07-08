@@ -16,9 +16,8 @@ from dashboards.utils.mapper_chart_sensor_response import *
 from dashboards.dtos.chart_sensor_query import ChartSensorQuery, ChartComparisonQuery
 from dashboards.services.dashboard_service import DashboardService
 from dashboards.exceptions.chart_sensor_query_exception import ChartSensorQueryException
-from sensors.ioc import get_sensor_readings_latest_repository
-from sensors.repositories.sensor_repository import ISensorRepository
-from sensors.repositories.sensor_readings_latest_repository import ISensorReadingsLatestRepository
+from dashboards.repositories.sensor_repository import ISensorRepository
+from dashboards.repositories.sensor_readings_latest_repository import ISensorReadingsLatestRepository
 
 
 class ChartSensorService:
@@ -48,11 +47,12 @@ class ChartSensorService:
             if sensor is None:
                 return Response.fail("This device was not existed")
 
-            if sensor["enabled"] == 0:
-                return Response.fail("This device should be enabled")
+            # if sensor["enabled"] == 0:
+            #     return Response.fail("This device should be enabled")
 
             sameChart = self.chartRepository.get_same_chart(
                 dto.deviceId)
+
             if sameChart is not None:
                 return Response.fail("Sorry, This chart should not have same device")
 
@@ -110,6 +110,8 @@ class ChartSensorService:
                 if len(sensors) == 0:
                     return Response.fail("Unknown sensors")
 
+                print("Sensors Entites")
+                print(sensors)
                 lastMinutes = datetime.fromtimestamp(
                     query.timestamp) - timedelta(minutes=query.minutes)
                 results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
@@ -118,7 +120,7 @@ class ChartSensorService:
                 dictSensors = {}
                 for r in results:
                     dictSensors[r.get("sensorId", "")] = r
-
+                
                 response = map_to_charts_sensor_response(
                     charts=chartEntites, dictSensors=dictSensors, query=query)
                 return Response.success(data=response, message="Get chart responses successfully")

@@ -2,7 +2,7 @@
 
 # Import config mongo
 from shared.client.connection.mongo import DefaultMongoConnection
-from shared.client.db.mongo.default import DefaultMongoDB
+from shared.client.db.mongo.default import DefaultMongoDB, SensorDataMongoDb
 
 from dashboards.repositories.chart_gateway_repository import ChartGatewayRepository
 from dashboards.repositories.chart_sensor_repository import ChartSensorRepository
@@ -20,13 +20,15 @@ from dashboards.services.gateway_attribute_service import GatewayAttributeServic
 from dashboards.services.chart_type_service import ChartTypeService
 from dashboards.repositories.chart_type_repository import ChartTypeRepository
 
-from sensors.repositories.sensor_repository import SensorRepository
-from sensors.ioc import get_sensor_readings_latest_repository, get_sensor_repository
+from dashboards.repositories.sensor_readings_latest_repository import SensorReadingsLatestRepository, ISensorReadingsLatestRepository
+from dashboards.repositories.sensor_repository import SensorRepository
 
 #  Get config mongodb
 mongoClient = DefaultMongoDB().conn
 db = DefaultMongoDB().db
 
+sensorDataMongoClient = SensorDataMongoDb().conn
+sensorDataDb = SensorDataMongoDb().db
 
 dashboardRepository = DashboardRepository(
     mongoclient=mongoClient, db=db, collectionName="dashboards")
@@ -42,12 +44,11 @@ chartSensorRepository = ChartSensorRepository(
 chartTypeRepository = ChartTypeRepository(
     mongoclient=mongoClient, db=db, collectionName="dashboards_chartTypes")
 
-
 deviceRepository = DeviceRepository(
     mongoclient=mongoClient, db=db, collectionName="devices")
 
-sensorRepository = get_sensor_repository()
-sensorReadingsLatestRepository = get_sensor_readings_latest_repository()
+sensorRepository = SensorRepository(mongoclient=mongoClient, db = db, collectionName="sensors")
+sensorReadingsLatestRepository = SensorReadingsLatestRepository(mongoclient=sensorDataMongoClient, db = sensorDataDb, collectionName="sensors_readings_latest")
 
 dashboardService = DashboardService(dashboardRepository)
 
@@ -78,3 +79,16 @@ def init_chart_type_service():
 
 def init_sensor_repository():
     return sensorRepository
+
+
+def get_sensor_repository():
+    return sensorRepository
+
+
+
+
+
+
+
+
+
