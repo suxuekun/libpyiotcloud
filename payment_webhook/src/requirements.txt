@@ -1,0 +1,10 @@
+flask==1.0.3
+flask-json==0.3.3
+pymongo==3.8.0
+gunicorn
+flask_cors==3.0.8
+flask_api==1.1.0
+schematics
+Flask-RESTful==0.3.8
+braintree==4.1.0
+

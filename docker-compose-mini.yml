@@ -1,0 +1,49 @@
+version: '3.0'
+services:
+  payment_webhook:
+    build: ./payment_webhook
+    restart: always
+    networks:
+      - mydockernet
+    ports:
+      - "8003:8003"
+    environment:
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+      - CONFIG_USE_MONGODB_ATLAS
+      - CONFIG_USE_DEBUG_MODE
+      - BRAINTREE_MODE
+      - BRAINTREE_MERCHANT_ID
+      - BRAINTREE_PUBLIC_KEY
+      - BRAINTREE_PRIVATE_KEY
+  mongodb:
+    build: ./mongodb
+    restart: always
+    networks:
+      - mydockernet
+    ports:
+      - "27017:27017"
+    volumes:
+      - "mongodb-data:/data/db"
+  nginx:
+    build: 
+      context: ./nginx
+      args:
+        config_use_certs: ${CONFIG_USE_CERTS}
+    restart: always
+    networks:
+      - mydockernet
+    ports:
+      - "443:443"
+    expose:
+      - "443"
+    depends_on:
+      - payment_webhook
+    environment:
+      - CONFIG_USE_CERTS
+networks:
+  mydockernet:
+    driver: bridge
+volumes:
+  mongodb-data:
+    driver: local

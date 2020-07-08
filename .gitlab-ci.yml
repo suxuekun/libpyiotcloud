@@ -15,11 +15,11 @@ build:
     - docker-compose down
     - docker-compose rm -f
     - docker network prune -f
-    - docker-compose -f docker-compose.yml config
-    - docker-compose build --no-cache
+    - docker-compose -f docker-compose-mini.yml config
+    - docker-compose -f docker-compose-mini.yml build --no-cache
 
 deploy:
   stage: deploy
   script:
-    - docker-compose up -d
+    - docker-compose -f docker-compose-mini.yml up -d
 
