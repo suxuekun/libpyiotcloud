@@ -321,5 +321,9 @@ June 30, 2020
 
 July 8, 2020
 
-66. Currency conversion (USD/SGD) not returned in Calculation Prorate API
+66. Update "Calculation Prorate" API to return currency conversion for GST tax (if applicable) 
+
+67. Update "Update billing address" API to verify if billing address is valid (country, city, state, postal code, ) 
+
+68. Update "Verify promocode" API to verify if promocode is valid (for promocodes not shown in the list provided)
 
