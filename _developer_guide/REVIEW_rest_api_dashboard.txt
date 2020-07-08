@@ -139,3 +139,48 @@ June 29, 2020
     - this should return all datasets/datasetsEx for all attributes 
       (ex. for count of alerts, it should return dataset for sms, email, notification in 1 API call)
 
+
+===============================================
+
+July 8, 2020
+
+22. sensors folder still outside of dashboards folder. please put inside dashboards too similar to gateways.
+
+23. Why does the DELETE Chart have query params?
+
+        D. DELETE
+        - Request:
+        DELETE: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
+        headers: {'Authorization': 'Bearer ' + token.access}
+        queryParams:
+            - minutes: int  (optional,)
+            - timestamp: int (optional)
+            - points: int  (optional)
+
+            * Note:
+            - minutes: int  (default = 5 min, should convert hour or day to minutes)
+            - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
+            - points: int  (default = 30, Just use only 30 & 60 points)
+
+24. You committed device secret key again :(
+
+    Please remove device secret key in the device simulator batch file. 
+    Its actually NO LONGER NEEDED in the device simulator. 
+    It is only needed to be set as environment variable in the backend
+
+    So you wont commit the device secret key again 
+
+25. Display the LDSU port and LDSU uuid (See screenshot)
+
+    LDS port = sensor["port"]
+    LDSU uuid = sensor["source"]
+
+26. Popup error appears when im adding sensor chart. 
+
+    Device does not need to be online (See screenshot)
+
+27. Disable NEXT button until the sensors actually appear. 
+    Enable NEXT button only when the sensors actually appear.
+
+28. Change sensor list to table to easily view the list of sensors. (OPTIONAL)
+
