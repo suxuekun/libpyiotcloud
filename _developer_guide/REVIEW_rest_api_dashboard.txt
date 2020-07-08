@@ -184,3 +184,25 @@ July 8, 2020
 
 28. Change sensor list to table to easily view the list of sensors. (OPTIONAL)
 
+29. after i run the device and enabled the sensor, so i added the chart but the sensor chart did not appear
+    gateways appear but sensor does not appear
+    but the rest api seems to be polled continuously
+
+    only after refreshing does it appears
+
+30. theres a scaling issue with the maximum and minimum
+    the y-axis max and min should be fixed using the sensor["minmax"][0], sensor["minmax"][1]
+
+31. the legend appears as UNDEFINED. 
+    this is likely because your are providing a single array for data.
+    send ARRAY of ARRAYS instead.
+
+    data, low, high are array of arrays
+    'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]},
+
+32. when i exit the dashboard page, i see that the REST apis are still getting called. (CRITICAL ISSUE)
+
+    when i exit the page, it should also stop polling.
+
+
+
