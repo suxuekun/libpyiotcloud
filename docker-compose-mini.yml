@@ -34,9 +34,9 @@ services:
     networks:
       - mydockernet
     ports:
-      - "443:443"
+      - "80:80"
     expose:
-      - "443"
+      - "80"
     depends_on:
       - payment_webhook
     environment:
