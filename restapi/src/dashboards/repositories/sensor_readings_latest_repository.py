@@ -13,7 +13,6 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
 
     def gets_dataset_with_same_gateway(self, sensors, timestampBegin, timestampEnd):
 
-        print("Du ma")
         if len(sensors) == 0:
             raise QueriedManyException("Cannot query sensors")
 
@@ -114,8 +113,6 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             
             reports.append(newReport)
 
-        print("Reports: ")
-        print(reports)
         return reports
 
     def _get_sensor_report_detail(self, source: str, number: int, reports):
