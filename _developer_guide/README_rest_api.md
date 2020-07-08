@@ -303,13 +303,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
-	11. Device sensor dashboarding
-
-		A. GET SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
-		B. DELETE SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
-
-
-	12. Device transaction recording APIs
+	11. Device transaction recording APIs
 
 		A. GET HISTORIES                  - GET    /devices/histories
 		B. GET HISTORIES FILTERED         - POST   /devices/histories
@@ -319,13 +313,21 @@ SUMMARY:
 		D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
 
-	13. Account subscription and payment APIs
+	12. Device sensor dashboarding (OBSOLETED)
+		(These APIs are obsoleted. Please use APIs in README_rest_api_dashboard.md)
 
-		A. GET SUBSCRIPTION               - GET    /account/subscription
-		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
-		C. PAYPAL STORE PAYERID           - POST   /account/payment/paypalpayerid/PAYMENTID
-		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute/PAYMENTID
-		E. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
+		A. GET SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset (OBSOLETED)
+		B. DELETE SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset (OBSOLETED)
+
+
+	13. Device subscription and payment APIs (OBSOLETED)
+		(These APIs are obsoleted. Please use APIs in README_rest_api_payment.md)
+
+		A. GET SUBSCRIPTION               - GET    /account/subscription                    (OBSOLETED)
+		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup             (OBSOLETED)
+		C. PAYPAL STORE PAYERID           - POST   /account/payment/paypalpayerid/PAYMENTID (OBSOLETED)
+		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute/PAYMENTID (OBSOLETED)
+		E. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal                  (OBSOLETED)
 
 
 	14. Mobile services
@@ -3582,95 +3584,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	11. Device sensor dashboarding
-
-		A. GET SENSOR READINGS DATASET FILTERED
-		-  Request:
-		   POST /devices/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'devicename': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
-		   // devicename can be "All devices" or the devicename of specific device
-		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
-		   // status can be ["All online/offline", "online", "offline"]
-		   // timerange can be:
-		        Last 5 minutes
-		        Last 15 minutes
-		        Last 30 minutes
-		        Last 60 minutes
-		        Last 3 hours
-		        Last 6 hours
-		        Last 12 hours
-		        Last 24 hours
-		        Last 3 days
-		        Last 7 days
-		        Last 2 weeks
-		        Last 4 weeks
-		        Last 3 months
-		        Last 6 months
-		        Last 12 months
-		   // points can be 60, 30 or 15 points (for mobile, since screen is small, should use 30 or 15 instead of 60)
-		   // index is 0 by default. 
-		      To view the timeranges above, index is 0
-		      To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
-		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [
-		                  {
-		                    'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
-		                    'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
-		                    'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}
-		                  }
-		                ],
-		     'stats'  : { 
-		                  'devices': {
-		                    'statuses':    {'labels': [strings], 'data': [int]},
-		                    'groups:       {'labels': [strings], 'data': [int]},
-		                    'versions':    {'labels': [strings], 'data': [int]},
-		                    'locations':   {'labels': [strings], 'data': [int]}
-		                  },
-		                  'sensors': {
-		                    'statuses':    {'labels': [strings], 'data': [int]},
-		                    'types':       {'labels': [strings], 'data': [int]},
-		                    'peripherals': {'labels': [strings], 'data': [int]},
-		                    'classes':     {'labels': [strings], 'data': [int]}
-		                  },
-		                },
-		     'summary': { 
-		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'ldsu': string, 'number': string, 'classes': string, 'configuration': string, 'enabled': int}],
-		                  'devices': [{'devicename': string, 'group': string, 'version': string, 'location': string, 'status': int}],
-		                },
-		     'usages':  {
-		                  'alerts':  {'labels': ['sms', 'emails', 'notifications'], 'data': [int, int, int]},
-		                  'storage': {'labels': ['sensor data', 'alerts data'], 'data': [int, int]},
-		                  'login':   {'labels': ['email', 'sms'], 'data': [int, int]}
-		                }
-
-		   { 'status': 'NG', 'message': string}
-		   //
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   //   if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
-		   //   if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
-		   //   this make the dataset object directly usable by Chart.JS line charts
-		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
-		   //
-		   // stats and summary will ONLY appear if checkdevice parameter is set to 1
-		   //   stats is for doughnut/pie charts to show proportions of online/offline devices, enabled/disabled sensors, device peripheral types used, sensor classes used
-		   //     uses labels and data arrays to make object directly usable by Chart.JS doughnut/pie charts
-		   //   summary is for the table
-
-		B. DELETE SENSOR READINGS DATASET
-		-  Request:
-		   DELETE /devices/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'devicename': string}
-		   // devicename can be "All devices" or the devicename of specific device
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-
-	12. Device transaction recording APIs
+	11. Device transaction recording APIs
 
 		A. GET HISTORIES
 		-  Request:
@@ -3769,6 +3683,94 @@ DETAILED:
 		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': int, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
+
+
+	12. Device sensor dashboarding
+
+		A. GET SENSOR READINGS DATASET FILTERED
+		-  Request:
+		   POST /devices/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'devicename': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
+		   // devicename can be "All devices" or the devicename of specific device
+		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
+		   // status can be ["All online/offline", "online", "offline"]
+		   // timerange can be:
+		        Last 5 minutes
+		        Last 15 minutes
+		        Last 30 minutes
+		        Last 60 minutes
+		        Last 3 hours
+		        Last 6 hours
+		        Last 12 hours
+		        Last 24 hours
+		        Last 3 days
+		        Last 7 days
+		        Last 2 weeks
+		        Last 4 weeks
+		        Last 3 months
+		        Last 6 months
+		        Last 12 months
+		   // points can be 60, 30 or 15 points (for mobile, since screen is small, should use 30 or 15 instead of 60)
+		   // index is 0 by default. 
+		      To view the timeranges above, index is 0
+		      To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
+		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': [
+		                  {
+		                    'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': int, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
+		                    'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
+		                    'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}
+		                  }
+		                ],
+		     'stats'  : { 
+		                  'devices': {
+		                    'statuses':    {'labels': [strings], 'data': [int]},
+		                    'groups:       {'labels': [strings], 'data': [int]},
+		                    'versions':    {'labels': [strings], 'data': [int]},
+		                    'locations':   {'labels': [strings], 'data': [int]}
+		                  },
+		                  'sensors': {
+		                    'statuses':    {'labels': [strings], 'data': [int]},
+		                    'types':       {'labels': [strings], 'data': [int]},
+		                    'peripherals': {'labels': [strings], 'data': [int]},
+		                    'classes':     {'labels': [strings], 'data': [int]}
+		                  },
+		                },
+		     'summary': { 
+		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'ldsu': string, 'number': string, 'classes': string, 'configuration': string, 'enabled': int}],
+		                  'devices': [{'devicename': string, 'group': string, 'version': string, 'location': string, 'status': int}],
+		                },
+		     'usages':  {
+		                  'alerts':  {'labels': ['sms', 'emails', 'notifications'], 'data': [int, int, int]},
+		                  'storage': {'labels': ['sensor data', 'alerts data'], 'data': [int, int]},
+		                  'login':   {'labels': ['email', 'sms'], 'data': [int, int]}
+		                }
+
+		   { 'status': 'NG', 'message': string}
+		   //
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+		   //   if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
+		   //   if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
+		   //   this make the dataset object directly usable by Chart.JS line charts
+		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
+		   //
+		   // stats and summary will ONLY appear if checkdevice parameter is set to 1
+		   //   stats is for doughnut/pie charts to show proportions of online/offline devices, enabled/disabled sensors, device peripheral types used, sensor classes used
+		   //     uses labels and data arrays to make object directly usable by Chart.JS doughnut/pie charts
+		   //   summary is for the table
+
+		B. DELETE SENSOR READINGS DATASET
+		-  Request:
+		   DELETE /devices/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'devicename': string}
+		   // devicename can be "All devices" or the devicename of specific device
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
 
 
 	13. Account subscription and payment APIs
