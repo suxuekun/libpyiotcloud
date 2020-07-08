@@ -39,7 +39,7 @@ class ChartSensorReponse(Model):
     chartTypeId = IntType()
     device = ModelType(SensorResponse)
     readings = ModelType(ReadingSensorResponse)
-    
+    selectedMinutes = IntType()
 
 class WebChartSensorResponse(ChartSensorReponse):
     dataset = ModelType(DatasetSensorResponse)

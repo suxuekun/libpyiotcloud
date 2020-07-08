@@ -425,6 +425,7 @@ DETAIL:
                 {
                     'id': string,
                     'chartTypeId': int,
+                    'selectedMinutes': int,
                     'device': {
                         'id': string, #  (gatewaydId/sensorId)
                         'name': string,
@@ -486,6 +487,7 @@ DETAIL:
                 {
                     'id': string,
                     'chartTypeId': int,
+                    'selectedMinutes': int,
                     'device': {
                         'id': string, #  (gatewaydId/sensorId)
                         'name': string,
@@ -561,6 +563,7 @@ DETAIL:
                 {
                     'id': string,
                     'chartTypeId': int,
+                    'selectedMinutes': int,
                     'device': {
                         'id': string, #  (gatewaydId/sensorId)
                         'name': string,

@@ -102,7 +102,6 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             sensorReport = self._get_sensor_report_detail(
                 s["source"], int(s["number"]), sensorsReports)
 
-            print(sensorReport)
             if sensorReport is not None:
                 newReport["dataset"] = list(
                     map(lambda r: self._cast_object_without_objectId(r), sensorReport["dataset"]))

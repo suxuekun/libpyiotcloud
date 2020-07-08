@@ -1,0 +1,40 @@
+<ion-view title="Compare Charts" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width_medium">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div>
+        <div ng-show="currentStep == 0">
+          <div ng-repeat="chart in charts">
+            <div class="dashboard-container dashboard-border dashboard-round-border" style="margin-top: 10px;">
+              <input type="checkbox" ng-model="chart.selected">
+              <h4>Name :{{chart.name}}</h4>
+              <p>Number :{{chart.number}}</p>
+              <p>Source :{{chart.source}}</p>
+              <p>Sensor class :{{chart.sensorClass}}</p>
+            </div>
+          </div>
+          <button id="addGateway-button55"
+                  ng-click="compare()"
+                  style="width: 40%;margin: auto; margin-top: 20px"
+                  ng-style="{'background-color': green}"
+                  class="button button-positive button-block">Compare</button>
+        </div>
+
+        <div ng-show="currentStep == 1">
+            <canvas title="Compare"
+                    class="chart chart-line"
+                    chart-colors="comapareCharts.colors"
+                    chart-data="comapareCharts.data"
+                    chart-labels="comapareCharts.labels"
+                    chart-options="comapareCharts.options">
+            </canvas>
+            <button id="addGateway-button55"
+                  ng-click="back()"
+                  style="width: 40%;margin: auto; margin-top: 20px"
+                  ng-style="{'background-color': green}"
+                  class="button button-positive button-block">Back</button>
+        </div>
+    </div>
+  </ion-content>
+</ion-view>

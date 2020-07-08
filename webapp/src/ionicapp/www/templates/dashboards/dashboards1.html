@@ -183,14 +183,18 @@
 
                 <!--TAB: SENSORS-->
                 <div  ng-show="activeTab==1">
-                  <div style="width: 100%">
+                  <div style="width: 100%" ng-show="sensorsView.length == 0">
                     <h4 style="text-align: center;"
-                        ng-show="sensorsView.length == 0">No sensors attributes selected to display</h4>
-                    <canvas title="Test"
-                            class="chart chart-line"
-                            chart-data="testNe.data">
-                    </canvas>
+                        >No sensors attributes selected to display</h4>
+                  </div>
+                    <div ng-show="sensorsView.length != 0">
+                       <button id="addGateway-button55"
+                              ng-click="compare()"
+                              style="width: 40%;  margin: auto; background-color: green"
+                              class="button button-positive button-block">Compare</button>
+                    </div>
                     <div class="item item-body"
+                        style="margin-top: 20px;"
                        ng-show="sensorsView.length != 0"
                        ng-repeat="chart in sensorsView">
                       <div class="column">
@@ -199,6 +203,13 @@
                           <p> Number: #<strong>{{chart.device.number}}</strong></p>
                           <p> Gateway: {{chart.device.source}}</p>
                           <p> Sensor class: {{chart.device.sensorClass}}
+                          <br></br>
+                           <select style="float: left;"
+                                  ng-model="chart.currentSelectTime"
+                                  ng-change="updateGetChartSensorsUrl(chart.currentSelectTime.value, chart.id)"
+                                  ng-options="filter.name for filter in chart.selectedTimes">
+                                    <option value="{{filter.value}}">{{filter.name}}</option>
+                          </select>
                         </div>
                         <div class="dashboard-item-action-column"  style="width=20%; float: right;">
                             <button ng-click="deleteChartSensor(chart.id)"
@@ -216,8 +227,6 @@
                                 chart-options="chart.options">
                         </canvas>
                       </div>
-
-
                     </div>
                   </div>
                 </div>
@@ -229,10 +238,7 @@
                   </div>
                 </div>
               </div>
-
         </div>
-
-
     </div>
 
   </ion-content>

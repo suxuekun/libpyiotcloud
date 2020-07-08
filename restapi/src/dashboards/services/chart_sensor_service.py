@@ -109,9 +109,6 @@ class ChartSensorService:
                 sensors = self.sensorRepository.gets_with_ids(ids=sensorIds)
                 if len(sensors) == 0:
                     return Response.fail("Unknown sensors")
-
-                print("Sensors Entites")
-                print(sensors)
                 lastMinutes = datetime.fromtimestamp(
                     query.timestamp) - timedelta(minutes=query.minutes)
                 results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
@@ -171,6 +168,7 @@ class ChartSensorService:
                 selectedSensors, int(lastMinutes.timestamp()), query.timestamp)
             dictSensors = {}
 
+           
             if len(selectedCharts) != len(secondResults):
                 LoggerService().error("Selected Charts does not have the same size", tag=self.tag)
                 return Response.fail("Sorry, there is something wrong")

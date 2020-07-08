@@ -4434,7 +4434,6 @@
               $ionicPopup.alert({ title: 'Error', template: 'Device name is the same!', buttons: [{text: 'OK', type: 'button-assertive'}] });
           }
           else {
-
               $ionicPopup.alert({
                   title: 'Change Device Name',
                   template: 'Are you sure you want to change the device name from ' + devicename + ' to ' + new_devicename + '?',
