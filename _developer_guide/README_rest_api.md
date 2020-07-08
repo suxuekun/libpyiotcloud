@@ -1977,7 +1977,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': 
 		   //
-		   // TEMPERATURE class
+		   // TEMPERATURE/HUMIDITY/AMBIENTLIGHT/MOTIONSENSOR/CO2GAS/VOCGAS class
 		     {
 		           "opmode": int,
 		           "mode": int, 
@@ -1987,21 +1987,22 @@ DETAILED:
 		           "notification": json_obj,
 		      }
 		   //
-		   // HUMIDITY class
-		     {
-		           "opmode": int,
-		           "mode": int, 
-		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
-		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "enable": boolean}, 
-		           "notification": json_obj,
-		      }
-
 		   }
 		   { 'status': 'NG', 'message': string }
 		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
+		   //
+		   // if sensor["opmodes"] is present, 
+		   // - show the Opmode dropdown choices. 
+		   // - use the minmax from sensor["opmodes"] array for thresholds based on the user selected Opmode
+		   // - opmode to be set in SET PROPERTIES should be based on the user selected Opmode.
+		   //
+		   // if sensor["opmodes"] is NOT present, 
+		   // - dont show the Opmode dropdown choices. 
+		   // - use sensor["minmax"] for thresholds
+		   // - opmode to be set in SET PROPERTIES should be 0.
+
 
 		M. DELETE LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
