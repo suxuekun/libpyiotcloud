@@ -186,6 +186,10 @@
                   <div style="width: 100%">
                     <h4 style="text-align: center;"
                         ng-show="sensorsView.length == 0">No sensors attributes selected to display</h4>
+                    <canvas title="Test"
+                            class="chart chart-line"
+                            chart-data="testNe.data">
+                    </canvas>
                     <div class="item item-body"
                        ng-show="sensorsView.length != 0"
                        ng-repeat="chart in sensorsView">
@@ -212,6 +216,8 @@
                                 chart-options="chart.options">
                         </canvas>
                       </div>
+
+
                     </div>
                   </div>
                 </div>

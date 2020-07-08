@@ -1,3 +1,5 @@
+let timerChartSensor = {};
+
 angular.module('app.dashboardsCtrl', [])
   .controller('dashboardsCtrl', ['$scope', '$stateParams', '$state', '$filter', '$ionicPopup', '$http', 'Server', 'User', 'DateTimeUtil',
     function ($scope, $stateParams, $state, $filter, $ionicPopup, $http, Server, User, DateTimeUtil) {
@@ -13,14 +15,14 @@ angular.module('app.dashboardsCtrl', [])
       const server = Server.rest_api;
       let cachedDashboards = [];
 
-      let timerChartSensor = {};
       // Start the page
       $scope.$on('$ionicView.enter', (e) => {
         $scope.data.token = User.get_token();
         $scope.getDashboards();
       });
 
-      $scope.$on("$destroy", function () {
+      $scope.$on("$ionicView.beforeLeave", function () {
+        console.log("Clear timer");
         clearInterval(timerChartSensor);
       });
 
@@ -170,7 +172,6 @@ angular.module('app.dashboardsCtrl', [])
       };
 
       mappingChartGatewayToView = (c) => {
-        console.log("Cho ma: ", c);
         const labels = c.datasets.labels;
         const values = c.datasets.data;
         return {
@@ -333,7 +334,6 @@ angular.module('app.dashboardsCtrl', [])
 
 
       getSensorColor = (sensorClass) => {
-        console.log("Fucking dadasd:", sensorClass);
         switch (sensorClass) {
           case 'temperature':
             return ["#FFC900"];
@@ -453,13 +453,40 @@ angular.module('app.dashboardsCtrl', [])
             const charts = result.data.data
             $scope.sensors = charts;
             $scope.sensorsView = mapDataToSensorViews(charts);
+            mapCompareSensorsView();
             console.log("Chart Sensors: ", $scope.sensorsView);
           })
           .catch(function (error) {
             console.log(error);
           });
-
       }
+
+      $scope.testCompareview = {};
+      $scope.testNe = {};
+      mapCompareSensorsView = () => {
+        const test1 = $scope.sensorsView[0];
+        const test2 = $scope.sensorsView[1];
+        $scope.testNe = test1;
+        console.log("Test compareView: ", $scope.testCompareview);
+        $scope.testCompareview = {
+          'data': {
+            'labels': ['January', 'February', 'March', 'April'],
+            'datasets': [{
+                'data': test1.data,
+                'label': 'Test 1',
+                'order': 1
+              },
+              {
+                'data': test2.data,
+                'label': 'Test 2',
+                'order': 2
+              }
+            ]
+          }
+        }
+      }
+
+
 
 
     }
