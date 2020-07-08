@@ -204,5 +204,5 @@ July 8, 2020
 
     when i exit the page, it should also stop polling.
 
-
+33. after i remove the sensor chart, the API is still getting polled.
 
