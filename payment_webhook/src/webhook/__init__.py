@@ -18,8 +18,10 @@ def reset_utc_timestamp(dt):
 
 def webbhook():
     request = flask.request
-    bt_signature = str(request.form['bt_signature']),
-    bt_payload = request.form['bt_payload']
+    data = request.form.to_dict(flat=False)
+    bt_signature = str(data['bt_signature'][0])
+    bt_payload = data['bt_payload'][0]
+    print(bt_signature,bt_payload)
     try:
         res = handle_webhook(bt_signature,bt_payload)
         if res:
