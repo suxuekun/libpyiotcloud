@@ -1031,7 +1031,10 @@ class database_client_mongodb:
         devicesubscription = self.get_subscription_document()
         if devicesubscription:
             for subscription in devicesubscription.find({ 'deviceid': deviceid }):
-                subscription["current"][menos_type] = str(new_usage)
+                if new_usage == 0:
+                    subscription["current"][menos_type] = str(new_usage)
+                else:
+                    subscription["current"][menos_type] = "{:.9f}".format(new_usage)
                 devicesubscription.replace_one({'deviceid': deviceid}, subscription)
                 break
 
