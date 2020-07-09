@@ -624,6 +624,54 @@ DETAIL:
     4. AddOn # TODO
 
     5. Calculation Prorate
+        //
+        //prorate formula
+        //
+        // basic attributes
+        // 0 old_plan_price             -- if have old plan( upgrade scenario ), the old plan's price
+        // 1 price                      -- the updated plan price
+        // 2 remaining_days             -- days left in this month
+        // 3 total_days                 -- total days in this month
+        // 4 gst                        -- gst percentage ("7.00" = 7%)
+        // 5 promo_value.               -- have 2 types curretly( percentage_discount/ discount)
+        
+        // calculated
+        //
+        // 1 total_payable                      -- total_payable = price * (remaing_days/total_days)
+        // 2 plan_rebate                        -- plan_rebate = old_plan_price * (remain_days/total_days)
+        // 3 promo_discount               
+                -- if percentage_discount          promo_discount = (total_payable - plan_rebate) * promo_value
+                -- if discount.                    promo_discount = promo_value.    ( but can not bigger than total_payable - plan_rebate)
+
+        // 4 total_discount                     -- total_discount = plan_rebate + promo_discount
+        // 5 prorate                            -- total_payable - total_discount
+        // 
+        // for gst 
+        //
+        // 6 gst_amount                         -- gst_amount = prorate * gst/100
+        // 7 gst_price                          -- gst_price = price * ( 1 + gst/100 )
+        // 8 gst_prorate                        -- gst_prorate = prorate * ( 1 + gst/100 )
+        //
+        //
+        // e.g.  for case $30 plan update to $50 plan on 15th of month (15/30) for Singapore customer
+        //
+        // old_plan_price           = 30.00
+        // price                    = 50.00
+        // remaining_days           = 15.00
+        // total_days               = 30.00
+        // gst                      = 7   (7% gst)
+        // promo_value              = 20  (20% discount)
+        //
+        // total_payable            = 50 * ( 15/30)             = 25.00
+        // plan_rebate              = 30 * ( 15/30)             = 15.00
+        // promo_discount           = ( 25 - 15 ) * 20%=10*20%  = 2.00
+        // total_discount           = 15.00 + 2.00              = 17.00
+        // prorate                  = 25.00 - 17.00             = 8.00   (final payment before gst)
+        // gst_amount               = 8.00 * 7%                 = 0.56
+        // gst_price                = 50 * (1+7%)               = 53.50  ( the price show to customer including gst)
+        // gst_prorate              = 8.00 * (1+7%)             = 8.56   (final payment including gst) 
+
+
         A. prorate 
         - Request:
         GET: /payment/prorate/calc/
@@ -646,8 +694,9 @@ DETAIL:
             "prorate": string,                    // the prorated amount to PAY
             "remaining_days": int,                // remaining days of this month
             "total_days": int,                    // total days of this month
-            "gst": string                         // gst "7.00" = 7% if avaliable
-            "gst_price": string                   // if have gst then have the gst_price = (1+gst/100) * price             
+            "gst": string,                        // gst "7.00" = 7% if avaliable
+            "gst_amount": string,                 // gst amount = prorate * gst/100 ( the gst amount in USD)
+            "gst_price": string,                  // if have gst then have the gst_price = (1+gst/100) * price             
             "gst_prorate": string                 // if have gst then have the gst_prorate = (1+gst/100) * prorate
           }
         }
@@ -731,7 +780,9 @@ DETAIL:
         {
             "status": 'OK', 
             "message": string,
-            "data": string,           // the token string
+            "data": {
+                "token":string // the token string
+            },           
         }
         
         B. checkout
