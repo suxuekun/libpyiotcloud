@@ -380,7 +380,7 @@ DETAIL:
         data:
         {
             'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart 
-            'deviceId': [] # list sensors id string 
+            'deviceId': string 
         }
         - Response:
         {

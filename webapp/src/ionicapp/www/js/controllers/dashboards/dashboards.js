@@ -1022,11 +1022,54 @@ angular.module('app.dashboardsCtrl', [])
         $scope.comapareCharts = {};
       }
 
+      const selectedTimes = [{
+          name: "5 minutes",
+          value: 5,
+        },
+        {
+          name: "15 minutes",
+          value: 15
+        },
+        {
+          name: "30 minutes",
+          value: 30
+        },
+        {
+          name: "1 hour",
+          value: 60
+        },
+        {
+          name: "1 day",
+          value: 1440
+        },
+        {
+          name: "1 week",
+          value: 10080
+        }
+      ];
+
+      const getSelectedTime = (value) => {
+        for (const i of selectedTimes) {
+          if (i.value === value) {
+            return i;
+          }
+        }
+        return selectedTimes[0];
+      }
+
+      let minuteQueryParams = "";
+      let currentSelectedMinutes = 5;
+      $scope.updateMinuteUrl = (minutes) => {
+        minuteQueryParams = `&minutes=${minutes}`;
+        currentSelectedMinutes = minutes;
+        $scope.compare();
+      };
+
       $scope.compare = () => {
         const chartsId = $scope.charts.filter(c => c.selected)
           .map(c => c.id);
         let paramsChartsId = getChartsIdQueryParams(chartsId);
-        let url = `${server}/dashboards/dashboard/${dashboardId}/sensors/comparison?minutes=15&points=30${paramsChartsId}`
+        let url = `${server}/dashboards/dashboard/${dashboardId}/sensors/comparison?points=30${paramsChartsId}${minuteQueryParams}`;
         $http({
             method: 'GET',
             url: url,
@@ -1042,17 +1085,22 @@ angular.module('app.dashboardsCtrl', [])
             if (charts.length == 0) {
               return;
             }
+
             const labels = charts[0].dataset.labels.map((timestamp) => {
               const date = new Date(timestamp * 1000);
               return ('0' + date.getHours()).slice(-2) +
                 ":" + ('0' + date.getMinutes()).slice(-2) + ":" +
                 ('0' + date.getSeconds()).slice(-2);
             });
+
             const data = [];
             for (const chart of charts) {
               data.push(chart.dataset.data);
             }
+
             $scope.comapareCharts = {
+              selectedTimes: selectedTimes,
+              currentSelectTime: getSelectedTime(currentSelectedMinutes),
               data: data,
               labels: labels,
               colors: [
