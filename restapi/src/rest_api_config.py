@@ -39,6 +39,7 @@ class config:
     # Message broker settings
     CONFIG_USE_AMQP             = False
     if debugging:
+        # CONFIG_HOST             = "192.168.99.100"
         CONFIG_HOST             = "127.0.0.1"
     else:
         CONFIG_HOST             = "rabbitmq"
@@ -107,6 +108,7 @@ class config:
 
     # Caching settings
     if debugging:
+        # CONFIG_REDIS_HOST            = "192.168.99.100"
         CONFIG_REDIS_HOST            = "127.0.0.1"
     else:
         CONFIG_REDIS_HOST            = "redis"
@@ -122,6 +124,7 @@ class config:
     CONFIG_TRANSACTION_DESCRIPTION   = "Consumable credits for IoT Portal"
 
     # JWT Token
+    CONFIG_HASHKEY_SERIAL_DEVICE     = os.environ["CONFIG_USE_HASHKEY_SERIAL_DEVICE"]
     CONFIG_JWT_SECRET_KEY_DEVICE     = os.environ["CONFIG_USE_JWT_SECRET_KEY_DEVICE"]
     CONFIG_JWT_SECRET_KEY            = os.environ["CONFIG_USE_JWT_SECRET_KEY"]
     CONFIG_JWT_EXPIRATION            = 10
@@ -148,3 +151,4 @@ class config:
     CONFIG_GIGABYTE_CONVERSION       = CONFIG_GIGABYTE_GB # MongoDB Compass uses GB not GiB
     CONFIG_MEGABYTE_CONVERSION       = CONFIG_MEGABYTE_MB # MongoDB Compass uses MB not MiB
     CONFIG_KILOBYTE_CONVERSION       = CONFIG_KILOBYTE_KB # MongoDB Compass uses KB not KiB
+

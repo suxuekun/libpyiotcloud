@@ -21,4 +21,4 @@ phonenumbers==8.12.2
 schematics
 Flask-RESTful==0.3.8
 braintree==4.1.0
-
+siphash-cffi==0.1.4
