@@ -5,24 +5,29 @@
   <ion-content padding="true" class="has-header">
     <div>
         <div ng-show="currentStep == 0">
-          <div ng-repeat="chart in charts">
-            <div class="dashboard-container dashboard-border dashboard-round-border" style="margin-top: 10px;">
-              <input type="checkbox" ng-model="chart.selected">
-              <h4>Name :{{chart.name}}</h4>
-              <p>Number :{{chart.number}}</p>
-              <p>Source :{{chart.source}}</p>
-              <p>Sensor class :{{chart.sensorClass}}</p>
-            </div>
-          </div>
           <button id="addGateway-button55"
                   ng-click="compare()"
                   style="width: 40%;margin: auto; margin-top: 20px"
                   ng-style="{'background-color': green}"
                   class="button button-positive button-block">Compare</button>
+          <div ng-repeat="chart in charts">
+            <div class="card" style="margin-top: 10px; padding: 20px;">
+              <div class="dashboard-item-main-column">
+                <h4>Name :{{chart.name}}</h4>
+                <p>Number :{{chart.number}}</p>
+                <p>Source :{{chart.source}}</p>
+                <p>Sensor class :{{chart.sensorClass}}</p>
+              </div>
+              <input type="checkbox" ng-model="chart.selected"
+                    style="height: 20px;width: 20px;float: right; margin-top: 30px;">
+
+            </div>
+          </div>
+
         </div>
 
         <div ng-show="currentStep == 1">
-            <select style="float: left;"
+            <select style="float: left; margin: 30px;"
                     ng-model="comapareCharts.currentSelectTime"
                     ng-change="updateMinuteUrl(comapareCharts.currentSelectTime.value)"
                     ng-options="filter.name for filter in comapareCharts.selectedTimes">
@@ -33,7 +38,8 @@
                     chart-colors="comapareCharts.colors"
                     chart-data="comapareCharts.data"
                     chart-labels="comapareCharts.labels"
-                    chart-options="comapareCharts.options">
+                    chart-options="comapareCharts.options"
+                    chart-dataset-override="comapareCharts.datasetOverride">
             </canvas>
             <button id="addGateway-button55"
                   ng-click="back()"

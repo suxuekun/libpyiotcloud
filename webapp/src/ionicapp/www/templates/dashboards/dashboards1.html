@@ -64,7 +64,7 @@
 
         <!--TAB: Information  -->
 
-        <div class="dasboard-detail-column" >
+        <div class="dasboard-detail-column " >
              <div class="dashboard-container dashboard-border dashboard-round-border">
                 <h2>Information</h2>
                 <form>
@@ -137,7 +137,8 @@
                   <div ng-show="chartsGatewaysView.length == 0" style="width: 100%">
                     <h4 style="text-align: center;">No Gateway attributes selected to display</h4>
                   </div>
-                  <div class="item item-body"
+                  <div class="card"
+                       style="padding: 20px;"
                        ng-repeat="chart in chartsGatewaysView"
                        ng-show="chartsGatewaysView.length != 0">
                       <div class="column">
@@ -193,10 +194,10 @@
                               style="width: 40%;  margin: auto; background-color: green"
                               class="button button-positive button-block">Compare</button>
                     </div>
-                    <div class="item item-body"
-                        style="margin-top: 20px;"
-                       ng-show="sensorsView.length != 0"
-                       ng-repeat="chart in sensorsView">
+                    <div class="card"
+                        style="padding: 20px;"
+                        ng-show="sensorsView.length != 0"
+                        ng-repeat="chart in sensorsView">
                       <div class="column">
                         <div class="dashboard-item-main-column" style="width=80%">
                           <p> Sensor Name: <strong>{{chart.device.name}}</strong></p>
@@ -222,9 +223,10 @@
                         <canvas title="{{chart.device.name}}"
                                 class="chart chart-line"
                                 chart-colors="chart.colors"
-                                chart-data="chart.dataset.data"
-                                chart-labels="chart.dataset.labels"
-                                chart-options="chart.options">
+                                chart-data="chart.data"
+                                chart-labels="chart.labels"
+                                chart-options="chart.options"
+                                chart-dataset-override="chart.datasetOverride">
                         </canvas>
                       </div>
                     </div>

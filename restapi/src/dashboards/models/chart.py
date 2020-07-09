@@ -51,10 +51,10 @@ class ChartSensor:
         self.model = model
 
     @staticmethod
-    def create(dashboardId: str, userId: str, dto: ChartSensorDto):
+    def create(dashboardId: str, userId: str, dto: ChartSensorDto, sensorId: str):
         model = ChartSensorModel()
         model.userId = userId
         model.dashboardId = dashboardId
-        model.deviceId = dto.deviceId
+        model.deviceId = sensorId
         model.chartTypeId = dto.chartTypeId
         return ChartSensor(model)

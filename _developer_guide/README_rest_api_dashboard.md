@@ -380,7 +380,8 @@ DETAIL:
         data:
         {
             'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart 
-            'deviceId': string 
+            'source': string,  # get from api sensors
+            'number': string   # get from api sensors
         }
         - Response:
         {

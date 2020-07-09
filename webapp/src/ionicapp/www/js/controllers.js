@@ -8885,7 +8885,6 @@
           return $scope.sensors_datachart[indexy].colors;
       };
 
-
       $scope.getMax = function(sensorclass) {
           let max = 0;
           if (sensorclass !== undefined) {
@@ -8935,7 +8934,6 @@
 
           return $scope.sensors_datachart_options;
       };
-
 
 
       $scope.changeRefresh = function(refresh, timeout) {

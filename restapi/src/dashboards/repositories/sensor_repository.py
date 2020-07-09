@@ -4,7 +4,16 @@ from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRep
 from datetime import datetime, timezone
 
 class ISensorRepository(BaseRepository, IMongoBaseRepository):
-    pass
+    def get_by_source_and_number(self, source: str, number:str):
+        pass
 
 class SensorRepository(MongoBaseRepository, ISensorRepository):
-    pass
+    
+    
+    def get_by_source_and_number(self, source, number):
+        query = {
+            "source": source,
+            "number": number
+        }
+
+        return super().get_one(query)

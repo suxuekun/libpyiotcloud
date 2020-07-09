@@ -42,7 +42,7 @@ class ChartSensorService:
     def create(self, dashboardId: str, userId: str, dto: ChartSensorDto):
         try:
             dto.validate()
-            sensor = self.sensorRepository.getById(dto.deviceId)
+            sensor = self.sensorRepository.get_by_source_and_number(dto.source, dto.number)
 
             if sensor is None:
                 return Response.fail("This device was not existed")
@@ -51,14 +51,14 @@ class ChartSensorService:
             #     return Response.fail("This device should be enabled")
 
             sameChart = self.chartRepository.get_same_chart(
-                dto.deviceId)
+                sensor["_id"])
 
             if sameChart is not None:
                 return Response.fail("Sorry, This chart should not have same device")
 
             # Create chart
             chart = ChartSensor.create(
-                dashboardId=dashboardId, userId=userId, dto=dto)
+                dashboardId=dashboardId, userId=userId, dto=dto, sensorId=sensor["_id"])
             chartId = self.chartRepository.create(
                 chart.model.to_primitive())
 

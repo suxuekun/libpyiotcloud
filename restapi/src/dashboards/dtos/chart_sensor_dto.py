@@ -4,5 +4,7 @@ from schematics.types import StringType, DecimalType, IntType, BooleanType, List
 
 
 class ChartSensorDto(Model):
-    deviceId = StringType(required=True, min_length=1)
+
+    source = StringType(required=True)
+    number = StringType(required=True)
     chartTypeId = IntType(required=True)

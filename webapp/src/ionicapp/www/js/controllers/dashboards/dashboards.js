@@ -439,15 +439,18 @@ angular.module('app.dashboardsCtrl', [])
             };
             lowAndHighs.push(item)
           }
-          dataset.labels = labels;
           return {
             selectedTimes: selectedTimes,
             currentSelectTime: getSelectedTime(c.selectedMinutes),
-            dataset: dataset,
+            data: [dataset.data],
+            labels: labels,
             device: c.device,
             id: c.id,
             chartType: c.chartTypeId,
             colors: getSensorColor(c.device.sensorClass),
+            datasetOverride: [{
+              label: c.device.sensorClass
+            }],
             options: {
               "animation": false,
               "legend": {
@@ -462,11 +465,16 @@ angular.module('app.dashboardsCtrl', [])
                     "minRotation": 90
                   }
                 }]
-
               },
+              legendCallback: function (chart) {
+                // Return the HTML string here.
+                console.log("Get LengendCallback: ,", chart);
+                return "test";
+              }
             }
           }
         });
+        console.log("Result sensor: ", result);
         return result;
       };
 
@@ -822,7 +830,6 @@ angular.module('app.dashboardsCtrl', [])
       $scope.chartTypes = [];
       let cachedSensors = [];
 
-
       reset = () => {
         $scope.currentStep = 0;
         $scope.selectedGateway = {
@@ -832,7 +839,9 @@ angular.module('app.dashboardsCtrl', [])
 
         $scope.selectedSensor = {
           'id': '',
-          'sensorname': ''
+          'sensorname': '',
+          'source': '',
+          'number': '',
         };
 
         $scope.selectedChartType = {
@@ -863,14 +872,12 @@ angular.module('app.dashboardsCtrl', [])
           });
           return;
         }
-        $scope.sensors = [];
         getChartTypes();
         $scope.currentStep = 2;
       }
 
       $scope.backToSelectionSensorStep = () => {
         $scope.currentStep = 1;
-        $scope.sensors = cachedSensors;
       }
 
       $scope.backToGatewayStep = () => {
@@ -885,8 +892,12 @@ angular.module('app.dashboardsCtrl', [])
           });
           return;
         }
+
+        const index = $scope.sensors.findIndex(s => s.id == $scope.selectedSensor.id);
+        const sensor = $scope.sensors[index];
         const request = {
-          "deviceId": $scope.selectedSensor.id,
+          "source": sensor.source,
+          "number": sensor.number,
           "chartTypeId": parseInt($scope.selectedChartType.id)
         }
 
@@ -952,7 +963,6 @@ angular.module('app.dashboardsCtrl', [])
           })
           .then(function (result) {
             $scope.sensors = result.data.data;
-            console.log("Sensors: ", $scope.sensors);
             cachedSensors = $scope.sensors;
           })
           .catch(function (error) {
@@ -1008,6 +1018,7 @@ angular.module('app.dashboardsCtrl', [])
       }
 
       $scope.$on("$ionicView.beforeLeave", function () {
+        console.log("Clear timer of comparision");
         clearInterval(timerChartSensor);
       });
 
@@ -1112,9 +1123,15 @@ angular.module('app.dashboardsCtrl', [])
                 ('0' + date.getSeconds()).slice(-2);
             });
 
-            const data = [];
+
+            const data =[];
+            const datasetOverride = [];
+
             for (const chart of charts) {
               data.push(chart.dataset.data);
+              datasetOverride.push({
+                label: chart.device.sensorName
+              })
             }
 
             $scope.comapareCharts = {
@@ -1122,6 +1139,7 @@ angular.module('app.dashboardsCtrl', [])
               currentSelectTime: getSelectedTime(currentSelectedMinutes),
               data: data,
               labels: labels,
+              datasetOverride: datasetOverride,
               colors: [
                 '#FFC900',
                 '#F38124'
