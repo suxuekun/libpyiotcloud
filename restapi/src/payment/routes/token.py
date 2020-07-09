@@ -18,7 +18,7 @@ class TokenResource(Resource,BaseResource):
         username = informations.get_entityname(request)
         token = payment_service.get_client_token(username)
         if token:
-            res = self.to_api_data(token)
+            res = self.to_api_data({'token':token})
             return self.to_result(res)
         else:
             return make_error_response(http5xx.BRAINTREE_TOKEN_ERROR)

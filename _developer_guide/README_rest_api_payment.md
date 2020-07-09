@@ -646,8 +646,9 @@ DETAIL:
             "prorate": string,                    // the prorated amount to PAY
             "remaining_days": int,                // remaining days of this month
             "total_days": int,                    // total days of this month
-            "gst": string                         // gst "7.00" = 7% if avaliable
-            "gst_price": string                   // if have gst then have the gst_price = (1+gst/100) * price             
+            "gst": string,                        // gst "7.00" = 7% if avaliable
+            "gst_amount": string,                 // gst amount = prorate * gst/100 ( the gst amount in USD)
+            "gst_price": string,                  // if have gst then have the gst_price = (1+gst/100) * price             
             "gst_prorate": string                 // if have gst then have the gst_prorate = (1+gst/100) * prorate
           }
         }
@@ -731,7 +732,9 @@ DETAIL:
         {
             "status": 'OK', 
             "message": string,
-            "data": string,           // the token string
+            "data": {
+                "token":string // the token string
+            },           
         }
         
         B. checkout
