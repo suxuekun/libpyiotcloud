@@ -996,9 +996,20 @@ angular.module('app.dashboardsCtrl', [])
       charts.forEach(c => {
         c.selected = false;
       });
+      let timerChartSensor = {};
 
       $scope.charts = charts;
       $scope.comapreCharts = {};
+
+      const startTimeChartSensor = () => {
+        timerChartSensor = setInterval(() => {
+          getChartsSensorsCompare();
+        }, 5000);
+      }
+
+      $scope.$on("$ionicView.beforeLeave", function () {
+        clearInterval(timerChartSensor);
+      });
 
       getChartsIdQueryParams = (chartsId) => {
         let paramsChartsId = "&chartsId=";
@@ -1062,10 +1073,18 @@ angular.module('app.dashboardsCtrl', [])
       $scope.updateMinuteUrl = (minutes) => {
         minuteQueryParams = `&minutes=${minutes}`;
         currentSelectedMinutes = minutes;
-        $scope.compare();
+
+        clearInterval(timerChartSensor);
+        getChartsSensorsCompare();
+        startTimeChartSensor();
       };
 
       $scope.compare = () => {
+        getChartsSensorsCompare();
+        startTimeChartSensor();
+      }
+
+      getChartsSensorsCompare = () => {
         const chartsId = $scope.charts.filter(c => c.selected)
           .map(c => c.id);
         let paramsChartsId = getChartsIdQueryParams(chartsId);
