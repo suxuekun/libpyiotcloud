@@ -193,6 +193,8 @@ July 8, 2020
 30. theres a scaling issue with the maximum and minimum
     the y-axis max and min should be fixed using the sensor["minmax"][0], sensor["minmax"][1]
 
+    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
 31. the legend appears as UNDEFINED. 
     this is likely because your are providing a single array for data.
     send ARRAY of ARRAYS instead.
@@ -200,9 +202,30 @@ July 8, 2020
     data, low, high are array of arrays
     'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]},
 
+    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
 32. when i exit the dashboard page, i see that the REST apis are still getting called. (CRITICAL ISSUE)
 
     when i exit the page, it should also stop polling.
 
+    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
 33. after i remove the sensor chart, the API is still getting polled.
+
+
+===============================================
+
+July 9, 2020
+
+34. display historical data (left and right buttons)
+
+   (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
+35. display latest sensor reading 
+
+   (see my implementation in OLD DASHBOARD PAGE on how to support this)
+
+36. fix tooltip to display data, low, high and readable datetime
+
+   (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
 
