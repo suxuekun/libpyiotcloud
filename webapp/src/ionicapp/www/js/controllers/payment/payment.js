@@ -331,7 +331,7 @@
 
 				BraintreePayment.get_client_token().then(function(res){
 					
-					$scope.token = res.data.data
+					$scope.token = res.data.data.token
 					console.log('get token',$scope.token)
 					braintree.dropin.create({
 						authorization: $scope.token,

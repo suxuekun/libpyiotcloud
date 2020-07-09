@@ -277,6 +277,7 @@ class PaymentService():
         try:
             b = self.billing_address_service.get_or_create_one(query)
             res['gst'] = Decimal(b.get_gst());
+            res['gst_amount'] = str(Decimal(res['gst'])/100 * Decimal(res['prorate']))
             res['gst_price'] = next_plan.get_price_str(res['gst'])
             res['gst_prorate'] = str((1 +Decimal(res['gst'])/100) * Decimal(res['prorate']))
         except Exception as _:
