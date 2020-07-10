@@ -1436,10 +1436,12 @@ class identity_authentication:
             # since login via phone_number is now allowed,
             # the phone_number must be unique,
             # so check if phone_number is already taken or not
-            if self.database_client.get_username_by_phonenumber(phonenumber) is not None:
-                response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
-                print('\r\nERROR Update user: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
-                return response, status.HTTP_400_BAD_REQUEST
+            phonenumber_owner = self.database_client.get_username_by_phonenumber(phonenumber)
+            if phonenumber_owner is not None:
+                if username != phonenumber_owner:
+                    response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
+                    print('\r\nERROR Update user: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
+                    return response, status.HTTP_400_BAD_REQUEST
 
 
         #print(phonenumber)
