@@ -229,3 +229,12 @@ July 9, 2020
 
    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
 
+
+===============================================
+
+July 10, 2020
+
+37. add gateway name in sensor charts dashboard
+
+38. default should also be 5 minutes so that you dont hide the y-min issue. 
+    you are hiding the y-min issue thats why you change default to 15 minutes
