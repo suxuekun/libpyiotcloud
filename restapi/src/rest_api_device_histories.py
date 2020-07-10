@@ -39,21 +39,21 @@ class device_histories:
         usage = {}
         usage["devicename"] = devicename
         if deviceid is None:
-            usage["Mobile"]       = self.database_client.get_menos_num_sms_by_currmonth(entityname, devicename)
-            usage["Email"]        = self.database_client.get_menos_num_email_by_currmonth(entityname, devicename)
-            usage["Notification"] = self.database_client.get_menos_num_notification_by_currmonth(entityname, devicename)
-            usage["Modem"]        = self.database_client.get_menos_num_device_by_currmonth(entityname, devicename)
-            usage["Storage"]      = self.database_client.get_menos_num_storage_by_currmonth(entityname, devicename)
-            bytes, kb, mb, gb     = self.database_client.get_menos_num_sensordata_by_currmonth(entityname, devicename)
-            usage["SensorData"]   = [bytes, kb, mb, gb]
+            usage["Mobile"], alloc_sms        = self.database_client.get_menos_num_sms_by_currmonth(entityname, devicename)
+            usage["Email"], alloc_email       = self.database_client.get_menos_num_email_by_currmonth(entityname, devicename)
+            usage["Notification"], alloc_push = self.database_client.get_menos_num_notification_by_currmonth(entityname, devicename)
+            usage["Modem"]                    = self.database_client.get_menos_num_device_by_currmonth(entityname, devicename)
+            usage["Storage"]                  = self.database_client.get_menos_num_storage_by_currmonth(entityname, devicename)
+            bytes, kb, mb, gb, alloc_storage  = self.database_client.get_menos_num_sensordata_by_currmonth(entityname, devicename)
+            usage["SensorData"]               = [bytes, kb, mb, gb]
         else:
-            usage["Mobile"]       = self.database_client.get_menos_num_sms_by_deviceid_by_currmonth(deviceid)
-            usage["Email"]        = self.database_client.get_menos_num_email_by_deviceid_by_currmonth(deviceid)
-            usage["Notification"] = self.database_client.get_menos_num_notification_by_deviceid_by_currmonth(deviceid)
-            usage["Modem"]        = self.database_client.get_menos_num_device_by_deviceid_by_currmonth(deviceid)
-            usage["Storage"]      = self.database_client.get_menos_num_storage_by_deviceid_by_currmonth(deviceid)
-            bytes, kb, mb, gb     = self.database_client.get_menos_num_sensordata_by_deviceid_by_currmonth(deviceid)
-            usage["SensorData"]   = [bytes, kb, mb, gb]
+            usage["Mobile"], alloc_sms        = self.database_client.get_menos_num_sms_by_deviceid_by_currmonth(deviceid)
+            usage["Email"], alloc_email       = self.database_client.get_menos_num_email_by_deviceid_by_currmonth(deviceid)
+            usage["Notification"], alloc_push = self.database_client.get_menos_num_notification_by_deviceid_by_currmonth(deviceid)
+            usage["Modem"]                    = self.database_client.get_menos_num_device_by_deviceid_by_currmonth(deviceid)
+            usage["Storage"]                  = self.database_client.get_menos_num_storage_by_deviceid_by_currmonth(deviceid)
+            bytes, kb, mb, gb, alloc_storage  = self.database_client.get_menos_num_sensordata_by_deviceid_by_currmonth(deviceid)
+            usage["SensorData"]               = [bytes, kb, mb, gb]
         #print(usage["SensorData"])
         return usage
 
