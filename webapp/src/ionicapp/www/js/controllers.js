@@ -793,7 +793,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                                 let indexy = 0;
                                 for (indexy=0; indexy<$scope.devices.length; indexy++) {
                                     if ($scope.devices[indexy].heartbeat !== undefined) {
-                                        $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                        if ($scope.devices[indexy].heartbeat - $scope.devices[indexy].timestamp <= 2)
+                                        {
+                                            $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                        }
+                                        else 
+                                        {
+                                            $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                        }
                                     }
                                     else {
                                         $scope.devices[indexy].devicestatus = "Last active: N/A";
@@ -1070,7 +1077,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             let indexy = 0;
                             for (indexy=0; indexy<$scope.devices.length; indexy++) {
                                 if ($scope.devices[indexy].heartbeat !== undefined) {
-                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                    if ($scope.devices[indexy].heartbeat - $scope.devices[indexy].timestamp <= 2)
+                                    {
+                                        $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                    }
+                                    else 
+                                    {
+                                        $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                    }
                                 }
                                 else {
                                     $scope.devices[indexy].devicestatus = "Last active: N/A";
@@ -1180,7 +1194,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         .then(function (result) {
             console.log(result.data);
             //console.log(devicename + ": Online");
-            $scope.devices[index].devicestatus = 'Online';
+            if (result.data.status === "OK") {
+                $scope.devices[index].devicestatus = 'Online';
+            }
+            else {
+                $scope.devices[index].devicestatus = 'Offline';
+            }
         })
         .catch(function (error) {
             let currdate = parseInt(new Date().valueOf()/ 1000, 10);
@@ -1188,7 +1207,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.devices[index].devicestatus = $scope.getDiffString(currdate, $scope.devices[index].heartbeat, true);
             }
             else {
-                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, null, true);
+                $scope.devices[index].devicestatus = 'Offline';
+                //$scope.devices[index].devicestatus = $scope.getDiffString(currdate, null, true);
             }
             $scope.handle_error(error);
         }); 
