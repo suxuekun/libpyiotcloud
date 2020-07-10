@@ -234,7 +234,14 @@ July 9, 2020
 
 July 10, 2020
 
-37. add gateway name in sensor charts dashboard
+36. Gateway label in Sensor Dashboard 
+    - this is not the Gateway UUID, this is the LDSU UUID. Wrong label
+
+37. add gateway name and gateway uuid in sensor charts dashboard
+    - so its easy to know which sensor to enable
 
 38. default should also be 5 minutes so that you dont hide the y-min issue. 
     you are hiding the y-min issue thats why you change default to 15 minutes
+
+
+
