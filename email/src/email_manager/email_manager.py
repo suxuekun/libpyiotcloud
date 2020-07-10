@@ -71,6 +71,7 @@ CONFIG_EMAIL_SUBJECT_RECEIPT      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_REC
 CONFIG_EMAIL_SUBJECT_ORGANIZATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
 CONFIG_EMAIL_SUBJECT_USAGENOTICE  = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE
 CONFIG_EMAIL_SUBJECT_SENSORDATADL = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL
+CONFIG_EMAIL_SUBJECT_DEVICEREGISTRATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEREGISTRATION
 
 CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
 
@@ -78,6 +79,7 @@ API_SEND_RECEIPT                  = "send_invoice"
 API_SEND_INVITATION_ORGANIZATION  = "send_invitation_organization"
 API_SEND_USAGE_NOTICE             = "send_usage_notice"
 API_SEND_SENSORDATA_DOWNLOAD_LINK = "send_sensordata_download_link"
+API_SEND_DEVICE_REGISTRATION      = "send_device_registration"
 
 print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
 
@@ -191,6 +193,29 @@ def send_usage_notice(database_client, deviceid, topic, payload):
             print(e)
 
 
+###################################################################################
+# Device registration
+###################################################################################
+
+def send_device_registration_confirmation(database_client, deviceid, topic, payload):
+
+    payload = json.loads(payload)
+    message = g_email_templates.construct_device_registration_message(deviceid, payload["serialnumber"])
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_DEVICEREGISTRATION)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("DEVICEREGISTRATION {}: {} [{}]".format(deviceid, recipient, result))
+        except Exception as e:
+            print(e)
+
+
+
 
 ###################################################################################
 # MQTT subscription handling
@@ -247,6 +272,27 @@ def on_message(subtopic, subpayload):
             print("exception API_SEND_SENSORDATA_DOWNLOAD_LINK")
             print(e)
             return
+
+    elif topic == API_SEND_SENSORDATA_DOWNLOAD_LINK:
+        deviceid = arr_subtopic[1]
+        try:
+            thr = threading.Thread(target = send_sensordata_download_link, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_SEND_SENSORDATA_DOWNLOAD_LINK")
+            print(e)
+            return
+
+    elif topic == API_SEND_DEVICE_REGISTRATION:
+        deviceid = arr_subtopic[1]
+        try:
+            thr = threading.Thread(target = send_device_registration_confirmation, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_SEND_DEVICE_REGISTRATION")
+            print(e)
+            return
+
 
     return
 
@@ -361,10 +407,12 @@ if __name__ == '__main__':
     subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_INVITATION_ORGANIZATION)
     subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_USAGE_NOTICE)
     subtopic4 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_SENSORDATA_DOWNLOAD_LINK)
+    subtopic5 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_DEVICE_REGISTRATION)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic4, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic5, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

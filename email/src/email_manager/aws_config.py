@@ -15,4 +15,5 @@ class config:
     CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION  = "Bridgetek IoT Modem organization"
     CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE   = "Bridgetek IoT Modem usage notice"
     CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL  = "Bridgetek IoT Modem sensor data download"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEREGISTRATION = "Bridgetek IoT Modem device registration"
 
