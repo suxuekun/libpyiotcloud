@@ -255,4 +255,6 @@ July 10, 2020
 
 41. add dropdown option to select 30 points or 60 points (maybe beside compare button) 
 
+42. In sensor compare, when i exit the page, the webapp is still querying the rest api. 
+    it should also stop polling after exiting the page. (i clicked X mark at the top left) - CRITICAL
 
