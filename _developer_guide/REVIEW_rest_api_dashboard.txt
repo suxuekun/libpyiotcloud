@@ -251,5 +251,5 @@ July 10, 2020
     with my old dashboard, its exactly the same (latest datapoint in graph matches latest data sent by device simulator. 
     (so there's no issue with the data producer/data storage. the issue is with the data consumer - so its your dashboard)
 
-
+    no aggregration = no calculation of average, low, high since its the every 60 x 5 == 300 seconds exactly matches with 5 minutes (300 seconds)
 
