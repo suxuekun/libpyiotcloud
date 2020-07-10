@@ -559,23 +559,26 @@ class database_client:
 
     def get_menos_num_sms_by_deviceid_by_currmonth(self, deviceid):
         usage = self._devices.get_subscription_usage(deviceid)
-        if usage:
-            return usage["sms"]
-        return 0
+        allocation = self._devices.get_subscription_allocation(deviceid)
+        if usage and allocation:
+            return usage["sms"], allocation["sms"]
+        return "0", "0"
         #return self._devices.get_menos_num_sms(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
     def get_menos_num_email_by_deviceid_by_currmonth(self, deviceid):
         usage = self._devices.get_subscription_usage(deviceid)
-        if usage:
-            return usage["email"]
-        return 0
+        allocation = self._devices.get_subscription_allocation(deviceid)
+        if usage and allocation:
+            return usage["email"], allocation["email"]
+        return "0", "0"
         #return self._devices.get_menos_num_email(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
     def get_menos_num_notification_by_deviceid_by_currmonth(self, deviceid):
         usage = self._devices.get_subscription_usage(deviceid)
-        if usage:
-            return usage["notification"]
-        return 0
+        allocation = self._devices.get_subscription_allocation(deviceid)
+        if usage and allocation:
+            return usage["notification"], allocation["notification"]
+        return "0", "0"
         #return self._devices.get_menos_num_notification(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
     def get_menos_num_device_by_deviceid_by_currmonth(self, deviceid):
@@ -586,14 +589,15 @@ class database_client:
 
     def get_menos_num_sensordata_by_deviceid_by_currmonth(self, deviceid):
         usage = self._devices.get_subscription_usage(deviceid)
-        if usage:
+        allocation = self._devices.get_subscription_allocation(deviceid)
+        if usage and allocation:
             if usage["storage"]:
                 _gb = float(usage["storage"])
                 _mb = config.CONFIG_KILOBYTE_CONVERSION * _gb
                 _kb = config.CONFIG_KILOBYTE_CONVERSION * _mb
                 _bytes = config.CONFIG_KILOBYTE_CONVERSION * _kb
-                return _bytes, _kb, _mb, _gb
-        return 0, 0, 0, 0
+                return str(_bytes), str(_kb), str(_mb), usage["storage"], allocation["storage"]
+        return "0", "0", "0", "0", "0"
         #bytes = self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
         #if bytes:
         #    return bytes, self.bytes_to_kilobytes(bytes), self.bytes_to_megabytes(bytes), self.bytes_to_gigabytes(bytes)
@@ -2395,6 +2399,13 @@ class database_client_mongodb:
 
     def get_subscription_document(self):
         return self.client[config.CONFIG_MONGODB_TB_PAYMENTSUBSCRIPTION]
+
+    def get_subscription_allocation(self, deviceid):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                return subscription['current']['plan']
+        return None
 
     def get_subscription_usage(self, deviceid):
         devicesubscription = self.get_subscription_document()
