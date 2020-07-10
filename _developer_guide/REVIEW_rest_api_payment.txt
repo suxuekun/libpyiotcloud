@@ -327,3 +327,12 @@ July 8, 2020
 
 68. Update "Verify promocode" API to verify if promocode is valid (for promocodes not shown in the list provided)
 
+
+===============================================
+
+July 10, 2020
+
+69. Subscription free plan entry in the payment_subscription collection should be created during device creation, 
+-   not when user goes to the Subscription page. 
+-   because if user starts testing with MENOS alerts but NEVER go to the subscription page, then that will cause issue
+
