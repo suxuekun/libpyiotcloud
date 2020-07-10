@@ -693,6 +693,15 @@ class device:
             self.device_cleanup(entityname, device['deviceid'], device['devicename'])
 
 
+            # send email confirmation
+            try:
+                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + "send_device_unregistration"
+                payload  = json.dumps({"serialnumber": device["serialnumber"], "recipients": [username]})
+                self.messaging_client.publish(pubtopic, payload)
+            except:
+                pass
+
+
             msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}
             if new_token:
                 msg['new_token'] = new_token

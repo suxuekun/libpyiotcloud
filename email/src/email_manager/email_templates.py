@@ -76,8 +76,22 @@ class email_templates:
 		message += "- Device UUID: {}\r\n".format(deviceid)
 		message += "- Serial Number: {}\r\n\r\n".format(serialnumber)
 
-		message += "By default, your device is automatically subscribed to the Free plan subscription.\r\n"
+		message += "Your device has been automatically subscribed to the Free plan subscription.\r\n"
 		message += "To learn more of the subscription plan benefits, refer to the Subscription page in your Android or IOS app.\r\n"
+		message += "\r\n\r\n"
+
+		message += self.add_footer()
+		return message
+
+	def construct_device_unregistration_message(self, deviceid, serialnumber):
+
+		message = self.add_header(None)
+
+		message += "You have successfully unregistered your IoT Gateway device.\r\n"
+		message += "- Device UUID: {}\r\n".format(deviceid)
+		message += "- Serial Number: {}\r\n\r\n".format(serialnumber)
+
+		message += "Your device has been automatically unsubscribed from its existing subscription plan.\r\n"
 		message += "\r\n\r\n"
 
 		message += self.add_footer()

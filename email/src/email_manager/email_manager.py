@@ -66,22 +66,22 @@ CONFIG_AMQP_TLS_PORT            = 5671
 CONFIG_PREPEND_REPLY_TOPIC      = "server"
 CONFIG_SEPARATOR                = '/'
 
+CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
+
 CONFIG_MODEL_EMAIL                = int(email_config.CONFIG_USE_EMAIL_MODEL)
 CONFIG_EMAIL_SUBJECT_RECEIPT      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT
 CONFIG_EMAIL_SUBJECT_ORGANIZATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
 CONFIG_EMAIL_SUBJECT_USAGENOTICE  = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE
 CONFIG_EMAIL_SUBJECT_SENSORDATADL = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL
-CONFIG_EMAIL_SUBJECT_DEVICEREGISTRATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEREGISTRATION
-
-CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
+CONFIG_EMAIL_SUBJECT_DEVICEREGISTRATION   = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEREGISTRATION
+CONFIG_EMAIL_SUBJECT_DEVICEUNREGISTRATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEUNREGISTRATION
 
 API_SEND_RECEIPT                  = "send_invoice"
 API_SEND_INVITATION_ORGANIZATION  = "send_invitation_organization"
 API_SEND_USAGE_NOTICE             = "send_usage_notice"
 API_SEND_SENSORDATA_DOWNLOAD_LINK = "send_sensordata_download_link"
 API_SEND_DEVICE_REGISTRATION      = "send_device_registration"
-
-print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
+API_SEND_DEVICE_UNREGISTRATION    = "send_device_unregistration"
 
 
 
@@ -197,7 +197,7 @@ def send_usage_notice(database_client, deviceid, topic, payload):
 # Device registration
 ###################################################################################
 
-def send_device_registration_confirmation(database_client, deviceid, topic, payload):
+def send_device_registration(database_client, deviceid, topic, payload):
 
     payload = json.loads(payload)
     message = g_email_templates.construct_device_registration_message(deviceid, payload["serialnumber"])
@@ -215,11 +215,52 @@ def send_device_registration_confirmation(database_client, deviceid, topic, payl
             print(e)
 
 
+###################################################################################
+# Device unregistration
+###################################################################################
+
+def send_device_unregistration(database_client, deviceid, topic, payload):
+
+    payload = json.loads(payload)
+    message = g_email_templates.construct_device_unregistration_message(deviceid, payload["serialnumber"])
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_DEVICEUNREGISTRATION)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("DEVICEUNREGISTRATION {}: {} [{}]".format(deviceid, recipient, result))
+        except Exception as e:
+            print(e)
+
+
+
 
 
 ###################################################################################
 # MQTT subscription handling
 ###################################################################################
+
+email_types = [
+    API_SEND_RECEIPT, 
+    API_SEND_INVITATION_ORGANIZATION, 
+    API_SEND_USAGE_NOTICE, 
+    API_SEND_SENSORDATA_DOWNLOAD_LINK, 
+    API_SEND_DEVICE_REGISTRATION, 
+    API_SEND_DEVICE_UNREGISTRATION
+]
+
+email_handler = [
+    send_invoice,
+    send_invitation_organization,
+    send_usage_notice,
+    send_sensordata_download_link,
+    send_device_registration,
+    send_device_unregistration
+]
 
 def on_message(subtopic, subpayload):
 
@@ -233,68 +274,20 @@ def on_message(subtopic, subpayload):
     payload = subpayload.decode("utf-8")
     topic = arr_subtopic[2]
 
-    if topic == API_SEND_RECEIPT:
-        paymentid = arr_subtopic[1]
-        try:
-            thr = threading.Thread(target = send_invoice, args = (g_database_client, paymentid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SEND_RECEIPT")
-            print(e)
-            return
 
-    elif topic == API_SEND_INVITATION_ORGANIZATION:
-        orgname = arr_subtopic[1]
-        try:
-            thr = threading.Thread(target = send_invitation_organization, args = (g_database_client, orgname, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SEND_RECEIPT")
-            print(e)
-            return
+    if len(email_handler) != len(email_types):
+        print("email_handler != email_types")
+        return 
 
-    elif topic == API_SEND_USAGE_NOTICE:
-        deviceid = arr_subtopic[1]
-        try:
-            thr = threading.Thread(target = send_usage_notice, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SEND_USAGE_NOTICE")
-            print(e)
-            return
-
-    elif topic == API_SEND_SENSORDATA_DOWNLOAD_LINK:
-        deviceid = arr_subtopic[1]
-        try:
-            thr = threading.Thread(target = send_sensordata_download_link, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SEND_SENSORDATA_DOWNLOAD_LINK")
-            print(e)
-            return
-
-    elif topic == API_SEND_SENSORDATA_DOWNLOAD_LINK:
-        deviceid = arr_subtopic[1]
-        try:
-            thr = threading.Thread(target = send_sensordata_download_link, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SEND_SENSORDATA_DOWNLOAD_LINK")
-            print(e)
-            return
-
-    elif topic == API_SEND_DEVICE_REGISTRATION:
-        deviceid = arr_subtopic[1]
-        try:
-            thr = threading.Thread(target = send_device_registration_confirmation, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SEND_DEVICE_REGISTRATION")
-            print(e)
-            return
-
-
-    return
+    for x in range(len(email_types)):
+        if topic == email_types[x]:
+            try:
+                thr = threading.Thread(target = email_handler[x], args = (g_database_client, arr_subtopic[1], topic, payload ))
+                thr.start()
+            except Exception as e:
+                print("exception {}".format(email_types[x]))
+                print(e)
+                return
 
 
 def on_mqtt_message(client, userdata, msg):
@@ -399,20 +392,13 @@ if __name__ == '__main__':
                 break
         except:
             print("Could not connect to message broker! exception!")
+    time.sleep(1)
 
 
     # Subscribe to messages sent for this device
-    time.sleep(1)
-    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_RECEIPT)
-    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_INVITATION_ORGANIZATION)
-    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_USAGE_NOTICE)
-    subtopic4 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_SENSORDATA_DOWNLOAD_LINK)
-    subtopic5 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_DEVICE_REGISTRATION)
-    g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic4, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic5, subscribe=True, declare=True, consume_continuously=True)
+    for email_type in email_types:
+        subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, email_type)
+        g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
