@@ -253,3 +253,6 @@ July 10, 2020
 
     no aggregration = no calculation of average, low, high since its the every 60 x 5 == 300 seconds exactly matches with 5 minutes (300 seconds)
 
+41. add dropdown option to select 30 points or 60 points (maybe beside compare button) 
+
+
