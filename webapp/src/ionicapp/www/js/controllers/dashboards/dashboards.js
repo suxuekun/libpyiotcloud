@@ -91,7 +91,15 @@ angular.module('app.dashboardsCtrl', [])
       $scope.viewDetail = (dashboard) => {
         $scope.dashboardDetail = dashboard;
         $scope.selectedColor = $scope.dashboardDetail.color ? `${$scope.dashboardDetail.color}` : defaultColor;
-        getChartGateways();
+        switch($scope.activeTab) {
+          case 0:
+            getChartGateways();
+            return;
+          case 1:
+            getChartSensors();
+            return;
+        }
+
       }
 
       // Init private functions
@@ -171,7 +179,8 @@ angular.module('app.dashboardsCtrl', [])
         "legend": {
           "display": true,
           "position": 'right'
-        }
+        },
+        "animation": true,
       };
 
 
@@ -521,7 +530,7 @@ angular.module('app.dashboardsCtrl', [])
       }
 
       getChartSensors = () => {
-        let url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors?minutes=15&points=30`
+        let url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors?minutes=5&points=30`
         if (chartIdsQueryParams.length != 0)
           url += buildChartsIdQueryParams();
 
@@ -1124,7 +1133,7 @@ angular.module('app.dashboardsCtrl', [])
             });
 
 
-            const data =[];
+            const data = [];
             const datasetOverride = [];
 
             for (const chart of charts) {

@@ -95,7 +95,7 @@ def gets_compare(dashboardId: str):
 
     query = ChartComparisonQuery()
     query.points = int(queryParams.get("points", 30))
-    query.minutes = int(queryParams.get("minutes", 15))
+    query.minutes = int(queryParams.get("minutes", 5))
     query.timestamp = int(queryParams.get(
         "timestamp", int(datetime.now().timestamp())))
     query.isMobile = get_boolean_value(
