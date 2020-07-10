@@ -33,6 +33,7 @@ class SensorResponse(Model):
     port = IntType()
     name = StringType()
     sensorClass = StringType()
+    gatewayUUID = StringType()
 
 class ChartSensorReponse(Model):
     id = StringType()

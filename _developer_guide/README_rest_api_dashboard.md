@@ -433,7 +433,8 @@ DETAIL:
                         'source': string,
                         'port': int,
                         'name': string,
-                        'sensorClass': string
+                        'sensorClass': string,
+                        'gatewayUUID': string
                     },
                     'dataset': [{
                         {
@@ -495,7 +496,8 @@ DETAIL:
                         'source': string,
                         'port': int,
                         'name': string,
-                        'sensorClass': string
+                        'sensorClass': string,
+                        'gatewayUUID': string
                     },
                     'dataset': [{
                         {
@@ -571,7 +573,8 @@ DETAIL:
                         'source': string,
                         'port': int,
                         'name': string,
-                        'sensorClass': string
+                        'sensorClass': string,
+                        'gatewayUUID': string
                     },
                     'dataset': [{
                         {

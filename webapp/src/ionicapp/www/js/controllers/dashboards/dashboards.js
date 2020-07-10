@@ -167,7 +167,6 @@ angular.module('app.dashboardsCtrl', [])
         }
         clearInterval(timerChartSensor);
       }
-
       const startTimeChartSensor = () => {
         timerChartSensor = setInterval(() => {
           getChartSensors();
@@ -1052,6 +1051,27 @@ angular.module('app.dashboardsCtrl', [])
         $scope.currentStep = 0;
         $scope.comapareCharts = {};
       }
+      const selectedPoints = [
+        {
+          value: 30,
+          name: '30 points'
+        },
+        {
+          value: 60,
+          name: '60 points'
+        }
+      ]
+      let pointsQueryParam= 'points=30';
+      $scope.currentSelectedPoints = selectedPoints[0];
+      $scope.updatePointUrl = (point) => {
+        pointsQueryParam = `points=${point}`;
+        foundIndex = selectedPoints.findIndex(p => p.value == point);
+        $scope.currentSelectedPoints = selectedPoints[foundIndex];
+        currentSelectedPoints = point;
+
+        clearInterval(timerChartSensor);
+        getChartsSensorsCompare();
+      }
 
       const selectedTimes = [{
           name: "5 minutes",
@@ -1108,7 +1128,7 @@ angular.module('app.dashboardsCtrl', [])
         const chartsId = $scope.charts.filter(c => c.selected)
           .map(c => c.id);
         let paramsChartsId = getChartsIdQueryParams(chartsId);
-        let url = `${server}/dashboards/dashboard/${dashboardId}/sensors/comparison?points=30${paramsChartsId}${minuteQueryParams}`;
+        let url = `${server}/dashboards/dashboard/${dashboardId}/sensors/comparison?${pointsQueryParam}${paramsChartsId}${minuteQueryParams}`;
         $http({
             method: 'GET',
             url: url,
@@ -1149,6 +1169,7 @@ angular.module('app.dashboardsCtrl', [])
               data: data,
               labels: labels,
               datasetOverride: datasetOverride,
+              selectedPoints: selectedPoints,
               colors: [
                 '#FFC900',
                 '#F38124'
@@ -1173,10 +1194,10 @@ angular.module('app.dashboardsCtrl', [])
             }
 
             $scope.currentStep = 1;
-
           })
           .catch(function (error) {
-            console.log("Error ne : ", error)
+            clearInterval(timerChartSensor);
+            console.log("Error ne : ", error);
             $ionicPopup.alert({
               title: 'Compare',
               template: `${error.data.message}`,

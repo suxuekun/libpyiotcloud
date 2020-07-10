@@ -109,6 +109,7 @@ class ChartSensorService:
                 sensors = self.sensorRepository.gets_with_ids(ids=sensorIds)
                 if len(sensors) == 0:
                     return Response.fail("Unknown sensors")
+                    
                 lastMinutes = datetime.fromtimestamp(
                     query.timestamp) - timedelta(minutes=query.minutes)
                 results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(

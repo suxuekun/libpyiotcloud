@@ -6,6 +6,7 @@ from shared.utils.query_param_util import get_boolean_value
 from dashboards.dtos.chart_sensor_query import *
 from dashboards.ioc import init_chart_sensor_service
 from datetime import datetime
+from dashboards.utils.time_util import get_good_time_second
 
 # Import middleware and Auth
 from shared.middlewares.default_middleware import default_middleware
@@ -37,11 +38,15 @@ def gets(dashboardId: str):
 
     query = ChartSensorQuery()
     query.points = int(queryParams.get("points", 30))
-    query.minutes = int(queryParams.get("minutes", 15))
-    query.timestamp = int(queryParams.get(
-        "timestamp", int(datetime.now().timestamp())))
+    query.minutes = int(queryParams.get("minutes", 5))
+
+    timestamp = int(queryParams.get(
+        "timestamp", int(datetime.now().timestamp()))) 
+    query.timestamp = get_good_time_second(datetime.fromtimestamp(timestamp))
+
     query.isMobile = get_boolean_value(
         queryParams.get("mobile", "false").lower())
+
     query.selectedMinutes = []
     query.chartsId = []
     selectedMinutes = queryParams.get("selected_minutues", "")
@@ -68,8 +73,11 @@ def get(dashboardId: str, chartId: str):
     query = BaseChartSensorQuery()
     query.points = int(queryParams.get("points", 30))
     query.minutes = int(queryParams.get("minutes", 5))
-    query.timestamp = int(queryParams.get(
-        "timestamp", int(datetime.now().timestamp())))
+
+    timestamp = int(queryParams.get(
+        "timestamp", int(datetime.now().timestamp()))) 
+    query.timestamp = get_good_time_second(datetime.fromtimestamp(timestamp))
+
     query.isMobile = get_boolean_value(
         queryParams.get("mobile", "false").lower())
 
@@ -96,8 +104,11 @@ def gets_compare(dashboardId: str):
     query = ChartComparisonQuery()
     query.points = int(queryParams.get("points", 30))
     query.minutes = int(queryParams.get("minutes", 5))
-    query.timestamp = int(queryParams.get(
-        "timestamp", int(datetime.now().timestamp())))
+
+    timestamp = int(queryParams.get(
+        "timestamp", int(datetime.now().timestamp()))) 
+    query.timestamp = get_good_time_second(datetime.fromtimestamp(timestamp))
+
     query.isMobile = get_boolean_value(
         queryParams.get("mobile", "false").lower())
     query.chartsId = []

@@ -27,12 +27,23 @@
         </div>
 
         <div ng-show="currentStep == 1">
-            <select style="float: left; margin: 30px;"
-                    ng-model="comapareCharts.currentSelectTime"
-                    ng-change="updateMinuteUrl(comapareCharts.currentSelectTime.value)"
-                    ng-options="filter.name for filter in comapareCharts.selectedTimes">
+            <div class="row">
+              <select style="float: left; margin: 30px;"
+                      class="col"
+                      ng-model="comapareCharts.currentSelectTime"
+                      ng-change="updateMinuteUrl(comapareCharts.currentSelectTime.value)"
+                      ng-options="filter.name for filter in comapareCharts.selectedTimes">
+                        <option value="{{filter.value}}">{{filter.name}}</option>
+              </select>
+              <select style="float: left; margin: 30px;"
+                      class="col"
+                      ng-model="currentSelectedPoints"
+                      ng-change="updatePointUrl(currentSelectedPoints.value)"
+                      ng-options="filter.name for filter in comapareCharts.selectedPoints">
                       <option value="{{filter.value}}">{{filter.name}}</option>
-            </select>
+              </select>
+            </div>
+
             <canvas title="Compare"
                     class="chart chart-line"
                     chart-colors="comapareCharts.colors"

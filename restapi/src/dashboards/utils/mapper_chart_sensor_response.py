@@ -45,9 +45,14 @@ def map_to_sensor_dataset_mobile(dataset, query: ChartSensorQuery, customMinutes
             dataset, int(timeStart.timestamp()), int(timeEnd.timestamp()))
 
         if len(pointsValue) > 0:
-            item.y = round(statistics.mean(pointsValue), 1)
-            item.low = min(pointsValue)
-            item.high = max(pointsValue)
+            if minutes == 5:
+                data[index] = get_value_when_minutues_is_five(pointsValue)
+                low[index] = 0
+                high[index] = 0
+            else:
+                data[index] = round(statistics.mean(pointsValue), 2)
+                low[index] = min(pointsValue)
+                high[index] = max(pointsValue)
         else:
             item.y = 0
             item.low = 0
@@ -59,7 +64,6 @@ def map_to_sensor_dataset_mobile(dataset, query: ChartSensorQuery, customMinutes
         datasetResponse.append(item)
 
     return datasetResponse
-
 
 def map_to_sensor_dataset(dataset, query: ChartSensorQuery, customMinutes: int = 0):
 
@@ -79,14 +83,21 @@ def map_to_sensor_dataset(dataset, query: ChartSensorQuery, customMinutes: int =
     low = setup_empty_int_arrays(query.points)
     high = setup_empty_int_arrays(query.points)
     timeArrays = []
+
     for index in range(query.points):
         timeArrays.append(int(timeStart.timestamp()))
         pointsValue = find_value_with_timestamp_in_range(
             dataset, int(timeStart.timestamp()), int(timeEnd.timestamp()))
+
         if len(pointsValue):
-            data[index] = round(statistics.mean(pointsValue), 1)
-            low[index] = min(pointsValue)
-            high[index] = max(pointsValue)
+            if minutes == 5:
+                data[index] = get_value_when_minutues_is_five(pointsValue)
+                low[index] = 0
+                high[index] = 0
+            else:
+                data[index] = round(statistics.mean(pointsValue), 2)
+                low[index] = min(pointsValue)
+                high[index] = max(pointsValue)
 
         # Renew plan for timeStart and timeEnd
         timeStart = timeEnd
@@ -99,11 +110,10 @@ def map_to_sensor_dataset(dataset, query: ChartSensorQuery, customMinutes: int =
     datasetResponse.labels = timeArrays
     return datasetResponse
 
-
 def find_value_with_timestamp_in_range(readings, timeStart: int, timeEnd: int):
     values = []
     for reading in readings:
-        if reading["timestamp"] >= timeStart and reading["timestamp"] < timeEnd:
+        if reading["timestamp"] >= timeStart and reading["timestamp"] <= timeEnd:
             values.append(reading["value"])
         else:
             if reading["timestamp"] > timeEnd:
@@ -111,13 +121,26 @@ def find_value_with_timestamp_in_range(readings, timeStart: int, timeEnd: int):
     return values
 
 
+def get_value_when_minutues_is_five(values: []):
+
+    if len(values) == 0:
+        return 0
+
+    # It'mean time range is 10 seconds has 2 value, we will get lastest value
+    if len(values) == 2:
+        return values[1]
+
+    return values[0]
+
+
 def map_to_charts_sensor_response(charts, dictSensors: {}, query: ChartSensorQuery):
     response = list(map(lambda chart: map_to_chart_sensor_response(
         chart, dictSensors.get(chart.get("deviceId")), query), charts))
     return response
 
+
 def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customMinutes: int = 0) -> SensorResponse:
-        
+
     device = SensorResponse()
     device.id = sensor["sensorId"]
     device.source = sensor["source"]
@@ -126,6 +149,7 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
     device.port = sensor["port"]
     device.name = sensor["name"]
     device.sensorClass = sensor["class"]
+    device.gatewayUUID = sensor["gatewayUUID"]
 
     sensorReadings = sensor["sensor_readings"]
     readingsResponse = ReadingSensorResponse()
@@ -137,7 +161,7 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
         readingsResponse.value = 0
         readingsResponse.highest = 0
         readingsResponse.lowest = 0
-    
+
     # Minutes
     minutes = query.minutes
     if customMinutes != 0:
