@@ -430,7 +430,8 @@ DETAILED:
 		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
 		   //
-		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
+		   // There is no lockout due to invalid OTP. Lockout is only for invalid password.
+		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
 
 		D. FORGOT PASSWORD
 		-  Request:
@@ -476,8 +477,9 @@ DETAILED:
 		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
 		   //
-		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
-		   
+		   // There is no lockout due to invalid OTP. Lockout is only for invalid password
+		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
+
 		F. LOGIN
 		-  Request:
 		   POST /user/login
@@ -624,7 +626,8 @@ DETAILED:
 		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
 		   //
-		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
+		   // There is no lockout due to invalid OTP. Lockout is only for invalid password.
+		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
 
 		N. CHANGE PASSWORD
 		-  Request:
@@ -785,7 +788,8 @@ DETAILED:
 		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
 		   //
-		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
+		   // There is no lockout due to invalid OTP. Lockout is only for invalid password
+		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
 
 		S. GET ORGANIZATIONS
 		-  Request:
