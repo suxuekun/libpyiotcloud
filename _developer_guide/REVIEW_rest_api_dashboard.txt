@@ -234,14 +234,22 @@ July 9, 2020
 
 July 10, 2020
 
-36. Gateway label in Sensor Dashboard 
+37. Gateway label in Sensor Dashboard 
     - this is not the Gateway UUID, this is the LDSU UUID. Wrong label
 
-37. add gateway name and gateway uuid in sensor charts dashboard
+38. add gateway name and gateway uuid in sensor charts dashboard
     - so its easy to know which sensor to enable
 
-38. default should also be 5 minutes so that you dont hide the y-min issue. 
+39. default should also be 5 minutes so that you dont hide the y-min issue. 
     you are hiding the y-min issue thats why you change default to 15 minutes
+
+40. major issue, with 5 minutes (no aggregation), the data being graphed is total wrong. 
+
+    it does not match the data in the device simulator
+    when there's no aggregration, the data in the graph should exactly match the one sent by the device
+
+    with my old dashboard, its exactly the same (latest datapoint in graph matches latest data sent by device simulator. 
+    (so there's no issue with the data producer/data storage. the issue is with the data consumer - so its your dashboard)
 
 
 
