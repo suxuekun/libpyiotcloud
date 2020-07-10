@@ -447,6 +447,7 @@ DETAILED:
 		   POST /user/confirm_forgot_password
 		   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password), 'Content-Type': 'application/json'}
 		   // password must conform to the password requirements. refer to SIGNUP api
+		   // password can be same as OLD password for the Forgot Password scenario because backend cannot retrieve existing password from Cognito
 		   data: { 'confirmationcode': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -479,6 +480,7 @@ DETAILED:
 		   //
 		   // There is no lockout due to invalid OTP. Lockout is only for invalid password
 		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
+		   //
 
 		F. LOGIN
 		-  Request:
@@ -635,6 +637,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'token': jwtEncode(password, newpassword)}
 		   // newpassword must conform to the password requirements. refer to SIGNUP api
+		   // password should be different from newpassword as per QA bug report
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}

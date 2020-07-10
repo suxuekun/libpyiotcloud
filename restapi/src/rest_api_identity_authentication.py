@@ -1171,6 +1171,12 @@ class identity_authentication:
             print('\r\nERROR Change password: Password length should at least be 8 characters [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
+        # check password is same as newpassword
+        if password == newpassword:
+            response = json.dumps({'status': 'NG', 'message': 'New password should be different from old password'})
+            print('\r\nERROR Change password: New password should be different from old password [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # change password
         result, errorcode = self.database_client.change_password(token["access"], password, newpassword)
         if not result:
