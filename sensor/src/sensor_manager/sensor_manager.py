@@ -102,6 +102,50 @@ def print_json(json_object):
     json_formatted_str = json.dumps(json_object, indent=2)
     print(json_formatted_str)
 
+def send_notification_status(messaging_client, deviceid, status):
+    topic = "{}{}status_notification".format(deviceid, CONFIG_SEPARATOR)
+    payload = { "status": status }
+    messaging_client.publish(topic, json.dumps(payload), False)
+
+def send_usage_notice(messaging_client, deviceid, menos_type, subscription, recipients):
+    topic = "{}{}{}{}send_usage_notice".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR)
+    payload = { 
+        "menos_type": menos_type, 
+        "subscription": subscription, 
+        "recipients": recipients 
+    }
+    messaging_client.publish(topic, json.dumps(payload), False)
+
+def check_usage(database_client, deviceid, username):
+    subscription = g_database_client.get_subscription(deviceid)
+    if subscription is None:
+        return False
+
+    usage = float(subscription['current']['storage'])
+    if usage == 0:
+        usage = database_client.get_sensor_reading_dataset_usage(deviceid)
+    allowance = float(subscription['current']['plan']['storage'])
+
+    if usage >= allowance:
+        if usage > allowance:
+            g_database_client.set_subscription_usage(deviceid, 'storage', allowance)
+
+        if subscription['current'].get('notice'):
+            if subscription['current']['notice']['storage']:
+                return False
+
+        # send notice regarding email fully consumed
+        recipients = []
+        recipients.append(username)
+        send_usage_notice(g_messaging_client, deviceid, 'storage', subscription, recipients)
+
+        g_database_client.set_subscription_notice(deviceid, 'storage')
+        return False
+    return True
+
+def update_usage(database_client, deviceid):
+    new_usage = database_client.get_sensor_reading_dataset_usage(deviceid)
+    g_database_client.set_subscription_usage(deviceid, 'storage', new_usage)
 
 def store_sensor_reading(database_client, username, devicename, deviceid, source, number, value, timestamp):
 
@@ -396,6 +440,14 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     if payload.get("UID") is None or payload.get("SNS") is None or payload.get("TS") is None:
         return
 
+    # check sensor data usage balance
+    allow = check_usage(database_client, deviceid, username)
+    if not allow:
+        #print("{} storing not permitted, no more available storage allocation.".format(deviceid))
+        send_notification_status(g_messaging_client, deviceid, "NG. no more available storage allocation.")
+        return
+
+
     single_db_insert = True
     thr_list = []
 
@@ -425,6 +477,9 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
         thr.join()
 
 
+    # update sensor data usage balance
+    update_usage(database_client, deviceid)
+
     # print elapsed time
     #print(time.time() - start_time) 
     #print("")
@@ -442,6 +497,13 @@ def batch_store_sensor_reading(database_client, deviceid, topic, payload):
 
     username, devicename = database_client.get_username_devicename(deviceid)
     if username is None or devicename is None:
+        return
+
+    # check sensor data usage balance
+    allow = check_usage(database_client, deviceid, username)
+    if not allow:
+        #print("{} storing not permitted, no more available storage allocation.".format(deviceid))
+        send_notification_status(g_messaging_client, deviceid, "NG. no more available storage allocation.")
         return
 
     #
@@ -467,6 +529,9 @@ def batch_store_sensor_reading(database_client, deviceid, topic, payload):
     #        print("batch_store_sensor_reading: cached TS length is not equal to SNS length")
     #        continue
     #    database_client.add_batch_ldsu_sensor_reading_dataset(username, deviceid, ldsu["UID"], ldsu["SNS"], ldsu["TS"])
+
+    # update sensor data usage balance
+    update_usage(database_client, deviceid)
 
     # print elapsed time
     #print(time.time() - start_time) 

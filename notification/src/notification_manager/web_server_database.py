@@ -256,6 +256,20 @@ class database_client:
         return self._devices.get_devicegroup(username, groupname)
 
 
+    ##########################################################
+    # subscription
+    ##########################################################
+
+    def get_subscription(self, deviceid):
+        return self._devices.get_subscription(deviceid)
+
+    def set_subscription_usage(self, deviceid, menos_type, new_usage):
+        self._devices.set_subscription_usage(deviceid, menos_type, new_usage)
+
+    def set_subscription_notice(self, deviceid, menos_type):
+        self._devices.set_subscription_notice(deviceid, menos_type)
+
+
 class database_utils:
 
     def __init__(self):
@@ -866,6 +880,45 @@ class database_client_mongodb:
                 devicegroup.pop('username')
                 return devicegroup
         return None
+
+
+    ##########################################################
+    # subscription
+    ##########################################################
+
+    def get_subscription_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_PAYMENTSUBSCRIPTION]
+
+    def get_subscription(self, deviceid):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                subscription.pop('_id')
+                return subscription
+        return None
+
+    def set_subscription_usage(self, deviceid, menos_type, new_usage):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                subscription["current"][menos_type] = str(new_usage)
+                devicesubscription.replace_one({'deviceid': deviceid}, subscription)
+                break
+
+    def set_subscription_notice(self, deviceid, menos_type):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                if subscription["current"].get("notice") is None:
+                    subscription["current"]["notice"] = {
+                        "sms": False,
+                        "email": False,
+                        "notification": False,
+                        "storage": False,
+                    }
+                subscription["current"]["notice"][menos_type] = True
+                devicesubscription.replace_one({'deviceid': deviceid}, subscription)
+                break
 
 
 class database_client_postgresql:

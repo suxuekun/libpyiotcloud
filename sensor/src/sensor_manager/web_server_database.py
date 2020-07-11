@@ -202,6 +202,21 @@ class database_client:
 
     # sensor readings datasets
 
+    def bytes_to_gigabytes(self, bytes):
+        return float("{:.9f}".format(bytes/config.CONFIG_GIGABYTE_CONVERSION))
+
+    def bytes_to_megabytes(self, bytes):
+        return float("{:.6f}".format(bytes/config.CONFIG_MEGABYTE_CONVERSION))
+
+    def bytes_to_kilobytes(self, bytes):
+        return float("{:.3f}".format(bytes/config.CONFIG_KILOBYTE_CONVERSION))
+
+    def get_sensor_reading_dataset_usage(self, deviceid):
+        bytes = self._devices.get_sensor_reading_dataset_usage(deviceid)
+        if bytes:
+            return float("{:.9f}".format(bytes/config.CONFIG_GIGABYTE_CONVERSION))
+        return 0
+
     def add_ldsus_batch_ldsu_sensor_reading_dataset(self, username, deviceid, cached):
         self._devices.add_ldsus_batch_ldsu_sensor_reading_dataset(username, deviceid, cached)
 
@@ -272,6 +287,20 @@ class database_client:
 
     def get_devicegroup(self, username, groupname):
         return self._devices.get_devicegroup(username, groupname)
+
+
+    ##########################################################
+    # subscription
+    ##########################################################
+
+    def get_subscription(self, deviceid):
+        return self._devices.get_subscription(deviceid)
+
+    def set_subscription_usage(self, deviceid, menos_type, new_usage):
+        self._devices.set_subscription_usage(deviceid, menos_type, new_usage)
+
+    def set_subscription_notice(self, deviceid, menos_type):
+        self._devices.set_subscription_notice(deviceid, menos_type)
 
 
 class database_utils:
@@ -723,6 +752,16 @@ class database_client_mongodb:
         # one collection for all devices
         #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
+    def get_sensor_reading_dataset_usage(self, deviceid):
+        collectioname = "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)
+        try:
+            # use the uncompressed size in memory of all records in the collection - to be billed to customer
+            # not include the total size of indexes associate with the collection - not to be billed to customer
+            size = self.client_sensor.command("collstats", collectioname)["size"]
+        except:
+            size = 0
+        return size
+
     def add_ldsus_batch_ldsu_sensor_reading_dataset(self, username, deviceid, cached):
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
 
@@ -971,6 +1010,48 @@ class database_client_mongodb:
                 devicegroup.pop('username')
                 return devicegroup
         return None
+
+
+    ##########################################################
+    # subscription
+    ##########################################################
+
+    def get_subscription_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_PAYMENTSUBSCRIPTION]
+
+    def get_subscription(self, deviceid):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                subscription.pop('_id')
+                return subscription
+        return None
+
+    def set_subscription_usage(self, deviceid, menos_type, new_usage):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                if new_usage == 0:
+                    subscription["current"][menos_type] = str(new_usage)
+                else:
+                    subscription["current"][menos_type] = "{:.9f}".format(new_usage)
+                devicesubscription.replace_one({'deviceid': deviceid}, subscription)
+                break
+
+    def set_subscription_notice(self, deviceid, menos_type):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                if subscription["current"].get("notice") is None:
+                    subscription["current"]["notice"] = {
+                        "sms": False,
+                        "email": False,
+                        "notification": False,
+                        "storage": False,
+                    }
+                subscription["current"]["notice"][menos_type] = True
+                devicesubscription.replace_one({'deviceid': deviceid}, subscription)
+                break
 
 
 class database_client_postgresql:

@@ -30,6 +30,7 @@ from message_broker_api import message_broker_api
 from dashboards.ioc import init_chart_gateway_service, init_chart_sensor_service
 from payment.services import subscription_service
 import re
+from device_serial_number import device_serial_number
 
 
 
@@ -48,9 +49,9 @@ class device:
 
 
     def _check_deviceid(self, deviceid):
-        # UUID: PH80XXRRMMDDYYZZ (16 characters - digits and uppercase letters)
+        # UUID: PH80XXRRMMDDYYZZZZZ (14 characters plus 2bytes (5 characters) - digits and uppercase letters)
 
-        #if re.match("[A-Z]{2}[0-9A-Z]{4}[0-9A-Z]{2}[0-9]{6}[0-9A-F]{2}$", deviceid) is None:
+        #if re.match("[A-Z]{2}[0-9A-Z]{4}[0-9A-Z]{2}[0-9]{6}[0-9]{5}$", deviceid) is None:
         if re.match("[0-9A-Z]{16}$", deviceid) is None:
             return False
 
@@ -60,7 +61,7 @@ class device:
         month       = deviceid[8:10]
         day         = deviceid[10:12]
         year        = deviceid[12:14]
-        running_num = deviceid[14:16]
+        running_num = deviceid[14:]
 
         #print(prodfamily)
         #print(prodid)
@@ -106,15 +107,18 @@ class device:
         if re.match("[0-9A-Z]{5}$", serialnumber) is None:
             return False
 
-        # serialnumber should be from 00000 to 00255
-        #serial = int(serialnumber)
-        #if serial > 255:
-        #    return False
+        if False:
+            if not config.debugging:
+                siphash, half_siphash = device_serial_number().compute_by_uuid(deviceid)
+                print("siphash=0x{:X}".format( siphash ))
+                print("half siphash=0x{:X}".format( half_siphash ))
+                siphash = "{:X}".format(siphash) 
+                half_siphash = "{:X}".format(half_siphash) 
+                #print(siphash)
+                #print(half_siphash)
 
-        # serialnumber should match running number of 
-        #sequencenumber = deviceid[14:]
-        #if serial != int(sequencenumber, 16):
-        #    return False
+                if serialnumber != half_siphash:
+                    print("serialnumber does not match {} {}".format(serialnumber, half_siphash))
 
         return True
 
@@ -645,12 +649,24 @@ class device:
 
             # add default uart notification recipients
             # this is necessary so that an entry exist for consumption of notification manager
-            source = "uart"
-            notification = self.database_client.get_device_notification(entityname, devicename, source)
-            if notification is None:
-                notification = rest_api_utils.utils().build_default_notifications(source, token, self.database_client)
-                if notification is not None:
-                    self.database_client.update_device_notification(entityname, devicename, source, notification)
+            try:
+                source = "uart"
+                notification = self.database_client.get_device_notification(entityname, devicename, source)
+                if notification is None:
+                    notification = rest_api_utils.utils().build_default_notifications(source, token, self.database_client)
+                    if notification is not None:
+                        self.database_client.update_device_notification(entityname, devicename, source, notification)
+            except:
+                pass
+
+            # send email confirmation
+            try:
+                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + data["deviceid"] + CONFIG_SEPARATOR + "send_device_registration"
+                payload  = json.dumps({"serialnumber": data["serialnumber"], "recipients": [username]})
+                self.messaging_client.publish(pubtopic, payload)
+            except:
+                pass
+
 
             msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
             if new_token:
@@ -677,6 +693,15 @@ class device:
 
             # cleanup device
             self.device_cleanup(entityname, device['deviceid'], device['devicename'])
+
+
+            # send email confirmation
+            try:
+                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + "send_device_unregistration"
+                payload  = json.dumps({"serialnumber": device["serialnumber"], "recipients": [username]})
+                self.messaging_client.publish(pubtopic, payload)
+            except:
+                pass
 
 
             msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}

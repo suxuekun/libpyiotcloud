@@ -9,7 +9,7 @@ angular.module('server', [])
     //////////////////////////////////////////////////////////////////////////////////////////////
     var rest_api = 'http://' + window.__env.apiUrl + ":8000" ;
     console.log(rest_api);
-
+    
     var result = { 'rest_api': rest_api };
     return result;
 }]);

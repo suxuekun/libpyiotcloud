@@ -73,6 +73,7 @@ services:
       - CONFIG_USE_MONGODB_PASS
       - CONFIG_USE_MONGODB_ATLAS
       - CONFIG_USE_DEBUG_MODE
+      - CONFIG_USE_HASHKEY_SERIAL_DEVICE
   webapp:
     build: 
       context: ./webapp
@@ -141,8 +142,8 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
       - AWS_S3_FILE_SMS_COUNTRY_POINTS
-  invoice:
-    build: ./invoice
+  email:
+    build: ./email
     restart: always
     networks:
       - mydockernet

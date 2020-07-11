@@ -105,6 +105,15 @@ print("MODEL_PUSH_NOTIFICATION {}".format(CONFIG_MODEL_PUSH_NOTIFICATION))
 ###################################################################################
 
 
+def send_usage_notice(messaging_client, deviceid, menos_type, subscription, recipients):
+    topic = "{}{}{}{}send_usage_notice".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR)
+    payload = { 
+        "menos_type": menos_type, 
+        "subscription": subscription, 
+        "recipients": recipients 
+    }
+    messaging_client.publish(topic, json.dumps(payload), False)
+
 def send_notification_status(messaging_client, deviceid, status):
     topic = "{}{}status_notification".format(deviceid, CONFIG_SEPARATOR)
     payload = { "status": status }
@@ -210,15 +219,106 @@ def get_sms_details(phonenumber):
     return country.name, isocode, networkcarrier
 
 
-def check_balance_sms(points):
-    return True
+def check_cost(type, recipient=None, country=None, isocode=None, networkcarrier=None):
+    if type == notification_types.SMS:
+        for item in g_sms_country_points:
+            if item["code"] == isocode:
+                return int(item["points"])
+    elif type == notification_types.EMAIL or type == notification_types.PUSH_NOTIFICATION:
+        return 1
+    return 0
 
-def check_cost_sms(recipient, country, isocode, networkcarrier):
-    for item in g_sms_country_points:
-        if item["code"] == isocode:
-            return int(item["points"])
-    print("Error: points not found for {} {} {} {}".format(recipient, country, isocode, networkcarrier))
-    return 1
+def check_balance(username, deviceid, type, cost):
+    subscription = g_database_client.get_subscription(deviceid)
+    if subscription is None:
+        return False, 0
+
+    if type == notification_types.SMS:
+        usage = int(subscription['current']['sms'])
+        allowance = int(subscription['current']['plan']['sms'])
+
+        print("{} {}/{} [{}]".format('sms', usage, allowance, cost))
+
+        new_usage = usage + cost
+        if usage >= allowance:
+            return False, 0
+        elif new_usage >= allowance:
+            if subscription['current'].get('notice'):
+                if subscription['current']['notice']['sms']:
+                    return False, 0
+            subscription['current']['sms'] = str(new_usage)
+
+            # send notice regarding sms fully consumed
+            recipients = []
+            recipients.append(username)
+            send_usage_notice(g_messaging_client, deviceid, 'sms', subscription, recipients)
+
+            g_database_client.set_subscription_notice(deviceid, 'sms')
+
+        return True, new_usage
+
+    elif type == notification_types.EMAIL:
+        usage = int(subscription['current']['email'])
+        allowance = int(subscription['current']['plan']['email'])
+
+        print("{} {}/{} [{}]".format('email', usage, allowance, cost))
+
+        new_usage = usage + cost
+        if new_usage > allowance:
+            return False, 0
+        elif new_usage == allowance:
+            if subscription['current'].get('notice'):
+                if subscription['current']['notice']['email']:
+                    return False, 0
+            subscription['current']['email'] = str(new_usage)
+
+            # send notice regarding email fully consumed
+            recipients = []
+            recipients.append(username)
+            send_usage_notice(g_messaging_client, deviceid, 'email', subscription, recipients)
+
+            g_database_client.set_subscription_notice(deviceid, 'email')
+
+        return True, new_usage
+
+    elif type == notification_types.PUSH_NOTIFICATION:
+        usage = int(subscription['current']['notification'])
+        allowance = int(subscription['current']['plan']['notification'])
+
+        print("{} {}/{} [{}]".format('notification', usage, allowance, cost))
+
+        new_usage = usage + cost
+        if new_usage > allowance:
+            return False, 0
+        elif new_usage == allowance:
+            if subscription['current'].get('notice'):
+                if subscription['current']['notice']['notification']:
+                    return False, 0
+            subscription['current']['notification'] = str(new_usage)
+
+            # send notice regarding push notification fully consumed
+            recipients = []
+            recipients.append(username)
+            send_usage_notice(g_messaging_client, deviceid, 'notification', subscription, recipients)
+
+            g_database_client.set_subscription_notice(deviceid, 'notification')
+
+        return True, new_usage
+
+    else:
+        return True, 0
+
+
+    return False, 0
+
+def update_balance(deviceid, type, new_usage):
+
+    if type == notification_types.SMS:
+        g_database_client.set_subscription_usage(deviceid, 'sms', new_usage)
+    elif type == notification_types.EMAIL:
+        g_database_client.set_subscription_usage(deviceid, 'email', new_usage)
+    elif type == notification_types.PUSH_NOTIFICATION:
+        g_database_client.set_subscription_usage(deviceid, 'notification', new_usage)
 
 
 def notification_thread(username, messaging_client, deviceid, recipient, message, subject, type, options, source, sensor, payload, notification):
@@ -302,6 +402,14 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
         services = recipient["service"]
 
         for x in range(len(devicetokens)):
+
+            # check push notification balance
+            allow, new_usage = check_balance(username, deviceid, type, check_cost(type))
+            if not allow:
+                print("sending push notification not permitted, no more available balance.")
+                send_notification_status(messaging_client, deviceid, "NG. no more available push notification balance.")
+                return
+
             rec = {"devicetoken": devicetokens[x], "service": services[x]}
             try:
                 response = g_notification_client.send_message(rec, message_updated, subject=subject, type=type)
@@ -319,6 +427,10 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
             g_database_client.add_menos_transaction(username, deviceid, recipient_label, message, type_str, source, number, timestamp, condition, result)
             print("{} {} {}".format(deviceid, recipient_label, result))
 
+            # update push notification balance
+            if result:
+                update_balance(deviceid, type, new_usage)
+
     elif type == notification_types.EMAIL:
         #
         # Email
@@ -328,38 +440,12 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
             recipients[x] = recipients[x].strip()
 
         for recipient in recipients:
-            try:
-                response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
-            except:
-                response = ""
 
-            if response != "":
-                result = response["ResponseMetadata"]["HTTPStatusCode"]==200
-                send_notification_status(messaging_client, deviceid, "NG" if result == False else "OK. message sent to {}.".format(recipient))
-            else:
-                result = False
-                send_notification_status(messaging_client, deviceid, "NG")
-
-            g_database_client.add_menos_transaction(username, deviceid, recipient, message, type_str, source.upper(), number, timestamp, condition, result)
-            print("{} {} {}".format(deviceid, recipient, result))
-
-    elif type == notification_types.SMS:
-        #
-        # Mobile (sms)
-        #
-        recipients = recipient.split(",")
-        for x in range(len(recipients)):
-            recipients[x] = recipients[x].strip()
-
-        for recipient in recipients:
-            country, isocode, networkcarrier = get_sms_details(recipient)
-
-            # get the cost to send the message
-            points = check_cost_sms(recipient, country, isocode, networkcarrier)
-            # check the balance if sending the message will be allowed
-            allow = check_balance_sms(points)
+            # check email balance
+            allow, new_usage = check_balance(username, deviceid, type, check_cost(type))
             if not allow:
-                print("sending SMS not permitted, no more available balance.")
+                print("sending email not permitted, no more available balance.")
+                send_notification_status(messaging_client, deviceid, "NG. no more available email balance.")
                 return
 
             try:
@@ -375,8 +461,49 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
                 send_notification_status(messaging_client, deviceid, "NG")
 
             g_database_client.add_menos_transaction(username, deviceid, recipient, message, type_str, source.upper(), number, timestamp, condition, result)
-            print("{} {} {} [{}-{}-{}] {}".format(deviceid, recipient, result, country, isocode, networkcarrier, points))
+            print("{} {} {}".format(deviceid, recipient, result))
 
+            # update push notification balance
+            if result:
+                update_balance(deviceid, type, new_usage)
+
+    elif type == notification_types.SMS:
+        #
+        # Mobile (sms)
+        #
+        recipients = recipient.split(",")
+        for x in range(len(recipients)):
+            recipients[x] = recipients[x].strip()
+
+        for recipient in recipients:
+            country, isocode, networkcarrier = get_sms_details(recipient)
+
+            # check sms balance
+            cost = check_cost(type, recipient, country, isocode, networkcarrier)
+            allow, new_usage = check_balance(username, deviceid, type, cost)
+            if not allow:
+                print("sending sms not permitted, no more available balance.")
+                send_notification_status(messaging_client, deviceid, "NG. no more available sms balance.")
+                return
+
+            try:
+                response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
+            except:
+                response = ""
+
+            if response != "":
+                result = response["ResponseMetadata"]["HTTPStatusCode"]==200
+                send_notification_status(messaging_client, deviceid, "NG" if result == False else "OK. message sent to {}.".format(recipient))
+            else:
+                result = False
+                send_notification_status(messaging_client, deviceid, "NG")
+
+            g_database_client.add_menos_transaction(username, deviceid, recipient, message, type_str, source.upper(), number, timestamp, condition, result)
+            print("{} {} {} [{}-{}-{}] {}".format(deviceid, recipient, result, country, isocode, networkcarrier, cost))
+
+            # update push notification balance
+            if result:
+                update_balance(deviceid, type, new_usage)
 
     #print(g_database_client.get_menos_transaction(deviceid))
     #g_database_client.delete_menos_transaction(deviceid)
