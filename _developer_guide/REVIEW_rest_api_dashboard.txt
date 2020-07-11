@@ -275,20 +275,39 @@ July 11, 2020
     sensor["format"] - int or float 
     sensor["accuracy"] - number of decimal places
 
+    the frontend needs this in order to display it
+
 44. data correctness for 5 minutes timerange is OK (but missing the last point - 4 minutes 55 seconds)
 
 45. data correctness for other time ranges have discrepancies with the aggregated data 
     the aggregated low/high not displayed so cannot easily verify as well
 
-46. compare works 1st time only
+46. compare works 1st time only [CRITICAL]
     for the 2nd and nth trials, it always fails (no popup error)
     in the rest api logs, some error 
         invalid litreral for int() with base 10: undefined
 
-47. token expiration not handled in dashboard pages.
+47. no data should not be 0 value. [CRITICAL]
+    the API should return null/None value for no data (and not 0) because 0 is a valid value.
+
+48. when clicking compare,
+    the sensor list does not show the devicename and device id
+
+49. when adding sensor chart, and selected bar chart,
+    only line chart appears
+
+50. when changing time range for a sensor, 
+    the time range often reverts to the previous time range.
+    you have to repeat the process to make sure the time range is in fact changed
+
+51. the line charts have similar color. it would be easier to identify the sensor if the color is different.
+
+52. the color used should be the same color used when comparing the sensors
+
+53. token expiration not handled in dashboard pages.
     cognito token expires in 1 hour. after 1 hour, the dashboard page no longer works.
 
-48. real time data for Dashboard Gateways still using dummy data. should use the actual data from the database.
+54. real time data for Dashboard Gateways still using dummy data. should use the actual data from the database.
 
     get_num_device_heartbeats_by_timestamp_by_day
     get_num_device_heartbeats_by_timestamp_by_week
