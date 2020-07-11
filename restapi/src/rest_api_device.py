@@ -665,6 +665,18 @@ class device:
             except:
                 pass
 
+            # create free subscription for device
+            try:
+                print('try to create free subscription for device',data["deviceid"],devicename)
+                res = subscription_service.create_free_sub_for_new_device_by_device_id(data["deviceid"])
+                if not res:
+                    print('subscription created failed')
+                    #TODO
+                    # any message need to do here ?
+
+            except Exception as e:
+                print(e)
+
 
             msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
             if new_token:
