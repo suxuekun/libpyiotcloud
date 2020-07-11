@@ -2456,6 +2456,9 @@
           //   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
           //   {'status': 'NG', 'message': string}
           //
+
+          console.log("dasdasd sasdasdasdadasdasdd");
+          console.log("Secret key: ", window.__env.jwtKey);
           $http({
               method: 'POST',
               url: server + '/user/login',
@@ -3269,7 +3272,7 @@
       };
 
       jwtEncode = function(username, password) {
-
+          console.log("JWT Encode ne :")
           // get time
           // https://www.epochconverter.com/
           iat = Math.floor(Date.now() / 1000); // epoch time in seconds
@@ -3294,6 +3297,8 @@
           // get JWT = header.payload.signature
           // https://jwt.io/
           secret = window.__env.jwtKey;
+
+          console.log("Secret key: ", secret);
           header = urlEncode(base64Encode(headerData));
           payload = urlEncode(base64Encode(payloadData));
           signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));

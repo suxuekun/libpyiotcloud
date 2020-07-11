@@ -879,12 +879,36 @@ class database_client:
         self._devices.delete_sensors_readings(deviceid, source)
         self._devices.delete_sensors_readings_dataset(deviceid, source)
 
+    # def delete_device_sensor_reading(self, username, devicename):
+    #     deviceid = self._devices.get_deviceid(username, devicename)
+    #     self._devices.delete_device_sensor_reading(deviceid)
+    #     self._devices.delete_device_sensor_reading_dataset(deviceid)
+    #     self._devices.set_subscription_usage(deviceid, 'storage', 0)
+    #     self._devices.set_subscription_notice(deviceid, 'storage', False)
+
     def delete_device_sensor_reading(self, username, devicename):
+        print("Try to delete")
         deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_device_sensor_reading(deviceid)
-        self._devices.delete_device_sensor_reading_dataset(deviceid)
-        self._devices.set_subscription_usage(deviceid, 'storage', 0)
-        self._devices.set_subscription_notice(deviceid, 'storage', False)
+        try:
+            self._devices.delete_device_sensor_reading(deviceid)
+        except:
+            print("Error 0")
+        try:
+            self._devices.delete_device_sensor_reading_dataset(deviceid)
+        except:
+            print("Error 1")
+        try:
+            print("Set subscription_usage")
+            self._devices.set_subscription_usage(deviceid, 'storage', 0)
+        except:
+            print("Error 2")
+            pass
+        try:
+            print("Set subscription_usage notice")
+            self._devices.set_subscription_notice(deviceid, 'storage', False)
+        except:
+            print("Error 3")
+            pass
 
     #def delete_user_sensor_reading(self, username):
     #    self._devices.delete_user_sensor_reading(username)
