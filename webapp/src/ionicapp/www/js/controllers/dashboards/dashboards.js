@@ -563,7 +563,8 @@ angular.module('app.dashboardsCtrl', [])
               'id': c.id,
               'number': c.device.number,
               'source': c.device.source,
-              'sensorClass': c.device.sensorClass
+              'sensorClass': c.device.sensorClass,
+              'gatewayUUID': c.device.gatewayUUID
             }
           })
         };
@@ -1071,6 +1072,7 @@ angular.module('app.dashboardsCtrl', [])
 
         clearInterval(timerChartSensor);
         getChartsSensorsCompare();
+        startTimeChartSensor();
       }
 
       const selectedTimes = [{
