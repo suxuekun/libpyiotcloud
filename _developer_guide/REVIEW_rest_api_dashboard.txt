@@ -280,3 +280,9 @@ July 11, 2020
 45. data correctness for other time ranges have discrepancies with the aggregated data 
     the aggregated low/high not displayed so cannot easily verify as well
 
+46. compare works 1st time only
+    for the 2nd and nth trials, it always fails (no popup error)
+    in the rest api logs, some error 
+        invalid litreral for int() with base 10: undefined
+
+47. token expiration not handled in dashboard pages.
