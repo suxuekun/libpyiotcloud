@@ -394,12 +394,12 @@ class device_dashboard_old:
             hbeat_week, hbeatmax_week = self.database_client.get_num_device_heartbeats_by_timestamp_by_week(device["deviceid"], timestamp)
             hbeat_month, hbeatmax_month = self.database_client.get_num_device_heartbeats_by_timestamp_by_month(device["deviceid"], timestamp)
 
-            usage_sms = self.database_client.get_menos_num_sms_by_deviceid_by_currmonth(device["deviceid"])
-            usage_email = self.database_client.get_menos_num_email_by_deviceid_by_currmonth(device["deviceid"])
-            usage_notification = self.database_client.get_menos_num_notification_by_deviceid_by_currmonth(device["deviceid"])
+            usage_sms, alloc_sms = self.database_client.get_menos_num_sms_by_deviceid_by_currmonth(device["deviceid"])
+            usage_email, alloc_email = self.database_client.get_menos_num_email_by_deviceid_by_currmonth(device["deviceid"])
+            usage_notification, alloc_notification = self.database_client.get_menos_num_notification_by_deviceid_by_currmonth(device["deviceid"])
             usage_device = self.database_client.get_menos_num_device_by_deviceid_by_currmonth(device["deviceid"])
             usage_storage = self.database_client.get_menos_num_storage_by_deviceid_by_currmonth(device["deviceid"])
-            _bytes, _kb, _mb, _gb = self.database_client.get_menos_num_sensordata_by_deviceid_by_currmonth(device["deviceid"])
+            _bytes, _kb, _mb, _gb, alloc_storage = self.database_client.get_menos_num_sensordata_by_deviceid_by_currmonth(device["deviceid"])
 
             version = "unknown"
             if device.get("version") is not None:
@@ -433,12 +433,12 @@ class device_dashboard_old:
                     "month": "{}/{}".format(hbeat_month, hbeatmax_month) 
                 },
                 "usage": {
-                    "sms": str(usage_sms),
-                    "email": str(usage_email),
-                    "pushn": str(usage_notification),
+                    "sms": usage_sms,
+                    "email": usage_email,
+                    "pushn": usage_notification,
                     "device": str(usage_device),
                     "storage": str(usage_storage),
-                    "sensordata": "{:.9f} GB".format(_gb),
+                    "sensordata": _gb,
                 },
             })
 

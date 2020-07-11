@@ -39,6 +39,32 @@ class device_peripheral_properties:
         self.messaging_requests = messaging_requests
 
 
+    def is_message_list_valid(self, notification):
+        max_message_len = 100
+
+        # check message parameters
+        if notification.get("messages") is None:
+            return False
+        messages = notification["messages"]
+        if len(messages) != 2:
+            return False
+
+        # check if the messages are valid if enabled
+        for message in messages:
+            if message.get("enable") is None or message.get("message") is None:
+                return False
+            if message["enable"] == True:
+                message["message"] = message["message"].strip()
+                # check empty message
+                if len(message["message"]) == 0:
+                    print("empty notification message")
+                    return False
+                # check message is more than maximum length
+                if len(message["message"]) > max_message_len:
+                    print("too big notification message {}".format(len(message["message"])))
+                    return False
+        return True
+
     def is_email_list_valid(self, notification, users):
         email = notification["endpoints"]["email"]
         if email["enable"] == False:
@@ -297,12 +323,6 @@ class device_peripheral_properties:
         source = "uart"
         notification = self.database_client.get_device_notification(entityname, devicename, source)
         if notification is not None:
-            if notification["endpoints"]["modem"].get("recipients_id"):
-                notification["endpoints"]["modem"].pop("recipients_id")
-            #print(notification)
-            # notification recipients should be empty
-            if notification["endpoints"]["notification"].get("recipients"):
-                notification["endpoints"]["notification"]["recipients"] = ""
             value['notification'] = notification
         else:
             value['notification'] = rest_api_utils.utils().build_default_notifications("uart", token, self.database_client)
@@ -396,6 +416,10 @@ class device_peripheral_properties:
         if not self.is_device_list_valid(notification, entityname):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the device/devicegroup is not valid. All device/devicegroup recipients should be valid.'})
             print('\r\nERROR Set Uart: Device/device group list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        if not self.is_message_list_valid(notification):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the alert messages is not valid. All alert messages should be valid.'})
+            print('\r\nERROR Set Uart: Alert messages is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
 
@@ -640,6 +664,10 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Configuration is not valid.'})
             print('\r\nERROR Set Peripheral Sensor: Configuration is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
+        if not self.is_message_list_valid(notification):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the alert messages is not valid. All alert messages should be valid.'})
+            print('\r\nERROR Set Peripheral Sensor: Alert messages is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
 
 
         # set to disabled and configured

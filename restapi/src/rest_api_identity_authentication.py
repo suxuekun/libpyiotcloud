@@ -1171,6 +1171,12 @@ class identity_authentication:
             print('\r\nERROR Change password: Password length should at least be 8 characters [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
+        # check password is same as newpassword
+        if password == newpassword:
+            response = json.dumps({'status': 'NG', 'message': 'New password should be different from old password'})
+            print('\r\nERROR Change password: New password should be different from old password [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # change password
         result, errorcode = self.database_client.change_password(token["access"], password, newpassword)
         if not result:
@@ -1436,10 +1442,12 @@ class identity_authentication:
             # since login via phone_number is now allowed,
             # the phone_number must be unique,
             # so check if phone_number is already taken or not
-            if self.database_client.get_username_by_phonenumber(phonenumber) is not None:
-                response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
-                print('\r\nERROR Update user: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
-                return response, status.HTTP_400_BAD_REQUEST
+            phonenumber_owner = self.database_client.get_username_by_phonenumber(phonenumber)
+            if phonenumber_owner is not None:
+                if username != phonenumber_owner:
+                    response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
+                    print('\r\nERROR Update user: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
+                    return response, status.HTTP_400_BAD_REQUEST
 
 
         #print(phonenumber)

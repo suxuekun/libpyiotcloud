@@ -187,36 +187,15 @@ def upload_zipfile(zip_file, contents):
         pass
     return None
 
-def construct_invoice_message(name, email, url, devicename, deviceid):
-    message =  "Hi {},\r\n\r\n\r\n".format(name)
-
-    message += "Sensor data for device {} with UUID {} is now available.\r\n".format(devicename, deviceid)
-    message += "Click the link below to download.\r\n\r\n"
-    message += url
-    message += "\r\n\r\n"
-
-    message += "\r\nBest Regards,\r\n"
-    message += "Bridgetek Pte. Ltd.\r\n"
-    return message
-
-def send_email(name, email, url, devicename, deviceid):
-    try:
-        message = construct_invoice_message(name, email, url, devicename, deviceid)
-        client = pinpoint_client()
-        client.initialize()
-        response = client.send_message(email, message)
-    except Exception as e:
-        print(e)
-        return False
-
-    try:
-        result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][email]["StatusCode"]==200
-        print("DOWNLOAD {} {} {} [{}]".format(email, deviceid, url, result))
-    except Exception as e:
-        print(e)
-        return False
-
-    return result
+def send_sensordata_download_link(messaging_client, name, email, url, devicename, deviceid):
+    topic = "{}{}{}{}send_sensordata_download_link".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR)
+    payload = { 
+        "name": name, 
+        "url": url, 
+        "devicename": devicename,
+        "recipients": [email]
+    }
+    messaging_client.publish(topic, json.dumps(payload), False)
 
 def download_device_sensor_data(database_client, deviceid, topic, payload):
     start_time = time.time()
@@ -242,7 +221,7 @@ def download_device_sensor_data(database_client, deviceid, topic, payload):
         if contents:
             url = upload_zipfile(zip_file, contents)
             if url:
-                send_email(payload["name"], payload["email"], url, payload["devicename"], deviceid)
+                send_sensordata_download_link(g_messaging_client, payload["name"], payload["email"], url, payload["devicename"], deviceid)
 
     delete_folder(deviceid)
     delete_zipfile(deviceid)

@@ -3,33 +3,33 @@ from aws_config import config as aws_config
 
 
 
-class invoice_models:
+class email_models:
 
     PINPOINT = 0
 
 
-class invoice_types:
+class email_types:
 
     UNKNOWN           = 0
     EMAIL             = 1
 
 
-class invoice_client:
+class email_client:
 
-    def __init__(self, model_email=invoice_models.PINPOINT):
-        self._base_email = invoice_client_pinpoint()
+    def __init__(self, model_email=email_models.PINPOINT):
+        self._base_email = email_client_pinpoint()
 
     def initialize(self):
         self._base_email.initialize()
 
-    def send_message(self, recipient, message, subject=None, type=invoice_types.EMAIL):
+    def send_message(self, recipient, message, subject=None, type=email_types.EMAIL):
         return self._base_email.send_message(recipient, message, subject, type)
 
 
 ##################################################################################################
 # Amazon PINPOINT
 ##################################################################################################
-class invoice_client_pinpoint:
+class email_client_pinpoint:
 
     def __init__(self):
         self.aws_access_key_id     = aws_config.CONFIG_ACCESS_KEY

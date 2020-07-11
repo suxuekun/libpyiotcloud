@@ -3,7 +3,7 @@ import hmac
 import hashlib
 import datetime
 import random
-from invoice_config import config
+from email_config import config
 from pymongo import MongoClient
 from cognito_client import cognito_client
 

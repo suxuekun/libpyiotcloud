@@ -40,7 +40,11 @@ class config:
     CONFIG_USE_AMQP             = False
     if debugging:
         # CONFIG_HOST             = "192.168.99.100"
+<<<<<<< HEAD
         CONFIG_HOST             = "localhost"
+=======
+        CONFIG_HOST             = "127.0.0.1"
+>>>>>>> 79712157d99eea39fe677bda51a6fc8b010c9e9f
     else:
         CONFIG_HOST             = "rabbitmq"
     CONFIG_MQTT_TLS_PORT        = 8883
@@ -103,13 +107,20 @@ class config:
     CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS    = "oldpayment_transactions"
     CONFIG_MONGODB_TB_PAYMENTPAYERIDS        = "oldpayment_payerids"
 
+    CONFIG_MONGODB_TB_PAYMENTSUBSCRIPTION    = "payment_subscription"
+
 
     # Caching settings
     if debugging:
+<<<<<<< HEAD
         # CONFIG_REDIS_HOST            = "127.0.0.1"
         # CONFIG_REDIS_HOST            = "192.168.99.100"
         CONFIG_REDIS_HOST            = "localhost"
 
+=======
+        # CONFIG_REDIS_HOST            = "192.168.99.100"
+        CONFIG_REDIS_HOST            = "127.0.0.1"
+>>>>>>> 79712157d99eea39fe677bda51a6fc8b010c9e9f
     else:
         CONFIG_REDIS_HOST            = "redis"
     CONFIG_REDIS_PORT                = 6379
@@ -124,6 +135,7 @@ class config:
     CONFIG_TRANSACTION_DESCRIPTION   = "Consumable credits for IoT Portal"
 
     # JWT Token
+    CONFIG_HASHKEY_SERIAL_DEVICE     = os.environ["CONFIG_USE_HASHKEY_SERIAL_DEVICE"]
     CONFIG_JWT_SECRET_KEY_DEVICE     = os.environ["CONFIG_USE_JWT_SECRET_KEY_DEVICE"]
     CONFIG_JWT_SECRET_KEY            = os.environ["CONFIG_USE_JWT_SECRET_KEY"]
     CONFIG_JWT_EXPIRATION            = 10
@@ -150,3 +162,4 @@ class config:
     CONFIG_GIGABYTE_CONVERSION       = CONFIG_GIGABYTE_GB # MongoDB Compass uses GB not GiB
     CONFIG_MEGABYTE_CONVERSION       = CONFIG_MEGABYTE_MB # MongoDB Compass uses MB not MiB
     CONFIG_KILOBYTE_CONVERSION       = CONFIG_KILOBYTE_KB # MongoDB Compass uses KB not KiB
+

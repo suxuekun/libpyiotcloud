@@ -1,6 +1,7 @@
 from aws_config import config as aws_config
-from invoice_client import invoice_client
-from invoice_config import config as invoice_config
+from email_client import email_client
+from email_config import config as email_config
+from email_templates import email_templates
 from web_server_database import database_client
 from datetime import datetime
 import json
@@ -24,7 +25,7 @@ CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = False
-CONFIG_DBHOST = invoice_config.CONFIG_MONGODB_HOST
+CONFIG_DBHOST = email_config.CONFIG_MONGODB_HOST
 ###################################################################################
 
 
@@ -34,8 +35,9 @@ CONFIG_DBHOST = invoice_config.CONFIG_MONGODB_HOST
 ###################################################################################
 
 g_messaging_client = None
-g_invoice_client = None
+g_email_client = None
 g_database_client = None
+g_email_templates = None
 
 
 
@@ -43,19 +45,19 @@ g_database_client = None
 # MQTT and AMQP default configurations
 ###################################################################################
 
-CONFIG_DEVICE_ID                = "invoice_manager"
+CONFIG_DEVICE_ID                = "email_manager"
 
-CONFIG_USERNAME                 = invoice_config.CONFIG_MQTT_DEFAULT_USER
-CONFIG_PASSWORD                 = invoice_config.CONFIG_MQTT_DEFAULT_PASS
+CONFIG_USERNAME                 = email_config.CONFIG_MQTT_DEFAULT_USER
+CONFIG_PASSWORD                 = email_config.CONFIG_MQTT_DEFAULT_PASS
 
 if CONFIG_USE_ECC:
     CONFIG_TLS_CA               = "../cert_ecc/rootca.pem"
-    CONFIG_TLS_CERT             = "../cert_ecc/invoice_manager_cert.pem"
-    CONFIG_TLS_PKEY             = "../cert_ecc/invoice_manager_pkey.pem"
+    CONFIG_TLS_CERT             = "../cert_ecc/email_manager_cert.pem"
+    CONFIG_TLS_PKEY             = "../cert_ecc/email_manager_pkey.pem"
 else:
     CONFIG_TLS_CA               = "../cert/rootca.pem"
-    CONFIG_TLS_CERT             = "../cert/invoice_manager_cert.pem"
-    CONFIG_TLS_PKEY             = "../cert/invoice_manager_pkey.pem"
+    CONFIG_TLS_CERT             = "../cert/email_manager_cert.pem"
+    CONFIG_TLS_PKEY             = "../cert/email_manager_pkey.pem"
 
 CONFIG_HOST                     = "localhost"
 CONFIG_MQTT_TLS_PORT            = 8883
@@ -64,35 +66,28 @@ CONFIG_AMQP_TLS_PORT            = 5671
 CONFIG_PREPEND_REPLY_TOPIC      = "server"
 CONFIG_SEPARATOR                = '/'
 
-CONFIG_MODEL_EMAIL                = int(invoice_config.CONFIG_USE_EMAIL_MODEL)
+CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
+
+CONFIG_MODEL_EMAIL                = int(email_config.CONFIG_USE_EMAIL_MODEL)
 CONFIG_EMAIL_SUBJECT_RECEIPT      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT
 CONFIG_EMAIL_SUBJECT_ORGANIZATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
-CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
+CONFIG_EMAIL_SUBJECT_USAGENOTICE  = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE
+CONFIG_EMAIL_SUBJECT_SENSORDATADL = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL
+CONFIG_EMAIL_SUBJECT_DEVICEREGISTRATION   = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEREGISTRATION
+CONFIG_EMAIL_SUBJECT_DEVICEUNREGISTRATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEUNREGISTRATION
 
 API_SEND_RECEIPT                  = "send_invoice"
 API_SEND_INVITATION_ORGANIZATION  = "send_invitation_organization"
-
-
-print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
+API_SEND_USAGE_NOTICE             = "send_usage_notice"
+API_SEND_SENSORDATA_DOWNLOAD_LINK = "send_sensordata_download_link"
+API_SEND_DEVICE_REGISTRATION      = "send_device_registration"
+API_SEND_DEVICE_UNREGISTRATION    = "send_device_unregistration"
 
 
 
 ###################################################################################
 # Invoice/Receipt
 ###################################################################################
-
-def construct_invoice_message(name, payment):
-
-    message =  "Hi {},\r\n\r\n\r\n".format(name)
-
-    message += "A Paypal payment of {} USD for {} credits was processed successfully.\r\n".format(payment["amount"], payment["value"])
-    message += "To confirm your Paypal transaction, visit the Paypal website and check the transaction ID: {}.\r\n\r\n".format(payment["id"])
-
-    message += "If unauthorised, please contact customer support.\r\n\r\n"
-
-    message += "\r\nBest Regards,\r\n"
-    message += "Bridgetek Pte. Ltd.\r\n"
-    return message
 
 def get_name(database_client, username):
 
@@ -119,8 +114,8 @@ def send_invoice(database_client, paymentid, topic, payload):
         #print(payment)
         name, info = get_name(database_client, payment["username"])
         recipient = info["email"]
-        message = construct_invoice_message(name, payment)
-        response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_RECEIPT)
+        message = g_email_templates.construct_invoice_message(name, payment)
+        response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_RECEIPT)
     except Exception as e:
         print(e)
         return
@@ -136,30 +131,13 @@ def send_invoice(database_client, paymentid, topic, payload):
 # Invitation organization
 ###################################################################################
 
-def construct_invitation_organization_message(orgname, orgowner):
-
-    message =  "Hi,\r\n\r\n\r\n"
-
-    message += "You have been invited to join the {} organization by {}.\r\n".format(orgname, orgowner)
-    message += "This allows you to manage, operate, monitor or view IoT gateway devices of your organization based on assigned roles and permissions.\r\n\r\n"
-
-    message += "Please download the Bridgetek IoT Portal mobile app or visit the website:\r\n".format(CONFIG_USE_APIURL)
-    message += "- Android app at Google Play\r\n"
-    message += "- iOS app at Apple App Store\r\n"
-    message += "- Website at https://{}\r\n".format(CONFIG_USE_APIURL)
-    message += "If you don't have an account yet, sign up for an account then go to the Organization page to accept the invitation.\r\n\r\n"
-
-    message += "\r\nBest Regards,\r\n"
-    message += "Bridgetek Pte. Ltd.\r\n"
-    return message
-
 def send_invitation_organization(database_client, orgname, topic, payload):
 
     payload = json.loads(payload)
-    message = construct_invitation_organization_message(orgname, payload["owner"])
+    message = g_email_templates.construct_invitation_organization_message(orgname, payload["owner"])
     for recipient in payload["recipients"]:
         try:
-            response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_ORGANIZATION)
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_ORGANIZATION)
         except Exception as e:
             print(e)
             return
@@ -172,8 +150,117 @@ def send_invitation_organization(database_client, orgname, topic, payload):
 
 
 ###################################################################################
+# Sensor data download link
+###################################################################################
+
+def send_sensordata_download_link(database_client, deviceid, topic, payload):
+
+    payload = json.loads(payload)
+    message = g_email_templates.construct_sensordata_download_link_message(payload["name"], payload["url"], payload["devicename"], deviceid)
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_SENSORDATADL)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("SENSORDATADL {}: {} [{}]".format(deviceid, recipient, result))
+        except Exception as e:
+            print(e)
+
+
+###################################################################################
+# Usage notice
+###################################################################################
+
+def send_usage_notice(database_client, deviceid, topic, payload):
+
+    payload = json.loads(payload)
+    message = g_email_templates.construct_usage_notice_message(deviceid, payload["menos_type"], payload["subscription"])
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_USAGENOTICE)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("USAGENOTICE {}: {} [{}]".format(deviceid, recipient, result))
+        except Exception as e:
+            print(e)
+
+
+###################################################################################
+# Device registration
+###################################################################################
+
+def send_device_registration(database_client, deviceid, topic, payload):
+
+    payload = json.loads(payload)
+    message = g_email_templates.construct_device_registration_message(deviceid, payload["serialnumber"])
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_DEVICEREGISTRATION)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("DEVICEREGISTRATION {}: {} [{}]".format(deviceid, recipient, result))
+        except Exception as e:
+            print(e)
+
+
+###################################################################################
+# Device unregistration
+###################################################################################
+
+def send_device_unregistration(database_client, deviceid, topic, payload):
+
+    payload = json.loads(payload)
+    message = g_email_templates.construct_device_unregistration_message(deviceid, payload["serialnumber"])
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_DEVICEUNREGISTRATION)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("DEVICEUNREGISTRATION {}: {} [{}]".format(deviceid, recipient, result))
+        except Exception as e:
+            print(e)
+
+
+
+
+
+###################################################################################
 # MQTT subscription handling
 ###################################################################################
+
+email_types = [
+    API_SEND_RECEIPT, 
+    API_SEND_INVITATION_ORGANIZATION, 
+    API_SEND_USAGE_NOTICE, 
+    API_SEND_SENSORDATA_DOWNLOAD_LINK, 
+    API_SEND_DEVICE_REGISTRATION, 
+    API_SEND_DEVICE_UNREGISTRATION
+]
+
+email_handler = [
+    send_invoice,
+    send_invitation_organization,
+    send_usage_notice,
+    send_sensordata_download_link,
+    send_device_registration,
+    send_device_unregistration
+]
 
 def on_message(subtopic, subpayload):
 
@@ -187,33 +274,26 @@ def on_message(subtopic, subpayload):
     payload = subpayload.decode("utf-8")
     topic = arr_subtopic[2]
 
-    if topic == API_SEND_RECEIPT:
-        paymentid = arr_subtopic[1]
-        try:
-            thr = threading.Thread(target = send_invoice, args = (g_database_client, paymentid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SEND_RECEIPT")
-            print(e)
-            return
 
-    elif topic == API_SEND_INVITATION_ORGANIZATION:
-        orgname = arr_subtopic[1]
-        try:
-            thr = threading.Thread(target = send_invitation_organization, args = (g_database_client, orgname, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SEND_RECEIPT")
-            print(e)
-            return
+    if len(email_handler) != len(email_types):
+        print("email_handler != email_types")
+        return 
 
-    return
+    for x in range(len(email_types)):
+        if topic == email_types[x]:
+            try:
+                thr = threading.Thread(target = email_handler[x], args = (g_database_client, arr_subtopic[1], topic, payload ))
+                thr.start()
+            except Exception as e:
+                print("exception {}".format(email_types[x]))
+                print(e)
+                return
 
 
 def on_mqtt_message(client, userdata, msg):
 
     try:
-        if invoice_config.CONFIG_DEBUG_INVOICE:
+        if email_config.CONFIG_DEBUG_INVOICE:
             print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
         on_message(msg.topic, msg.payload)
     except:
@@ -222,7 +302,7 @@ def on_mqtt_message(client, userdata, msg):
 def on_amqp_message(ch, method, properties, body):
 
     try:
-        if invoice_config.CONFIG_DEBUG_INVOICE:
+        if email_config.CONFIG_DEBUG_INVOICE:
             print("RCV: AMQP {} {}".format(method.routing_key, body))
         on_message(method.routing_key, body)
     except:
@@ -281,11 +361,15 @@ if __name__ == '__main__':
 
 
     # Initialize Notification client (Pinpoint, SNS, Twilio or Nexmo)
-    g_invoice_client = invoice_client()
+    g_email_client = email_client()
     try:
-        g_invoice_client.initialize()
+        g_email_client.initialize()
     except:
         print("Could not initialize invoice model! exception!")
+
+
+    # Initialize email templates
+    g_email_templates = email_templates()
 
 
     # Initialize MQTT/AMQP client
@@ -308,14 +392,13 @@ if __name__ == '__main__':
                 break
         except:
             print("Could not connect to message broker! exception!")
+    time.sleep(1)
 
 
     # Subscribe to messages sent for this device
-    time.sleep(1)
-    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_RECEIPT)
-    g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
-    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_INVITATION_ORGANIZATION)
-    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    for email_type in email_types:
+        subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, email_type)
+        g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
