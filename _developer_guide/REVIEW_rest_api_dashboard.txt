@@ -286,3 +286,16 @@ July 11, 2020
         invalid litreral for int() with base 10: undefined
 
 47. token expiration not handled in dashboard pages.
+    cognito token expires in 1 hour. after 1 hour, the dashboard page no longer works.
+
+48. real time data for Dashboard Gateways still using dummy data. should use the actual data from the database.
+
+    get_num_device_heartbeats_by_timestamp_by_day
+    get_num_device_heartbeats_by_timestamp_by_week
+    get_num_device_heartbeats_by_timestamp_by_month
+
+    get_menos_num_sms_by_deviceid_by_currmonth
+    get_menos_num_email_by_deviceid_by_currmonth
+    get_menos_num_notification_by_deviceid_by_currmonth
+    get_menos_num_sensordata_by_deviceid_by_currmonth
+
