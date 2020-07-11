@@ -12,7 +12,6 @@ class PlanService(BaseFileService):
     #     # print("--plans-- ",[plan.id for plan in plans])
 
     def get_free_plan(self):
-        print('--free',self.repo.free)
         return self.model(self.repo.free,strict=False)
 
     def reload(self):
