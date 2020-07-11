@@ -881,10 +881,22 @@ class database_client:
 
     def delete_device_sensor_reading(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_device_sensor_reading(deviceid)
-        self._devices.delete_device_sensor_reading_dataset(deviceid)
-        self._devices.set_subscription_usage(deviceid, 'storage', 0)
-        self._devices.set_subscription_notice(deviceid, 'storage', False)
+        try:
+            self._devices.delete_device_sensor_reading(deviceid)
+        except:
+            pass
+        try:
+            self._devices.delete_device_sensor_reading_dataset(deviceid)
+        except:
+            pass
+        try:
+            self._devices.set_subscription_usage(deviceid, 'storage', 0)
+        except:
+            pass
+        try:
+            self._devices.set_subscription_notice(deviceid, 'storage', False)
+        except:
+            pass
 
     #def delete_user_sensor_reading(self, username):
     #    self._devices.delete_user_sensor_reading(username)
