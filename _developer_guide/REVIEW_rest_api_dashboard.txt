@@ -258,3 +258,16 @@ July 10, 2020
 42. In sensor compare, when i exit the page, the webapp is still querying the rest api. 
     it should also stop polling after exiting the page. (i clicked X mark at the top left) - CRITICAL
 
+
+===============================================
+
+July 11, 2020
+
+43. aside from sensor["minmax"], API should also return other sensor properties
+
+    sensor["unit"] - unit of measurement (C, %, etc)
+
+    sensor["format"] - int or float 
+
+    sensor["accuracy"] - number of decimal places
+
