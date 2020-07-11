@@ -221,11 +221,17 @@ July 9, 2020
 
    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
 
+   for example current time is 9:00 and time range is 5 minutes so 9:00 to 9:05
+   if i want to view 855-9:00, i should be able to click some left button to view data from that timespan 
+   if i want to view 850-8:55, i should be able to click some left button twice to view data from that timespan 
+
 35. display latest sensor reading 
 
    (see my implementation in OLD DASHBOARD PAGE on how to support this)
 
-36. fix tooltip to display data, low, high and readable datetime
+    API is returning latest sensor reading but web page not displaying the values yet
+
+36. fix tooltip to display aggregated data, aggregated low, aggregated high and readable datetime
 
    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
 
@@ -268,4 +274,9 @@ July 11, 2020
     sensor["unit"] - unit of measurement (C, %, etc)
     sensor["format"] - int or float 
     sensor["accuracy"] - number of decimal places
+
+44. data correctness for 5 minutes timerange is OK (but missing the last point - 4 minutes 55 seconds)
+
+45. data correctness for other time ranges have discrepancies with the aggregated data 
+    the aggregated low/high not displayed so cannot easily verify as well
 

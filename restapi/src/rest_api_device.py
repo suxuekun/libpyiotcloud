@@ -26,7 +26,7 @@ import threading
 import rest_api_utils
 from database import database_categorylabel, database_crudindex
 from message_broker_api import message_broker_api
-from dashboards.ioc import init_chart_gateway_service
+from dashboards.ioc import init_chart_gateway_service, init_chart_sensor_service
 from payment.services import subscription_service
 import re
 from device_serial_number import device_serial_number
@@ -200,6 +200,7 @@ class device:
         # delete dashboard related items
         try:
             init_chart_gateway_service().delete_by_deviceId(deviceid)
+            init_chart_sensor_service().delete_by_deviceId(deviceid)
         except Exception as e:
             print("Exception init_chart_gateway_service().delete_by_deviceId")
             print(e)
@@ -654,28 +655,24 @@ class device:
                     notification = rest_api_utils.utils().build_default_notifications(source, token, self.database_client)
                     if notification is not None:
                         self.database_client.update_device_notification(entityname, devicename, source, notification)
-            except:
-                pass
+            except Exception as e:
+                print("Exception encountered {} update_device_notification".format(e))
+
+            # create free subscription for device
+            try:
+                res = subscription_service.create_free_sub_for_new_device_by_device_id(data["deviceid"])
+                if not res:
+                    print('subscription created failed create_free_sub_for_new_device_by_device_id')
+            except Exception as e:
+                print("Exception encountered {} create_free_sub_for_new_device_by_device_id".format(e))
 
             # send email confirmation
             try:
                 pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + data["deviceid"] + CONFIG_SEPARATOR + "send_device_registration"
                 payload  = json.dumps({"serialnumber": data["serialnumber"], "recipients": [username]})
                 self.messaging_client.publish(pubtopic, payload)
-            except:
-                pass
-
-            # create free subscription for device
-            try:
-                print('try to create free subscription for device',data["deviceid"],devicename)
-                res = subscription_service.create_free_sub_for_new_device_by_device_id(data["deviceid"])
-                if not res:
-                    print('subscription created failed')
-                    #TODO
-                    # any message need to do here ?
-
             except Exception as e:
-                print(e)
+                print("Exception encountered {} publish".format(e))
 
 
             msg = {'status': 'OK', 'message': 'Devices registered successfully.'}

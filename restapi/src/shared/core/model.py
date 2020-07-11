@@ -1,7 +1,5 @@
 import datetime
 import uuid
-
-from bson import ObjectId
 from schematics import Model
 from schematics.types import DateTimeType, BooleanType, TimestampType, StringType, UUIDType, IntType
 

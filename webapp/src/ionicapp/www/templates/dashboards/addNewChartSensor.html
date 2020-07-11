@@ -1,0 +1,126 @@
+<ion-view title="Add New Sensor Gateway" hide-back-button="true"
+          nav-transition="none" id="page12"
+          style="background-color:#FFFFFF;"
+          class="page_width_medium">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div style="width: 100%" ng-show="devicesGroups.length == 0">
+      <h4 style="text-align: center;">No gateways, you have to create new gateway</h4>
+    </div>
+    <div class="row" ng-show="devicesGroups.length != 0">
+          <div class="dashboard-list-column card" style="width: 60%; padding: 20px">
+            <div ng-show="currentStep == 0">
+              <div>
+                <h2>Select Gateway</h2>
+                <button id="addGateway-button55"
+                        ng-click="nextToSellectionSensor()"
+                        style="margin: auto; margin-top: 20px"
+                        ng-style="{'background-color': green}"
+                        class="button button-positive button-block">NEXT</button>
+                <div class="list">
+                  <div ng-repeat="group in devicesGroups" >
+                      <h4>{{group.groupname}}</h4>
+                      <div ng-repeat="device in group.devices" class="card">
+                          <div class="dashboard-item-main-column">
+                              <p>Gateway name: {{device.devicename}}</p>
+                              <p>UUID: {{device.deviceid}}</p>
+                          </div>
+                          <input type="radio"
+                                style="float:right; margin: 20px; height: 30px;width: 20px;"
+                                  ng-model="selectedGateway.deviceid"
+                                  value="{{device.deviceid}}">
+                      </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+
+
+            <div ng-show="currentStep == 1">
+               <div class="list">
+                  <h2>Select Sensor</h2>
+                  <div class="row" ng-show="currentStep == 1">
+                      <button id="addGateway-button55"
+                                ng-click="backToGatewayStep()"
+                                style="width: 40%;margin: auto; margin-top: 20px"
+                                ng-style="{'background-color': selectedColor}"
+                                class="button button-positive button-block">BACK</button>
+                      <button id="addGateway-button55"
+                              ng-click="nextToChartTypeStep()"
+                              style="width: 40%;margin: auto; margin-top: 20px"
+                              ng-style="{'background-color': selectedColor}"
+                              ng-show="sensors.length != 0"
+                              class="button button-positive button-block">NEXT</button>
+
+                      <button id="addGateway-button55"
+                              disabled
+                              ng-click="nextToChartTypeStep()"
+                              style="width: 40%;margin: auto; margin-top: 20px"
+                              ng-style="{'background-color': selectedColor}"
+                              ng-show="sensors.length == 0"
+                              class="button button-positive button-block">NEXT</button>
+                  </div>
+                  <div ng-show="sensors.length == 0">
+                    <h3> No sensors </h3>
+                  </div>
+                  <div class="list responsive-sm">
+
+                    <div class="card" ng-repeat="sensor in sensors">
+                      <div class="dashboard-item-main-column">
+                          <h4 ng-show="sensor.enabled == 0">{{sensor.sensorname}}</h4>
+                          <h4 ng-show="sensor.enabled == 1" style="color: green">{{sensor.sensorname}}</h4>
+                          <p>Sensor class: {{sensor.class}}</p>
+                          <p>Port: {{sensor.port}}</p>
+                          <p>UUID: {{sensor.source}}</p>
+                          <p>Gateway UUID: {{sensor.deviceid}}</p>
+
+                      </div>
+                      <input type="radio"
+                              style="float:right; height: 30px;width: 20px; margin: 30px"
+                              ng-model="selectedSensor.id"
+                              value="{{sensor.id}}">
+                    </div>
+                  </div>
+
+                </div>
+
+            </div>
+        <div ng-show="currentStep == 2">
+              <div class="dashboard-container">
+                  <h2>Type of Chart</h2>
+                  <div class="row">
+                      <button id="addGateway-button55"
+                              ng-click="backToSelectionSensorStep()"
+                              style="width: 40%;margin: auto; margin-top: 20px"
+                              ng-style="{'background-color': selectedColor}"
+                              class="button button-positive button-block">BACK</button>
+                      <button id="addGateway-button55"
+                              ng-click="save()"
+                              style="width: 40%;margin: auto; margin-top: 20px"
+                              ng-style="{'background-color': selectedColor}"
+                              class="button button-positive button-block">SAVE</button>
+                  </div>
+                  <div  ng-repeat="chartType in chartTypes">
+                      <div class="card" style="padding: 10px;">
+                        <div class="dashboard-item-main-column">
+                          <strong>{{chartType.name}} chart</strong>
+                        </div>
+                        <input type="radio"
+                                style="float:right; height: 40px;width: 20px;"
+                                ng-model="selectedChartType.id"
+                                value="{{chartType.id}}">
+                      </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          <div/>
+
+      </div>
+  </ion-content>
+</ion-view>

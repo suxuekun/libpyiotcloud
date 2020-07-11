@@ -50,8 +50,19 @@ class Dashboard:
                 self.model.modifiedAt = timestamp_util.get_timestamp()
                 return
     
-    def addChartSensor(self, chartId: str):
+    def remove_chart_sensor(self, chartId: str):
+        print("Remove chartId")
+        print(chartId)
+        for id in self.model.sensors:
+            if id == chartId:
+                self.model.sensors.remove(id)
+                self.model.modifiedAt = timestamp_util.get_timestamp()
+                return
+    
+    def add_chart_sensor(self, chartId: str):
         self.model.sensors.append(chartId)
+        self.model.modifiedAt = timestamp_util.get_timestamp()
+
 
     @staticmethod
     def to_domain(data):

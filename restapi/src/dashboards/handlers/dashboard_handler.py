@@ -9,7 +9,7 @@
 #         self.dashboardService = dashboardService
     
 #     def removeChart(self, chartId):
-#         result = self.dashboardService.remove_chartId(chartId)
+#         result = self.dashboardService.remove_chart_gateway(chartId)
 #         return result
     
 #     def remove_many_chart_in_dashboards(self, chartsWithDashboard: {}):

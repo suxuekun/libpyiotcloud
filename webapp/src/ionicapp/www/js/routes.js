@@ -54,6 +54,28 @@ angular.module('app.routes', [])
         controller: 'addNewChartGatewayCtrl'
       })
 
+      .state('addNewChartSensor', {
+        url: 'dashboards/{dashboardId}/chart/new/sensor',
+        params: {
+          username: "",
+          token: "",
+          dashboard: {}
+        },
+        templateUrl: 'templates/dashboards/addNewChartSensor.html',
+        controller: 'addNewChartSensorCtrl'
+      })
+      .state('compareChartSensor', {
+        url: 'dashboards/{dashboardId}/chart/sensor/compare',
+        params: {
+          username: "",
+          token: "",
+          charts: [],
+          dashboardId: ""
+        },
+        templateUrl: 'templates/dashboards/compareChart.html',
+        controller: 'compareChartCtrl'
+      })
+
   .state('menu.gateways', {
     url: '/page_devices',
 	params: {

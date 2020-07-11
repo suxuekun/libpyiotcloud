@@ -6,42 +6,55 @@
     <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-
     <div style="width: 100%" ng-show="devicesGroups.length == 0">
       <h4 style="text-align: center;">No gateways, you have to create new gateway</h4>
     </div>
     <div class="row" ng-show="devicesGroups.length != 0">
       <div class="dashboard-list-column" style="width: 60%">
         <div ng-show="currentStep == 0">
-          <div class="dashboard-container dashboard-border dashboard-round-border">
-            <h2>Select Gateway</h2>
-            <div ng-repeat="group in devicesGroups">
-                <h3>{{group.groupname}}</h3>
-                <div ng-repeat="device in group.devices" class="item item-body" >
-                    <div class="dashboard-item-main-column">
-                        <p>Gateway name: {{device.devicename}}</p>
-                        <p>UUID: {{device.deviceid}}</p>
-                    </div>
-                    <input type="radio"
-                            style="float:right; margin-top: 20px; height: 60px;width: 20px;"
-                            ng-model="selectedGateway.deviceid"
-                            value="{{device.deviceid}}">
+            <div>
+                <h2>Select Gateway</h2>
+                <button id="addGateway-button55"
+                        ng-click="nextToAttributeStep()"
+                        style="margin: auto; margin-top: 20px"
+                        ng-style="{'background-color': green}"
+                        class="button button-positive button-block">NEXT</button>
+                <div class="list">
+                  <div ng-repeat="group in devicesGroups" >
+                      <h4>{{group.groupname}}</h4>
+                      <div ng-repeat="device in group.devices" class="card">
+                          <div class="dashboard-item-main-column">
+                              <p>Gateway name: {{device.devicename}}</p>
+                              <p>UUID: {{device.deviceid}}</p>
+                          </div>
+                          <input type="radio"
+                                style="float:right; margin: 20px; height: 30px;width: 20px;"
+                                  ng-model="selectedGateway.deviceid"
+                                  value="{{device.deviceid}}">
+                      </div>
+                  </div>
                 </div>
-            </div>
-            <button id="addGateway-button55"
-                    ng-click="nextToAttributeStep()"
-                    style="width: 40%;margin: auto; margin-top: 20px"
-                    ng-style="{'background-color': green}"
-                    class="button button-positive button-block">NEXT</button>
 
-          </div>
-      </div>
+              </div>
+        </div>
 
       <div ng-show="currentStep == 1">
-          <div class="dashboard-container dashboard-border dashboard-round-border"
+          <div class="dashboard-container card"
                 style="padding: 20px;">
               <h2>Gateway Attributes</h2>
-              <div class="item item-body" ng-repeat="attribute in attributes">
+              <div class="row">
+                <button id="addGateway-button55"
+                        ng-click="backToGatewayStep()"
+                        style="width: 40%;margin: auto; margin-top: 20px"
+                        ng-style="{'background-color': selectedColor}"
+                        class="button button-positive button-block">BACK</button>
+                <button id="addGateway-button55"
+                        ng-click="nextToChartTypeStep()"
+                        style="width: 40%;margin: auto; margin-top: 20px"
+                        ng-style="{'background-color': selectedColor}"
+                        class="button button-positive button-block">NEXT</button>
+              </div>
+              <div class="card" ng-repeat="attribute in attributes" style="padding: 20px;">
                   <div class="dashboard-item-main-column">
                       <strong>{{attribute.name}}</strong>
                   </div>
@@ -49,34 +62,14 @@
                           style="float:right; height: 40px;width: 20px;"
                           ng-model="selectedAttribute.id"
                           value="{{attribute.id}}">
-                </div>
-                <div class="row">
-                  <button id="addGateway-button55"
-                          ng-click="backToGatewayStep()"
-                          style="width: 40%;margin: auto; margin-top: 20px"
-                          ng-style="{'background-color': selectedColor}"
-                          class="button button-positive button-block">BACK</button>
-                  <button id="addGateway-button55"
-                          ng-click="nextToChartTypeStep()"
-                          style="width: 40%;margin: auto; margin-top: 20px"
-                          ng-style="{'background-color': selectedColor}"
-                          class="button button-positive button-block">NEXT</button>
-                </div>
+              </div>
+
           </div>
       </div>
       <div ng-show="currentStep == 2">
-          <div class="dashboard-container dashboard-border dashboard-round-border" >
+          <div class="dashboard-container card">
               <h2>Type of Chart</h2>
-              <div class="item item-body" ng-repeat="chartType in chartTypes">
-                  <div class="dashboard-item-main-column">
-                      <strong>{{chartType.name}} chart</strong>
-                  </div>
-                  <input type="radio"
-                          style="float:right; height: 40px;width: 20px;"
-                          ng-model="selectedChartType.id"
-                          value="{{chartType.id}}">
-              </div>
-               <div class="row">
+              <div class="row">
                   <button id="addGateway-button55"
                           ng-click="backToAttributeStep()"
                           style="width: 40%;margin: auto; margin-top: 20px"
@@ -87,22 +80,34 @@
                           style="width: 40%;margin: auto; margin-top: 20px"
                           ng-style="{'background-color': selectedColor}"
                           class="button button-positive button-block">SAVE</button>
-                </div>
+              </div>
+              <div class="card"
+                   style="padding:20px;"
+                   ng-repeat="chartType in chartTypes">
+                  <div class="dashboard-item-main-column">
+                      <strong>{{chartType.name}} chart</strong>
+                  </div>
+                  <input type="radio"
+                          style="float:right; height: 40px;width: 20px;"
+                          ng-model="selectedChartType.id"
+                          value="{{chartType.id}}">
+              </div>
+
           </div>
         </div>
       </div>
 
       <div class="dasboard-detail-column" style="width: 40%;" ng-show="currentStep != 0">
-        <div class="dashboard-container dashboard-border dashboard-round-border">
+        <div class="card" style="padding:20px;">
           <h3>Gateway</h3>
-          <div class="dashboard-container dashboard-border dashboard-round-border">
+          <div class="card" style="padding:20px;">
               <p>Gateway name: <strong>{{selectedGateway.devicename}}</strong></p>
               <p>UUID: <strong>{{selectedGateway.deviceid}}</strong></p>
           </div>
           <br></br>
           <div ng-show="currentStep == 2">
             <h3>Attribute</h3>
-            <div class="dashboard-container dashboard-border dashboard-round-border">
+            <div class="card" style="padding:20px;">
                 <p>Attribute name: <strong>{{selectedAttribute.name}}</strong></p>
             </div>
           </div>
