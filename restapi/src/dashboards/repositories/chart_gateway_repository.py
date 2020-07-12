@@ -50,7 +50,8 @@ class ChartGatewayRepository(MongoBaseRepository, IChartGatewayRepository):
                     'dashboardId' : 1,
                     'chartTypeId': 1,
                     'attributeId': 1,
-                    'device_info': 1
+                    'device_info': 1,
+                    'deviceId': 1,
                 }
             }
         ]

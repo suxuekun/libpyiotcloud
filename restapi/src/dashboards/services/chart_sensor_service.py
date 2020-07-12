@@ -212,9 +212,13 @@ class ChartSensorService:
 
             lastMinutes = datetime.fromtimestamp(
                 query.timestamp) - timedelta(minutes=query.minutes)
+            seconds = query.minutes * 60
+            timeRange = seconds / query.points
+            timEnd = datetime.fromtimestamp(
+                query.timestamp) + timedelta(seconds=timeRange)
 
             results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
-                sensors, int(lastMinutes.timestamp()), query.timestamp)
+                sensors, int(lastMinutes.timestamp()), timEnd)
 
             dictSensors = {}
             for r in results:

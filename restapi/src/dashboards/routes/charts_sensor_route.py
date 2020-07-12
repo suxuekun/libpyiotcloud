@@ -98,12 +98,14 @@ def delete(dashboardId: str, chartId: str):
 @default_middleware
 @login_required()
 def gets_compare(dashboardId: str):
+    
     user = request.environ.get('user')
     queryParams = request.args
 
     query = ChartComparisonQuery()
     query.points = int(queryParams.get("points", 30))
     query.minutes = int(queryParams.get("minutes", 5))
+    query.timeSpan = int(queryParams.get("time_span", 1))
 
     timestamp = int(queryParams.get(
         "timestamp", int(datetime.now().timestamp()))) 
@@ -111,11 +113,13 @@ def gets_compare(dashboardId: str):
 
     query.isMobile = get_boolean_value(
         queryParams.get("mobile", "false").lower())
+
     query.chartsId = []
     chartsId = queryParams.get("chartsId", "")
     if chartsId != "":
         parseChartsId = chartsId.split(",")
         query.chartsId = parseChartsId
+
     response = chartSensorService.compare(dashboardId, user["username"], query)
     return response
 

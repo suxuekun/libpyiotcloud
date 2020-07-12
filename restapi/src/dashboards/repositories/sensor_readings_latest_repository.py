@@ -99,6 +99,10 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             newReport["source"] = s["source"]
             newReport["number"] = int(s["number"])
             newReport["gatewayUUID"] = s["deviceid"]
+            newReport["unit"] = s["unit"]
+            newReport["format"] = s["format"]
+            newReport["accuracy"] = s["accuracy"]
+            newReport["minmax"] = s["minmax"]
             
             sensorReport = self._get_sensor_report_detail(
                 s["source"], int(s["number"]), sensorsReports)

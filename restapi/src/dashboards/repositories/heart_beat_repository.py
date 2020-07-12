@@ -1,13 +1,55 @@
 
 from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
+from dashboards.utils.pecent_util import get_pecent_by
+from database import database_client
+from dashboards.models.gateway_attribute import *
 
-class IHeartBeatRepository(BaseRepository, IMongoBaseRepository):
+import time
+class IHeartBeatRepository:
 
-    def gets_by_gatewayId(self, gatewaysUUID: [], timestamp: int):
+    def gets_by_gatewaysId(self, gatewaysUUID: [], timestamp: int):
         pass
 
-class HeartBeatRepository(MongoBaseRepository, IHeartBeatRepository):
+class HeartBeatRepository(IHeartBeatRepository):
 
-    def gets_by_gatewayId(self, gatewaysUUID, timestamp):
-        return super().gets_by_gatewayId(gatewaysUUID, timestamp)
+    def __init__(self, database_client: database_client):
+        self.database_client = database_client
+
+    def gets_by_gatewaysId(self, gatewaysUUID:[], timestamp: int):
+        
+        if len(gatewaysUUID) is 0:
+            return []
+
+        reports = []
+        for gatewayUUID in gatewaysUUID:
+            newReport = {
+                "gatewayUUID": gatewayUUID
+            }
+
+            hbeat_day, hbeatmax_day = self.database_client.get_num_device_heartbeats_by_timestamp_by_day(gatewayUUID, timestamp)
+            hbeat_week, hbeatmax_week = self.database_client.get_num_device_heartbeats_by_timestamp_by_week(gatewayUUID, timestamp)
+            hbeat_month, hbeatmax_month = self.database_client.get_num_device_heartbeats_by_timestamp_by_month(gatewayUUID, timestamp)
+            
+            calculateOnlineByDay = get_pecent_by(hbeat_day, hbeatmax_day)
+            calculateOnlineByWeek = get_pecent_by(hbeat_week, hbeatmax_week)
+            calculateOnlineByMonth = get_pecent_by(hbeat_month, hbeatmax_month)
+
+            newReport[ONE_DAY_VALUE] = {
+                ONLINE_VALUE: calculateOnlineByDay,
+                OFFLINE_VALUE: 100 - calculateOnlineByDay
+            }
+
+            newReport[ONE_WEEK_VALUE] = {
+                ONLINE_VALUE: calculateOnlineByWeek,
+                OFFLINE_VALUE: 100 - calculateOnlineByWeek
+            }
+
+            newReport[ONE_MONTH_VALUE] = {
+                ONLINE_VALUE: calculateOnlineByMonth,
+                OFFLINE_VALUE: 100 - calculateOnlineByMonth
+            }
+
+            reports.append(newReport)
+
+        return reports

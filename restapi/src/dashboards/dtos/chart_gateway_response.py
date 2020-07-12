@@ -17,7 +17,7 @@ class DatasetResponse(Model):
 
 class DatasetExResponse(Model):
     label = StringType()
-    data = IntType()
+    data = FloatType()
 
 class ChartGatewayResponse(Model):
     attribute = ModelType(AttributeResponse)

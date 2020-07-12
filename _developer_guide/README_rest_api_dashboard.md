@@ -18,8 +18,6 @@ SUMMARY:
         B. GETS                            - GET    /dashboards/dashboard/{dashboardId}/gateways
         C. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}/gateways/{chartId}
         D. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}/gateways/{chartId}
-        E. GETS_EX                         - GET    /dashboards/dashboard/{dashboardId}/gateways/ex
-        F. GETS_EX_DETAIL                  - GET    /dashboards/dashboard/{dashboardId}/gateways/{chartId}/ex
         
     3. Gateway Attritubes:
 
@@ -143,112 +141,6 @@ DETAIL:
        
         B. GETS
         - Request:
-        GET: /dashboards/dashboard/{dashboardId}/gateways
-        headers: {'Authorization': 'Bearer ' + token.access}
-        queryParams:
-            - attributeId: string
-            - filterId: string, # get from attribute.filters
-            * Example:
-                /dashboards/{dashboardId}/gateways?attributeId=1&filterId=0
-            * Note:
-                attributeId & filterId get from api (3)
-        - Response:
-        {
-            'status': 'OK',
-            'data': [
-                {
-                  "id": string,
-                  "chartTypeId": number,
-                  "datasets": [
-                      {
-                        "labels": [string]
-                        "data": [number]
-                      }
-                  ],
-                  "datasetsEx": [
-                      {
-                          "label": string
-                          "data": number
-                      }
-                  ],
-                  "device": {
-                      "name": string,
-                      "uuid": string
-                  },
-                  "attribute": {
-                      "name: string,
-                      "id": string,
-                      "filters": [
-                          "name": string,
-                          "id": number
-                      ]
-                  }
-                }
-            ],
-            'message': 'Get chart responses successfully'
-        }
-
-        C. GET
-        - Request:
-        GET: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
-        headers: {'Authorization': 'Bearer ' + token.access}
-        queryParams:
-            - attributeId: string
-            - filterId: string, # get from attribute.filters 
-
-            * Example:
-                /dashboards/dashboard/{dashboardId}/gateways/{chartId}?attributeId=1&filterId=0
-            * Note:
-                attributeId & filterId get from api (3)
-
-        - Response:
-        {
-            'status': 'OK',
-            'data':
-                {
-                  "id": string,
-                  "chartTypeId": number,
-                  "datasets": [
-                      {
-                        "labels": [string]
-                        "data": [number]
-                      }
-                  ],
-                  "datasetsEx": [
-                      {
-                          "label": string
-                          "data": number
-                      }
-                  ],
-                  "device": {
-                      "name": string,
-                      "uuid": string
-                  },
-                  "attribute": {
-                      "name: string,
-                      "id": string,
-                      "filters": [
-                          "name": string,
-                          "id": number
-                      ]
-                  }
-                }
-            ],
-            'message': 'Get chart response successfully'
-        }
-
-        D. DELETE
-        - Request:
-        DELETE: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
-        headers: {'Authorization': 'Bearer ' + token.access}
-        - Response:
-        {
-            'status': 'OK',
-            'message': 'Delete successfully'
-        }
-
-        E. GETS_EX
-        - Request:
         GETS: /dashboards/dashboard/{dashboardId}/gateways/ex
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams: 
@@ -297,7 +189,7 @@ DETAIL:
             ]
         }
 
-        F. GETS_EX_DETAIL
+        C. GET_DETAIL
         - Request:
         GETS: /dashboards/dashboard/{dashboardId}/gateways/{chartId}/ex
         headers: {'Authorization': 'Bearer ' + token.access}
@@ -345,6 +237,15 @@ DETAIL:
             }
         }
 
+        D. DELETE
+        - Request:
+        DELETE: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
+        headers: {'Authorization': 'Bearer ' + token.access}
+        - Response:
+        {
+            'status': 'OK',
+            'message': 'Delete successfully'
+        }
 
     3. Attributes
 
@@ -434,7 +335,13 @@ DETAIL:
                         'port': int,
                         'name': string,
                         'sensorClass': string,
-                        'gatewayUUID': string
+                        'gatewayUUID': string,
+                        'minmax': [
+                            int
+                        ],
+                        'accuracy': float,
+                        'unit': string,
+                        'format': string
                     },
                     'dataset': [{
                         {
@@ -574,7 +481,13 @@ DETAIL:
                         'port': int,
                         'name': string,
                         'sensorClass': string,
-                        'gatewayUUID': string
+                        'gatewayUUID': string,
+                        'minmax': [
+                            int
+                        ],
+                        'accuracy': float,
+                        'unit': string,
+                        'format': string
                     },
                     'dataset': [{
                         {

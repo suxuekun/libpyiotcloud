@@ -3711,12 +3711,15 @@ class database_client_mongodb:
             filter['number'] = number
             readings = sensorreadings.find(filter)
             #print(readings.count())
-
+            print("Start to read: ")
+            
             begin = datebegin
             end = begin+period
             if readings.count():
                 if period == 5:
                     for reading in readings:
+                        print("Reading: ")
+                        print(reading)
                         # handle case that device has no initial data or has gaps in between
                         while end < dateend:
                             if reading["timestamp"] < end:
@@ -3743,6 +3746,8 @@ class database_client_mongodb:
                                 dataset["data"][0].append(reading["value"])
                                 dataset["data"][1].append(reading["subclass_value"])
                             else:
+                                print("dasdasd das")
+                                print(datetime.fromtimestamp(reading["timestamp"]))
                                 dataset["labels"].append(reading["timestamp"])
                                 if len(dataset["data"]) == 0:
                                     dataset["data"].append([])
@@ -3772,6 +3777,8 @@ class database_client_mongodb:
                     points = []
                     points2 = []
                     for reading in readings:
+                        print("Reading: ")
+                        print(reading)
                         if reading.get("value"):
                             if reading.get("subclass_value"):
                                 #dataset["labels_actual"].append(reading["timestamp"])

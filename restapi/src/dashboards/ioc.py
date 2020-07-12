@@ -3,6 +3,7 @@
 # Import config mongo
 from shared.client.connection.mongo import DefaultMongoConnection
 from shared.client.db.mongo.default import DefaultMongoDB, SensorDataMongoDb
+from shared.client.clients.database_client import db_client
 
 from dashboards.repositories.chart_gateway_repository import ChartGatewayRepository
 from dashboards.repositories.chart_sensor_repository import ChartSensorRepository
@@ -22,6 +23,10 @@ from dashboards.repositories.chart_type_repository import ChartTypeRepository
 
 from dashboards.repositories.sensor_readings_latest_repository import SensorReadingsLatestRepository, ISensorReadingsLatestRepository
 from dashboards.repositories.sensor_repository import SensorRepository
+
+from dashboards.repositories.heart_beat_repository import HeartBeatRepository
+from dashboards.repositories.menos_alert_repository import MenosAlertRepository
+from dashboards.repositories.storage_usage_repository import StorageUsageRepository
 
 #  Get config mongodb
 mongoClient = DefaultMongoDB().conn
@@ -47,13 +52,21 @@ chartTypeRepository = ChartTypeRepository(
 deviceRepository = DeviceRepository(
     mongoclient=mongoClient, db=db, collectionName="devices")
 
-sensorRepository = SensorRepository(mongoclient=mongoClient, db = db, collectionName="sensors")
-sensorReadingsLatestRepository = SensorReadingsLatestRepository(mongoclient=sensorDataMongoClient, db = sensorDataDb, collectionName="sensors_readings_latest")
+sensorRepository = SensorRepository(
+    mongoclient=mongoClient, db=db, collectionName="sensors")
+sensorReadingsLatestRepository = SensorReadingsLatestRepository(
+    mongoclient=sensorDataMongoClient, db=sensorDataDb, collectionName="sensors_readings_latest")
+
+
+heartBeatRepository = HeartBeatRepository(db_client)
+menoAlertRepository = MenosAlertRepository(db_client)
+storageUsageRepository = StorageUsageRepository(db_client)
+
 
 dashboardService = DashboardService(dashboardRepository)
 
 chartGatewayService = ChartGatewayService(
-    dashboardRepository, chartGatewayRepository, attributeRepository, deviceRepository, dashboardService)
+    dashboardRepository, chartGatewayRepository, attributeRepository, deviceRepository, heartBeatRepository, menoAlertRepository, storageUsageRepository, dashboardService)
 
 chartSensorService = ChartSensorService(
     dashboardRepository, chartSensorRepository, attributeRepository, deviceRepository, sensorRepository, sensorReadingsLatestRepository, dashboardService)
@@ -62,8 +75,10 @@ chartSensorService = ChartSensorService(
 def init_chart_gateway_service():
     return chartGatewayService
 
+
 def init_chart_sensor_service():
     return chartSensorService
+
 
 def init_dashboard_service():
     return dashboardService
@@ -83,12 +98,3 @@ def init_sensor_repository():
 
 def get_sensor_repository():
     return sensorRepository
-
-
-
-
-
-
-
-
-

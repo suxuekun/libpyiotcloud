@@ -161,7 +161,7 @@
                           <select style="float: left;"
                                   ng-show="chart.attribute.filters != 0"
                                   ng-model="chart.currentSelectFilter"
-                                  ng-change="getChartGatewayDetail(chart.id, chart.attribute.id, chart.currentSelectFilter.id)"
+                                  ng-change="selectFilter(chart.id, chart.attribute.id, chart.currentSelectFilter.id)"
                                   ng-options="filter.name for filter in chart.attribute.filters">
                                     <option value="{{filter.id}}">{{filter.name}}</option>
                           </select>
@@ -177,8 +177,8 @@
                         <div class="chart-container">
                            <canvas class="chart chart-pie"
                                 ng-show="chart.typeId==0"
-                                chart-data="chart.values"
-                                chart-labels="chart.labels"
+                                chart-data="chart.selectedDataset.data"
+                                chart-labels="chart.selectedDataset.labels"
                                 chart-colors="sensors_datachart_colors_options"
                                 chart-options="sensors_datachart_piechart_sensors_statuses_options">
                           </canvas>
@@ -186,8 +186,8 @@
                         <div class="chart-container" >
                           <canvas class="chart chart-doughnut"
                                 ng-show="chart.typeId==1"
-                                chart-data="chart.values"
-                                chart-labels="chart.labels"
+                                chart-data="chart.selectedDataset.data"
+                                chart-labels="chart.selectedDataset.labels"
                                 chart-colors="sensors_datachart_colors_options_ex"
                                 chart-options="sensors_datachart_piechart_sensors_statuses_options">
                           </canvas>

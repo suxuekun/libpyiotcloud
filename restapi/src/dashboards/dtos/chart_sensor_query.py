@@ -9,7 +9,8 @@ class BaseChartSensorQuery(Model):
     timestamp = IntType()
     points = IntType()
     isMobile = BooleanType()
-
+    timeSpan = IntType()
+    
     def validate(self, partial=False, convert=True, app_data=None, **kwargs):
         super().validate(partial=partial, convert=convert, app_data=app_data, **kwargs)
         if self.points != 30 and self.points != 60:
