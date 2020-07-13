@@ -2040,6 +2040,8 @@ def get_random_data_ex(format, accuracy, min, max):
             return float("{0:.1f}".format(random.uniform(min, max)))
         elif accuracy == 2:
             return float("{0:.2f}".format(random.uniform(min, max)))
+        elif accuracy == 3:
+            return float("{0:.3f}".format(random.uniform(min, max)))
         return random.randint(min, max)
     elif format == "boolean":
         return True if random.randint(0, 1) else False
