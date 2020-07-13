@@ -1973,10 +1973,11 @@ class device:
             for ldsu in ldsus:
                 numdevices = self.device_client.get_obj_numdevices(ldsu["descriptor"]["OBJ"])
                 for x in range(numdevices):
+                    #print("{} {}/{}".format(ldsu["descriptor"]["OBJ"], x, numdevices))
                     descriptor = self.device_client.get_objidx(ldsu["descriptor"]["OBJ"], x)
                     type = self.device_client.get_objidx_type(descriptor)
                     format = self.device_client.get_objidx_format(descriptor)
-                    accuracy = self.device_client.get_objidx_accuracy(descriptor, x)
+                    accuracy = self.device_client.get_objidx_accuracy(descriptor)
                     payload["ldsus"].append({"UID": ldsu["UID"], "SAID": x, "FORMAT": format, "ACCURACY": accuracy})
             try:
                 pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + "download_device_sensor_data"
