@@ -11601,6 +11601,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
 
+    $scope.submitRefresh = function() {
+        $scope.get_lds_bus_sensors();
+    };
 
     $scope.$on('$ionicView.enter', function(e) {
         console.log('enter');
