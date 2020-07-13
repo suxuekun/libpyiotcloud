@@ -1,0 +1,47 @@
+{
+  "OBJ": "32769",
+  "VER": "1.00",
+  "CAP": "1",
+  "SNS": [
+    {
+      "MFI": "Microcchip",
+      "PART": "MCP9600",
+      "REGSIZE": "0",
+      "ADDRESS": "60",
+      "BOMID": "1234",
+      "CLS": "256",
+      "VSPEC": "12345678",
+      "SAID": "0",
+      "UNIT": "C",
+      "FORMAT": "float",
+      "TYPE": "INPUT",
+      "OPTIONS": ["MODE"],
+      "MODE": [
+        {
+          "ID": "0",
+          "Name": "16bit mode",
+          "Min": "-25",
+          "Max": "128",
+          "Accuracy": "3",
+          "Description": ""
+        },
+        {
+          "ID": "1",
+          "Name": "14bit mode",
+          "Min": "-25",
+          "Max": "128",
+          "Accuracy": "3",
+          "Description": ""
+        },
+        {
+          "ID": "2",
+          "Name": "12bit mode",
+          "Min": "-25",
+          "Max": "128",
+          "Accuracy": "3",
+          "Description": ""
+        }
+      ]
+    }
+  ]
+}

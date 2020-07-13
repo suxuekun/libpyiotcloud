@@ -1009,6 +1009,26 @@ angular.module('app.routes', [])
     controller: 'vOCGasCtrl'
   })
 
+  .state('pressure', {
+    url: '/page_pressure',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""		
+},
+    templateUrl: 'templates/pressure.html',
+    controller: 'pressureCtrl'
+  })
+
   .state('display', {
     url: '/page_display',
 	params: {
