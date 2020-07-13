@@ -318,3 +318,20 @@ July 11, 2020
     get_menos_num_notification_by_deviceid_by_currmonth
     get_menos_num_sensordata_by_deviceid_by_currmonth
 
+
+===============================================
+
+July 13, 2020
+
+55. Add STOP and START polling button so its easy to verify that the data graphed is correct.
+    and also to verify historical data.
+
+    So when user is viewing historical data, 
+    user is expected to DISABLE the sensor and STOP polling.
+
+
+56. use multiple threads so API performance is faster. 
+    this is useful when many sensor are added to a dashboard.
+    specially useful since aggregrating data takes time.
+
+    refer to my old dashboard on how to use threads.
