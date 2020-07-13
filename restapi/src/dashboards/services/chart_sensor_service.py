@@ -42,7 +42,8 @@ class ChartSensorService:
     def create(self, dashboardId: str, userId: str, dto: ChartSensorDto):
         try:
             dto.validate()
-            sensor = self.sensorRepository.get_by_source_and_number(dto.source, dto.number)
+            sensor = self.sensorRepository.get_by_source_and_number(
+                dto.source, dto.number)
 
             if sensor is None:
                 return Response.fail("This device was not existed")
@@ -50,8 +51,7 @@ class ChartSensorService:
             # if sensor["enabled"] == 0:
             #     return Response.fail("This device should be enabled")
 
-            sameChart = self.chartRepository.get_same_chart(
-                sensor["_id"])
+            sameChart = self.chartRepository.get_same_chart(dashboardId,sensor["_id"])
 
             if sameChart is not None:
                 return Response.fail("Sorry, This chart should not have same device")
@@ -101,32 +101,34 @@ class ChartSensorService:
             chartEntites = self.chartRepository.gets_charts(
                 dashboardId, userId)
 
+            calculateMultiTimeRange = 1
+            if query.isRealtime == False:
+                calculateMultiTimeRange= query.timeSpan + 1
+            
             sensorIds = []
             # Not have query.chartsId
-
             if len(query.chartsId) == 0:
                 sensorIds = list(map(lambda c: c["deviceId"], chartEntites))
                 sensors = self.sensorRepository.gets_with_ids(ids=sensorIds)
                 if len(sensors) == 0:
                     return Response.fail("Unknown sensors")
-                    
+                
                 lastMinutes = datetime.fromtimestamp(
-                    query.timestamp) - timedelta(minutes=query.minutes)
+                    query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
                 results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
                     sensors, int(lastMinutes.timestamp()), query.timestamp)
 
                 dictSensors = {}
                 for r in results:
                     dictSensors[r.get("sensorId", "")] = r
-                
+
                 response = map_to_charts_sensor_response(
                     charts=chartEntites, dictSensors=dictSensors, query=query)
                 return Response.success(data=response, message="Get chart responses successfully")
 
             dictSelectedMinutesAndChartsId = {}
             for i in range(len(query.selectedMinutes)):
-                dictSelectedMinutesAndChartsId[query.chartsId[i]
-                                               ] = query.selectedMinutes[i]
+                dictSelectedMinutesAndChartsId[query.chartsId[i]] = query.selectedMinutes[i]
 
             selectedSensorIds = []
             selectedCharts = []
@@ -141,11 +143,12 @@ class ChartSensorService:
                     unSelectedCharts.append(chart)
             response = []
             sensors = []
-
+            # Try to get charts with default minutes
             if len(sensorIds) != 0:
                 sensors = self.sensorRepository.gets_with_ids(ids=sensorIds)
                 lastMinutes = datetime.fromtimestamp(
-                    query.timestamp) - timedelta(minutes=query.minutes)
+                    query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
+                    
                 firstResults = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
                     sensors, int(lastMinutes.timestamp()), query.timestamp)
                 results = firstResults
@@ -164,12 +167,11 @@ class ChartSensorService:
 
             maxMinutes = max(query.selectedMinutes)
             lastMinutes = datetime.fromtimestamp(
-                query.timestamp) - timedelta(minutes=maxMinutes)
+                query.timestamp) - timedelta(minutes=maxMinutes * calculateMultiTimeRange)
             secondResults = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
                 selectedSensors, int(lastMinutes.timestamp()), query.timestamp)
             dictSensors = {}
 
-           
             if len(selectedCharts) != len(secondResults):
                 LoggerService().error("Selected Charts does not have the same size", tag=self.tag)
                 return Response.fail("Sorry, there is something wrong")
@@ -181,6 +183,7 @@ class ChartSensorService:
                 itemResponse = map_to_chart_sensor_response(
                     chart, sensor, query, customMinutes=dictSelectedMinutesAndChartsId[chart["_id"]])
                 response.append(itemResponse)
+
             return Response.success(data=response, message="Get chart responses successfully")
 
         except ChartSensorQueryException as e:
@@ -190,12 +193,18 @@ class ChartSensorService:
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong!")
-
+        
     def compare(self, dashboardId: str, userId: str, query: ChartComparisonQuery):
         try:
             query.validate()
 
             chartEntites = self.chartRepository.gets_with_ids(query.chartsId)
+
+            calculateMultiTimeRange = 1
+            if query.isRealtime == False:
+                calculateMultiTimeRange= query.timeSpan + 1
+
+
             sensorIds = list(map(lambda c: c["deviceId"], chartEntites))
 
             # Check sensors has the same sensor class
@@ -211,7 +220,7 @@ class ChartSensorService:
                 i += 1
 
             lastMinutes = datetime.fromtimestamp(
-                query.timestamp) - timedelta(minutes=query.minutes)
+                query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
             seconds = query.minutes * 60
             timeRange = seconds / query.points
             timEnd = datetime.fromtimestamp(
@@ -226,11 +235,12 @@ class ChartSensorService:
 
             response = map_to_charts_sensor_response(
                 charts=chartEntites, dictSensors=dictSensors, query=query)
+
             return Response.success(data=response, message="Get chart responses successfully")
 
         except ChartSensorQueryException as e:
             LoggerService().error(str(e), tag=self.tag)
-            return Response.fail("ChartsId should have not empty and size >= 2")
+            return Response.fail(str(e))
 
         except ModelValidationError as e:
             LoggerService().error(str(e), tag=self.tag)
@@ -247,8 +257,12 @@ class ChartSensorService:
             chartEntity = self.chartRepository.getById(chartId)
             sensor = self.sensorRepository.getById(chartEntity["deviceId"])
 
+            calculateMultiTimeRange = 1
+            if query.isRealtime == False:
+                calculateMultiTimeRange= query.timeSpan + 1
+            
             lastMinutes = datetime.fromtimestamp(
-                query.timestamp) - timedelta(minutes=query.minutes)
+                query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
 
             results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
                 [sensor], int(lastMinutes.timestamp()), query.timestamp)
@@ -270,7 +284,6 @@ class ChartSensorService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
 
-
     def delete_by_deviceId(self, deviceId: str):
         try:
             charts = self.chartRepository.get_chart_by_device(deviceId)
@@ -286,7 +299,7 @@ class ChartSensorService:
             chartsWithDashboards = {}
             for item in chartsWithDashboards:
                 chartsWithDashboard[item["dashboardId"]] = item["_id"]
-                
+
             self.dashboardService.remove_many_charts_sensors_in_many_dashboards(
                 chartsWithDashboards)
             return True
@@ -298,3 +311,16 @@ class ChartSensorService:
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return False
+
+    def delete_by_dashboard(self, dashboardId: str):
+        try:
+            self.chartRepository.delete_many_by_dashboard(dashboardId)
+            return True
+
+        except DeletedException as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, there is something wrong")

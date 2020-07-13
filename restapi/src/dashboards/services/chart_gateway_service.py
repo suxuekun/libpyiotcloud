@@ -120,6 +120,19 @@ class ChartGatewayService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
 
+    def delete_by_dashboard(self, dashboardId: str):
+        try:
+            self.chartRepository.delete_many_by_dashboard(dashboardId)
+            return True
+
+        except DeletedException as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, there is something wrong")
+
     def _check_deviceId_in_list(self, deviceId: str, deviceIds: []):
         for item in deviceIds:
             if item == deviceId:
@@ -130,6 +143,7 @@ class ChartGatewayService:
     def _gets_reports_by_attribute(self, attributeId: int, gatewaysUUID: []):
         if attributeId == ON_OFF_LINE_ID:
             timestamp = int(time.time())
+            print(timestamp)
             reports = self.heartBeatRepository.gets_by_gatewaysId(
                 gatewaysUUID, timestamp)
             return reports
@@ -190,10 +204,12 @@ class ChartGatewayService:
                 dashboardId, userId, chartId)
 
             report = self._gets_reports_by_attribute(
-                chartEntity["attributeId"], chartEntity["deviceId"])
+                chartEntity["attributeId"], [chartEntity["deviceId"]])
+
             dictReports = {
-                "attributeId": [report]
+                chartEntity["attributeId"]: report
             }
+
             response = map_to_chart_gateway_to_response(
                 chartEntity, dictReports, attributes, query)
 

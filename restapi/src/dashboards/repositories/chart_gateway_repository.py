@@ -2,6 +2,7 @@
 from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
 from bson.objectid import ObjectId
+from shared.core.exceptions import DeletedException
 
 
 class IChartGatewayRepository(BaseRepository, IMongoBaseRepository):
@@ -18,6 +19,9 @@ class IChartGatewayRepository(BaseRepository, IMongoBaseRepository):
     def get_chart_by_device(self, deviceId):
         pass
     
+    def delete_many_by_dashboard(self, dashboardId):
+        pass
+
 class ChartGatewayRepository(MongoBaseRepository, IChartGatewayRepository):
 
     def get_charts(self, dashboardId, userId):
@@ -94,7 +98,8 @@ class ChartGatewayRepository(MongoBaseRepository, IChartGatewayRepository):
                     'dashboardId' : 1,
                     'chartTypeId': 1,
                     'attributeId': 1,
-                    'device_info': 1
+                    'device_info': 1,
+                    'deviceId': 1
                 }
             }
            
@@ -121,3 +126,14 @@ class ChartGatewayRepository(MongoBaseRepository, IChartGatewayRepository):
         }
         charts = self.gets(query)
         return charts
+
+    def delete_many_by_dashboard(self, dashboardId):
+        try:
+            query = {
+                "dashboardId": dashboardId
+            }
+            self.collection.delete_many(query)
+            return True
+        except Exception as e:
+            print('get_one', e)
+            raise DeletedException(str(e))

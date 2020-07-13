@@ -9,6 +9,8 @@ from shared.core.exceptions import CreatedExeception, UpdatedException, QueriedB
 from shared.services.logger_service import LoggerService
 from dashboards.utils.mapper_util import map_entities_to_summaries_response, map_entity_to_summary_response
 
+from dashboards.repositories.chart_gateway_repository import ChartGatewayRepository
+from dashboards.repositories.chart_sensor_repository import ChartSensorRepository
 
 class RemovingChartParam:
     chartId: str
@@ -16,8 +18,10 @@ class RemovingChartParam:
 
 
 class DashboardService:
-    def __init__(self, dashboardRepository: IDashboardRepository):
+    def __init__(self, dashboardRepository: IDashboardRepository, chartGatewayRepository: ChartGatewayRepository, chartSensorRepository: ChartSensorRepository):
         self.dashboardRepository = dashboardRepository
+        self.chartGatewayRepository = chartGatewayRepository
+        self.chartSensorRepository = chartSensorRepository
         self.tag = type(self).__name__
 
     def create(self, userId: str, dto: DashboardDto):
@@ -89,6 +93,8 @@ class DashboardService:
     def delete(self, id):
         try:
             self.dashboardRepository.delete(id)
+            self.chartGatewayRepository.delete_many_by_dashboard(id)
+            self.chartSensorRepository.delete_many_by_dashboard(id)
             return Response.success_without_data(message="Delete dashboards successfully")
 
         except DeletedException as e:
@@ -170,7 +176,7 @@ class DashboardService:
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return False
-    
+
     def remove_many_charts_sensors_in_many_dashboards(self, chartWithDashboard: {}):
         try:
             dashboardIds = list(map(lambda chart: chart, chartWithDashboard))

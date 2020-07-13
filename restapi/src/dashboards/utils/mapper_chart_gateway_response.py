@@ -156,6 +156,7 @@ def map_to_chart_gateway_to_web_response(chartGateway, dictReports: {}, attribut
         foundedAttribute)
     report = _found_report_with(
         chartGateway["attributeId"], chartResponse.device.uuid, dictReports)
+
     if chartGateway["attributeId"] == STORAGE_USAGE_ID:
         used = 0
         free = 0
@@ -197,11 +198,15 @@ def map_to_chart_gateway_to_web_response(chartGateway, dictReports: {}, attribut
 
     if chartGateway["attributeId"] == COUNT_OF_ALERTS_ID:
         filters = chartResponse.attribute.filters
+
         chartResponse.datasets = []
         for item in filters:
             sent = 0
             remaining = 100
+
+            print(report)
             valueForTime = report[item["name"]]
+            print(report)
             if valueForTime is not None:
                 sent = valueForTime[SENT_VALUE]
                 remaining = valueForTime[REMAINING_VALUE]
@@ -215,6 +220,7 @@ def map_to_chart_gateway_to_web_response(chartGateway, dictReports: {}, attribut
                     SENT_VALUE, REMAINING_VALUE
                 ]
             }))
+        print(chartResponse.to_primitive())
         return chartResponse.to_primitive()
 
     if chartGateway["attributeId"] == BAND_WIDTH_ID:

@@ -5,7 +5,7 @@ from shared.core.exceptions import QueriedManyException
 
 
 class ISensorReadingsLatestRepository(IMongoBaseRepository):
-    def gets_dataset_with_same_gateway(self, sensors, timestamp):
+    def gets_dataset_with_same_gateway(self, sensors, timestampBegin, timestampEnd):
         pass
 
 
