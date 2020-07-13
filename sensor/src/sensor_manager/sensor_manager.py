@@ -201,9 +201,9 @@ def store_sensor_reading_ex(database_client, username, devicename, deviceid, sou
                         sensor_readings["highest"] = float(value)
                     elif value < sensor_readings["lowest"]:
                         sensor_readings["lowest"] = float(value)
-            #
-            # update latest sensor reading
-            database_client.add_sensor_reading(username, deviceid, source, number, sensor_readings)
+                #
+                # update latest sensor reading
+                database_client.add_sensor_reading(username, deviceid, source, number, sensor_readings)
 
         #
         # update sensor reading with timestamp for charting/graphing
