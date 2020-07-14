@@ -3069,8 +3069,9 @@ def reg_ldsu_descriptors(port=None, as_response=False):
             total_chunks = math.ceil(len(g_ldsu_descriptors)/5)
 
             for x in range(len(g_ldsu_descriptors)):
-                estimated_len = len(json.dumps(ldsu_descriptors)) + len(json.dumps(g_ldsu_descriptors[x])) + len("{value:[]}")
-                if estimated_len < maxchunksize:
+                #estimated_len = len(json.dumps(ldsu_descriptors)) + len(json.dumps(g_ldsu_descriptors[x])) + len("{value:[]}")
+                #if estimated_len < maxchunksize:
+                if len(ldsu_descriptors) < 5:
                     # adding the descriptor will still fit the maxchunksize
                     ldsu_descriptors.append(g_ldsu_descriptors[x])
                     size = len(json.dumps(ldsu_descriptors))
@@ -3081,7 +3082,7 @@ def reg_ldsu_descriptors(port=None, as_response=False):
                         "value": ldsu_descriptors, 
                         "chunk": { "SEQN": str(chunks), "TSEQ": str(total_chunks), "TOT": str(len(g_ldsu_descriptors)) } 
                     }
-                    printf(estimated_len)
+                    #printf(estimated_len)
                     printf(len(json.dumps(payload)))
                     publish(topic, payload)
                     # reset size counter
