@@ -656,8 +656,6 @@ class database_client_mongodb:
             for device in devices.find({'deviceid': deviceid}):
                 new_device = copy.deepcopy(device)
                 new_device['heartbeat'] = int(time.time())
-                if type(new_device['timestamp']) is str:
-                    new_device['timestamp'] = int(new_device['timestamp'])
                 devices.replace_one(device, new_device)
                 return device['heartbeat']
         return None
