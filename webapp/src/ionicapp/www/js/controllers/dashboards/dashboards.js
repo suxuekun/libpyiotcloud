@@ -181,7 +181,7 @@ angular.module('app.dashboardsCtrl', [])
       }
 
       $scope.selectColor = (color) => $scope.selectedColor = color
-      $scope.close = () =>  $state.go('menu.dashboards', {}, {
+      $scope.close = () => $state.go('menu.dashboards', {}, {
         reload: true
       });
       $scope.sensors_datachart_piechart_sensors_statuses_options = {
@@ -619,7 +619,7 @@ angular.module('app.dashboardsCtrl', [])
       console.log("Name: ", $scope.data.name);
       $scope.selectColor = (color) => $scope.data.selectedColor = color
 
-      $scope.close = () =>  $state.go('menu.dashboards', {}, {
+      $scope.close = () => $state.go('menu.dashboards', {}, {
         reload: true
       });
 
@@ -881,9 +881,10 @@ angular.module('app.dashboardsCtrl', [])
         };
       }
 
+
       $scope.nextToSellectionSensor = () => {
         const gatewayName = $scope.selectedGateway.devicename;
-        if (!$scope.selectedGateway.devicename) {
+        if (!gatewayName) {
           $ionicPopup.alert({
             title: 'Select gateway',
             template: 'You have to select one gateway',

@@ -215,7 +215,7 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
     device.name = sensor["name"]
     device.sensorClass = sensor["class"]
     device.gatewayUUID = sensor["gatewayUUID"]
-    device.minmax = list(map(lambda i: int(i), sensor["minmax"]))
+    device.minmax = sensor["minmax"]
     device.accuracy = float(sensor["accuracy"])
     device.unit = sensor["unit"]
     device.format = sensor["format"]

@@ -1,9 +1,8 @@
 from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
 from database import database_client
-from dashboards.utils.pecent_util import get_pecent_by
+from dashboards.utils.percent_util import get_percent_by
 from dashboards.models.gateway_attribute import *
-
 
 class IMenosAlertRepository:
 
@@ -34,9 +33,9 @@ class MenosAlertRepository(IMenosAlertRepository):
                 gatewayUUID)
 
            
-            calculateSMSSent = get_pecent_by(usage_sms, alloc_sms)
-            calculateEmailSent = get_pecent_by(usage_email, alloc_email)
-            calculateNotificationSent = get_pecent_by(
+            calculateSMSSent = get_percent_by(usage_sms, alloc_sms)
+            calculateEmailSent = get_percent_by(usage_email, alloc_email)
+            calculateNotificationSent = get_percent_by(
                 usage_notification, alloc_notification)
 
             newReport[SMS_VALUE] = {

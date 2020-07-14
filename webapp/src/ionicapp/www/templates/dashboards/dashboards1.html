@@ -158,6 +158,7 @@
                           <b>{{dashboard.name}}</b>
                           <p> Gateway Name: <strong>{{chart.deviceName}}</strong></p>
                           <p> Gateway UUID: #<strong>{{chart.deviceUUID}}</strong></p>
+                          <p> Attribute: <strong>{{chart.attribute.name}}</strong></p>
                           <select style="float: left;"
                                   ng-show="chart.attribute.filters != 0"
                                   ng-model="chart.currentSelectFilter"

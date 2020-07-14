@@ -338,7 +338,7 @@ DETAIL:
                         'sensorClass': string,
                         'gatewayUUID': string,
                         'minmax': [
-                            int
+                            string
                         ],
                         'accuracy': float,
                         'unit': string,
@@ -433,7 +433,7 @@ DETAIL:
                         'sensorClass': string,
                         'gatewayUUID': string,
                         'minmax': [
-                            int
+                            string
                         ],
                         'accuracy': float,
                         'unit': string,
@@ -543,7 +543,7 @@ DETAIL:
                         'sensorClass': string,
                         'gatewayUUID': string,
                         'minmax': [
-                            int
+                            string
                         ],
                         'accuracy': float,
                         'unit': string,
