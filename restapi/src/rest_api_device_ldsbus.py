@@ -497,26 +497,49 @@ class device_ldsbus:
                         self.database_client.add_sensor(entityname, devicename, source, number, sensorname, sensor)
 
 
-        # get ldsus and sensors in database
-        ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
-        if len(ldsus):
-            sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+        if portnumber == "0":
+            ldsbus = []
 
-            # get the sensor reading for all enabled sensors
-            for sensor in sensors:
-                if sensor["enabled"]:
-                    reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
-                    if reading:
-                        sensor["readings"] = reading
-        else:
-            sensors = []
-        ldsbus = [
-            {
-                "ldsus": ldsus,
-                "sensors": sensors,
-                "actuators": [],
-            }
-        ]
+            for x in range(3):
+                # get ldsus and sensors in database
+                ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, str(x+1))
+                sensors = self.database_client.get_sensors_by_port(entityname, devicename, str(x+1))
+
+                # get the sensor reading for all enabled sensors
+                for sensor in sensors:
+                    if sensor["enabled"]:
+                        reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
+                        if reading:
+                            sensor["readings"] = reading
+
+                ldsbus.append({
+                    "ldsus": ldsus,
+                    "sensors": sensors,
+                    "actuators": []
+                })
+
+        elif portnumber == "1" or portnumber == "2" or portnumber == "3":
+            # get ldsus and sensors in database
+            ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
+            if len(ldsus):
+                sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+
+                # get the sensor reading for all enabled sensors
+                for sensor in sensors:
+                    if sensor["enabled"]:
+                        reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
+                        if reading:
+                            sensor["readings"] = reading
+            else:
+                sensors = []
+
+            ldsbus = [
+                {
+                    "ldsus": ldsus,
+                    "sensors": sensors,
+                    "actuators": [],
+                }
+            ]
 
 
         msg = {'status': 'OK', 'message': 'LDSBUS triggered scanning successfully.'}

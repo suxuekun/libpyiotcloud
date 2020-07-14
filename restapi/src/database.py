@@ -892,22 +892,18 @@ class database_client:
         try:
             self._devices.delete_device_sensor_reading(deviceid)
         except:
-            print("Error 0")
+            pass
         try:
             self._devices.delete_device_sensor_reading_dataset(deviceid)
         except:
-            print("Error 1")
-        try:
-            print("Set subscription_usage")
-            self._devices.set_subscription_usage(deviceid, 'storage', 0)
-        except:
-            print("Error 2")
             pass
         try:
-            print("Set subscription_usage notice")
+            self._devices.set_subscription_usage(deviceid, 'storage', 0)
+        except:
+            pass
+        try:
             self._devices.set_subscription_notice(deviceid, 'storage', False)
         except:
-            print("Error 3")
             pass
 
     #def delete_user_sensor_reading(self, username):

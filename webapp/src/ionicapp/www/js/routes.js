@@ -7,8 +7,6 @@ angular.module('app.routes', [])
     // Set up the various states which the app can be in.
     // Each state's controller can be found in controllers.js
     $stateProvider
-
-
       .state('home', {
     url: '/page_home',
     templateUrl: 'templates/home.html',
@@ -75,7 +73,6 @@ angular.module('app.routes', [])
         templateUrl: 'templates/dashboards/compareChart.html',
         controller: 'compareChartCtrl'
       })
-
       .state('menu.gateways', {
         url: '/page_devices',
         params: {
@@ -90,7 +87,6 @@ angular.module('app.routes', [])
           }
         }
       })
-
       .state('menu.profile', {
         url: '/page_profile',
         params: {
@@ -1007,6 +1003,26 @@ angular.module('app.routes', [])
 },
     templateUrl: 'templates/vOCGas.html',
     controller: 'vOCGasCtrl'
+  })
+
+  .state('pressure', {
+    url: '/page_pressure',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""
+},
+    templateUrl: 'templates/pressure.html',
+    controller: 'pressureCtrl'
   })
 
   .state('display', {

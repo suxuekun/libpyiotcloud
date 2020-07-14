@@ -221,11 +221,17 @@ July 9, 2020
 
    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
 
+   for example current time is 9:00 and time range is 5 minutes so 9:00 to 9:05
+   if i want to view 855-9:00, i should be able to click some left button to view data from that timespan 
+   if i want to view 850-8:55, i should be able to click some left button twice to view data from that timespan 
+
 35. display latest sensor reading 
 
    (see my implementation in OLD DASHBOARD PAGE on how to support this)
 
-36. fix tooltip to display data, low, high and readable datetime
+    API is returning latest sensor reading but web page not displaying the values yet
+
+36. fix tooltip to display aggregated data, aggregated low, aggregated high and readable datetime
 
    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
 
@@ -258,3 +264,74 @@ July 10, 2020
 42. In sensor compare, when i exit the page, the webapp is still querying the rest api. 
     it should also stop polling after exiting the page. (i clicked X mark at the top left) - CRITICAL
 
+
+===============================================
+
+July 11, 2020
+
+43. aside from sensor["minmax"], API should also return other sensor properties
+
+    sensor["unit"] - unit of measurement (C, %, etc)
+    sensor["format"] - int or float 
+    sensor["accuracy"] - number of decimal places
+
+    the frontend needs this in order to display it
+
+44. data correctness for 5 minutes timerange is OK (but missing the last point - 4 minutes 55 seconds)
+
+45. data correctness for other time ranges have discrepancies with the aggregated data 
+    the aggregated low/high not displayed so cannot easily verify as well
+
+46. compare works 1st time only [CRITICAL]
+    for the 2nd and nth trials, it always fails (no popup error)
+    in the rest api logs, some error 
+        invalid litreral for int() with base 10: undefined
+
+47. no data should not be 0 value. [CRITICAL]
+    the API should return null/None value for no data (and not 0) because 0 is a valid value.
+
+48. when clicking compare,
+    the sensor list does not show the devicename and device id
+
+49. when adding sensor chart, and selected bar chart,
+    only line chart appears
+
+50. when changing time range for a sensor, 
+    the time range often reverts to the previous time range.
+    you have to repeat the process to make sure the time range is in fact changed
+
+51. the line charts have similar color. it would be easier to identify the sensor if the color is different.
+
+52. the color used should be the same color used when comparing the sensors
+
+53. token expiration not handled in dashboard pages.
+    cognito token expires in 1 hour. after 1 hour, the dashboard page no longer works.
+
+54. real time data for Dashboard Gateways still using dummy data. should use the actual data from the database.
+
+    get_num_device_heartbeats_by_timestamp_by_day
+    get_num_device_heartbeats_by_timestamp_by_week
+    get_num_device_heartbeats_by_timestamp_by_month
+
+    get_menos_num_sms_by_deviceid_by_currmonth
+    get_menos_num_email_by_deviceid_by_currmonth
+    get_menos_num_notification_by_deviceid_by_currmonth
+    get_menos_num_sensordata_by_deviceid_by_currmonth
+
+
+===============================================
+
+July 13, 2020
+
+55. Add STOP and START polling button so its easy to verify that the data graphed is correct.
+    and also to verify historical data.
+
+    So when user is viewing historical data, 
+    user is expected to DISABLE the sensor and STOP polling.
+
+
+56. use multiple threads so API performance is faster. 
+    this is useful when many sensor are added to a dashboard.
+    specially useful since aggregrating data takes time.
+
+    refer to my old dashboard on how to use threads.

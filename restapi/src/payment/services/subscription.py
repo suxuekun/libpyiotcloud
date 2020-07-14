@@ -27,6 +27,15 @@ class SubscriptionService(BaseMongoService):
         remove_subs = list(filter(lambda x:not dev_idx.get(x.deviceid),subscriptions))
         return add_devs,remove_subs
 
+    def create_free_sub_for_new_device_by_device_id(self,device_id):
+        one = self.device_repo.get_one({'deviceid':device_id})
+        if one:
+            device_model = DeviceLinkModel(one,strict=False)
+            return self.create_free_sub_for_new_device(device_model)
+        else:
+            return None
+
+
     def create_free_sub_for_new_device(self,device):
         entity = self.model(device.to_primitive(),strict=False)
         freeplan = self.plan_service.get_free_plan()
