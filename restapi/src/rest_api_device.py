@@ -656,16 +656,24 @@ class device:
                     notification = rest_api_utils.utils().build_default_notifications(source, token, self.database_client)
                     if notification is not None:
                         self.database_client.update_device_notification(entityname, devicename, source, notification)
-            except:
-                pass
+            except Exception as e:
+                print("Exception encountered {} update_device_notification".format(e))
+
+            # create free subscription for device
+            try:
+                res = subscription_service.create_free_sub_for_new_device_by_device_id(data["deviceid"])
+                if not res:
+                    print('subscription created failed create_free_sub_for_new_device_by_device_id')
+            except Exception as e:
+                print("Exception encountered {} create_free_sub_for_new_device_by_device_id".format(e))
 
             # send email confirmation
             try:
                 pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + data["deviceid"] + CONFIG_SEPARATOR + "send_device_registration"
                 payload  = json.dumps({"serialnumber": data["serialnumber"], "recipients": [username]})
                 self.messaging_client.publish(pubtopic, payload)
-            except:
-                pass
+            except Exception as e:
+                print("Exception encountered {} publish".format(e))
 
 
             msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
@@ -1978,10 +1986,11 @@ class device:
             for ldsu in ldsus:
                 numdevices = self.device_client.get_obj_numdevices(ldsu["descriptor"]["OBJ"])
                 for x in range(numdevices):
+                    #print("{} {}/{}".format(ldsu["descriptor"]["OBJ"], x, numdevices))
                     descriptor = self.device_client.get_objidx(ldsu["descriptor"]["OBJ"], x)
                     type = self.device_client.get_objidx_type(descriptor)
                     format = self.device_client.get_objidx_format(descriptor)
-                    accuracy = self.device_client.get_objidx_accuracy(descriptor, x)
+                    accuracy = self.device_client.get_objidx_accuracy(descriptor)
                     payload["ldsus"].append({"UID": ldsu["UID"], "SAID": x, "FORMAT": format, "ACCURACY": accuracy})
             try:
                 pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + "download_device_sensor_data"

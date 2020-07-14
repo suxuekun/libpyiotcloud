@@ -177,7 +177,7 @@ SUMMARY:
 
 		//
 		// LDSU DEVICE SENSOR READINGS
-		P. GET LDSU SENSOR READINGS       - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/readings
+		P. GET LDSU DEVICE SENSOR READINGS- GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/readings
 
 
 	6. Device access and control APIs (STATUS, UART, GPIO)

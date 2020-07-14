@@ -106,22 +106,58 @@ def tuple_to_string(timestamp, value):
     return "{},{}\n".format(timestamp, value)
 
 def generate_file(database_client, deviceid, uid, said, format, accuracy):
+    # An excel file can have 1024*1024 rows
+    # Since CSV files can be saved as excel by users, we are truncating the datasets by (1024*1024)-1
+    maxentries = 1048576-1
     contents = tuple_to_string("timestamp", "value")
     dataset = database_client.get_sensor_reading_dataset_by_deviceid(deviceid, uid, said)
+
+    fileno = 0
+    count = 0
     if format == "integer":
         for data in dataset:
             contents += tuple_to_string(data["timestamp"], int(data["value"]))
+
+            # support truncating
+            count += 1
+            if count == maxentries:
+                if fileno:
+                    write_file(deviceid, "{}-{}_{}".format(uid, said, fileno), contents)
+                else:
+                    write_file(deviceid, "{}-{}".format(uid, said), contents)
+                fileno += 1
+                # reset count and contents
+                count = 0
+                contents = tuple_to_string("timestamp", "value")
+
     else:
-        if int(accuracy) == 0:
-            for data in dataset:
-                contents += tuple_to_string(data["timestamp"], int(data["value"]))
-        elif int(accuracy) == 1:
-            for data in dataset:
-                contents += tuple_to_string(data["timestamp"], "{:.1f}".format(data["value"]))
-        else:
-            for data in dataset:
-                contents += tuple_to_string(data["timestamp"], "{:.2f}".format(data["value"]))
-    write_file(deviceid, "{}-{}".format(uid, said), contents)
+        for data in dataset:
+            value = int(data["value"])
+            if int(accuracy) == 1:
+                value = "{:.1f}".format(data["value"])
+            elif int(accuracy) == 2:
+                value = "{:.2f}".format(data["value"])
+            elif int(accuracy) == 3:
+                value = "{:.3f}".format(data["value"])
+            contents += tuple_to_string(data["timestamp"], value)
+
+            # support truncating
+            count += 1
+            if count == maxentries:
+                if fileno:
+                    write_file(deviceid, "{}-{}_{}".format(uid, said, fileno), contents)
+                else:
+                    write_file(deviceid, "{}-{}".format(uid, said), contents)
+                fileno += 1
+                # reset count and contents
+                count = 0
+                contents = tuple_to_string("timestamp", "value")
+
+    if fileno:
+        write_file(deviceid, "{}-{}_{}".format(uid, said, fileno), contents)
+    else:
+        write_file(deviceid, "{}-{}".format(uid, said), contents)
+
 
 def generate_files(database_client, deviceid, ldsus):
     threaded = True

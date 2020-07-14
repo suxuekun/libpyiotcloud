@@ -73,6 +73,7 @@ services:
   #     - CONFIG_USE_MONGODB_PASS
   #     - CONFIG_USE_MONGODB_ATLAS
   #     - CONFIG_USE_DEBUG_MODE
+  #     - CONFIG_USE_HASHKEY_SERIAL_DEVICE
   # webapp:
   #   build: 
   #     context: ./webapp
@@ -141,8 +142,8 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
       - AWS_S3_FILE_SMS_COUNTRY_POINTS
-  invoice:
-    build: ./invoice
+  email:
+    build: ./email
     restart: always
     networks:
       - mydockernet
@@ -188,6 +189,28 @@ services:
       - rabbitmq
       - mongodb
     environment:
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+      - CONFIG_USE_MONGODB_ATLAS
+  download:
+    build: ./download
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_S3_REGION
+      - AWS_S3_BUCKET
+      - AWS_PINPOINT_ID
+      - AWS_PINPOINT_REGION
+      - AWS_PINPOINT_EMAIL
       - CONFIG_USE_ECC
       - CONFIG_USE_MQTT_DEFAULT_USER
       - CONFIG_USE_MQTT_DEFAULT_PASS

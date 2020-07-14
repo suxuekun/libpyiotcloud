@@ -1,5 +1,5 @@
 {
-  "OBJ": "32770",
+  "OBJ": "32771",
   "VER": "1.00",
   "CAP": "0",
   "SNS": [
@@ -64,6 +64,46 @@
           "Max": "1000",
           "Accuracy": "2",
           "Description": ""
+        }
+      ]
+    },
+    {
+      "MFI": "Bosch SensorTec",
+      "PART": "BMP280",
+      "REGSIZE": "0",
+      "ADDRESS": "118",
+      "BOMID": "1234",
+      "CLS": "1792",
+      "VSPEC": "12345678",
+      "SAID": "2",
+      "UNIT": "hPa",
+      "FORMAT": "integer",
+      "TYPE": "INPUT",
+      "OPTIONS": ["MODE"],
+      "MODE": [
+        {
+          "ID": "0",
+          "Name": "16bit mode",
+          "Min": "300",
+          "Max": "1100",
+          "Accuracy": "0",
+          "Description": "Standard resolution"
+        },
+        {
+          "ID": "1",
+          "Name": "18bit mode",
+          "Min": "300",
+          "Max": "1100",
+          "Accuracy": "0",
+          "Description": "High Resolution"
+        },
+        {
+          "ID": "2",
+          "Name": "20bit mode",
+          "Min": "300",
+          "Max": "1100",
+          "Accuracy": "0",
+          "Description": "Ultra high resolution"
         }
       ]
     }
