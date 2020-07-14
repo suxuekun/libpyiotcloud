@@ -335,3 +335,24 @@ July 13, 2020
     specially useful since aggregrating data takes time.
 
     refer to my old dashboard on how to use threads.
+
+
+===============================================
+
+July 14, 2020
+
+57. issue in gateway charts.
+
+    when I added the 1st gateway chart, it appears. no problem.
+
+    when i added the 2nd chart, it does not appear. only the first one appears.
+
+    if i refresh or move to another page and go back, no more charts appear.
+
+    some error logs appear in the rest api - "float division by zero"
+
+
+
+
+
+
