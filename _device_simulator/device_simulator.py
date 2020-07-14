@@ -1464,10 +1464,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_RECEIVE_NOTIFICATION:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        # Notification from another device
-        printf("Notification received from device {}:".format(subpayload["sender"]))
-        printf(subpayload["message"])
-        printf("")
+        process_notification_command(subpayload["message"])
 
     elif api == API_STATUS_NOTIFICATION:
         printf("")
@@ -1852,6 +1849,22 @@ def unplugLDSU(uid):
         saveToLDSFile()
     printf("")
 
+
+###################################################################################
+# Notification commands
+###################################################################################
+
+def process_notification_command(message):
+
+    if not message.startswith("CMD"):
+        return False
+    command_param = message.split(":")
+    action = command_param[1].split("-")[0].strip()
+    if action == "P":
+        g_timer_thread.set_pause(True)
+    elif action == "R":
+        g_timer_thread.set_pause(False)
+    return True
 
 
 ###################################################################################
