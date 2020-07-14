@@ -1,8 +1,9 @@
 from payment.core import payment_client
 from payment.models.device import DeviceLinkModel
-from payment.models.subscription import SubScriptionStatus
+from payment.models.subscription import SubScriptionStatus, SubScriptionCancelReason, NextSubscription
 from shared.client.clients.database_client import db_client
 from shared.simple_api.service import BaseMongoService, throw_bad_db_query
+from shared.utils import timestamp_util
 
 
 class SubscriptionService(BaseMongoService):
@@ -84,7 +85,7 @@ class SubscriptionService(BaseMongoService):
 
     def cancel_subscription_by_bt_id(self,bt_sub_id):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
-        return self.cancel_subscription(sub)
+        return self.cancel_subscription(sub,SubScriptionCancelReason.SYSTEM)
 
     def subscription_recurring_paid_by_bt_id(self,bt_sub_id):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
@@ -98,13 +99,22 @@ class SubscriptionService(BaseMongoService):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
         return self.subscription_recurring_overdue(sub)
 
-    def cancel_subscription(self,subscription):
-        #TODO
-        # subscription.status = SubScriptionStatus.CANCEL
-        pass
+    def cancel_subscription(self,subscription,reason):
+        subscription.status = SubScriptionStatus.CANCEL
+        subscription.cancel_reason = reason
+        subscription.next = next = NextSubscription()
+        next.plan = self.plan_service.get_free_plan()
+        # next_month_first_day = timestamp_util.get_next_month_first_day()
+        next.start = timestamp_util.get_next_month_first_day_timestamp()
+        next.end = timestamp_util.get_last_day_of_month_timestamp(timestamp_util.get_next_month_first_day())
+        next.validate()
+        subscription.validate()
+        res = self.repo.update(subscription._id, subscription.to_primitive())
+        return res
 
     def subscription_recurring_paid(self,subscription):
         #TODO
+
         pass
 
     def subscription_recurring_fail(self,subscription):
