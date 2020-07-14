@@ -139,3 +139,199 @@ June 29, 2020
     - this should return all datasets/datasetsEx for all attributes 
       (ex. for count of alerts, it should return dataset for sms, email, notification in 1 API call)
 
+
+===============================================
+
+July 8, 2020
+
+22. sensors folder still outside of dashboards folder. please put inside dashboards too similar to gateways.
+
+23. Why does the DELETE Chart have query params?
+
+        D. DELETE
+        - Request:
+        DELETE: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
+        headers: {'Authorization': 'Bearer ' + token.access}
+        queryParams:
+            - minutes: int  (optional,)
+            - timestamp: int (optional)
+            - points: int  (optional)
+
+            * Note:
+            - minutes: int  (default = 5 min, should convert hour or day to minutes)
+            - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
+            - points: int  (default = 30, Just use only 30 & 60 points)
+
+24. You committed device secret key again :(
+
+    Please remove device secret key in the device simulator batch file. 
+    Its actually NO LONGER NEEDED in the device simulator. 
+    It is only needed to be set as environment variable in the backend
+
+    So you wont commit the device secret key again 
+
+25. Display the LDSU port and LDSU uuid (See screenshot)
+
+    LDS port = sensor["port"]
+    LDSU uuid = sensor["source"]
+
+26. Popup error appears when im adding sensor chart. 
+
+    Device does not need to be online (See screenshot)
+
+27. Disable NEXT button until the sensors actually appear. 
+    Enable NEXT button only when the sensors actually appear.
+
+28. Change sensor list to table to easily view the list of sensors. (OPTIONAL)
+
+29. after i run the device and enabled the sensor, so i added the chart but the sensor chart did not appear
+    gateways appear but sensor does not appear
+    but the rest api seems to be polled continuously
+
+    only after refreshing does it appears
+
+30. theres a scaling issue with the maximum and minimum
+    the y-axis max and min should be fixed using the sensor["minmax"][0], sensor["minmax"][1]
+
+    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
+31. the legend appears as UNDEFINED. 
+    this is likely because your are providing a single array for data.
+    send ARRAY of ARRAYS instead.
+
+    data, low, high are array of arrays
+    'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]},
+
+    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
+32. when i exit the dashboard page, i see that the REST apis are still getting called. (CRITICAL ISSUE)
+
+    when i exit the page, it should also stop polling.
+
+    (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
+33. after i remove the sensor chart, the API is still getting polled.
+
+
+===============================================
+
+July 9, 2020
+
+34. display historical data (left and right buttons)
+
+   (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
+   for example current time is 9:00 and time range is 5 minutes so 9:00 to 9:05
+   if i want to view 855-9:00, i should be able to click some left button to view data from that timespan 
+   if i want to view 850-8:55, i should be able to click some left button twice to view data from that timespan 
+
+35. display latest sensor reading 
+
+   (see my implementation in OLD DASHBOARD PAGE on how to support this)
+
+    API is returning latest sensor reading but web page not displaying the values yet
+
+36. fix tooltip to display aggregated data, aggregated low, aggregated high and readable datetime
+
+   (see my implementation in OLD DASHBOARD PAGE on how to fix this problem)
+
+
+===============================================
+
+July 10, 2020
+
+37. Gateway label in Sensor Dashboard 
+    - this is not the Gateway UUID, this is the LDSU UUID. Wrong label
+
+38. add gateway name and gateway uuid in sensor charts dashboard
+    - so its easy to know which sensor to enable
+
+39. default should also be 5 minutes so that you dont hide the y-min issue. 
+    you are hiding the y-min issue thats why you change default to 15 minutes
+
+40. major issue, with 5 minutes (no aggregation), the data being graphed is total wrong. 
+
+    it does not match the data in the device simulator
+    when there's no aggregration, the data in the graph should exactly match the one sent by the device
+
+    with my old dashboard, its exactly the same (latest datapoint in graph matches latest data sent by device simulator. 
+    (so there's no issue with the data producer/data storage. the issue is with the data consumer - so its your dashboard)
+
+    no aggregration = no calculation of average, low, high since its the every 60 x 5 == 300 seconds exactly matches with 5 minutes (300 seconds)
+
+41. add dropdown option to select 30 points or 60 points (maybe beside compare button) 
+
+42. In sensor compare, when i exit the page, the webapp is still querying the rest api. 
+    it should also stop polling after exiting the page. (i clicked X mark at the top left) - CRITICAL
+
+
+===============================================
+
+July 11, 2020
+
+43. aside from sensor["minmax"], API should also return other sensor properties
+
+    sensor["unit"] - unit of measurement (C, %, etc)
+    sensor["format"] - int or float 
+    sensor["accuracy"] - number of decimal places
+
+    the frontend needs this in order to display it
+
+44. data correctness for 5 minutes timerange is OK (but missing the last point - 4 minutes 55 seconds)
+
+45. data correctness for other time ranges have discrepancies with the aggregated data 
+    the aggregated low/high not displayed so cannot easily verify as well
+
+46. compare works 1st time only [CRITICAL]
+    for the 2nd and nth trials, it always fails (no popup error)
+    in the rest api logs, some error 
+        invalid litreral for int() with base 10: undefined
+
+47. no data should not be 0 value. [CRITICAL]
+    the API should return null/None value for no data (and not 0) because 0 is a valid value.
+
+48. when clicking compare,
+    the sensor list does not show the devicename and device id
+
+49. when adding sensor chart, and selected bar chart,
+    only line chart appears
+
+50. when changing time range for a sensor, 
+    the time range often reverts to the previous time range.
+    you have to repeat the process to make sure the time range is in fact changed
+
+51. the line charts have similar color. it would be easier to identify the sensor if the color is different.
+
+52. the color used should be the same color used when comparing the sensors
+
+53. token expiration not handled in dashboard pages.
+    cognito token expires in 1 hour. after 1 hour, the dashboard page no longer works.
+
+54. real time data for Dashboard Gateways still using dummy data. should use the actual data from the database.
+
+    get_num_device_heartbeats_by_timestamp_by_day
+    get_num_device_heartbeats_by_timestamp_by_week
+    get_num_device_heartbeats_by_timestamp_by_month
+
+    get_menos_num_sms_by_deviceid_by_currmonth
+    get_menos_num_email_by_deviceid_by_currmonth
+    get_menos_num_notification_by_deviceid_by_currmonth
+    get_menos_num_sensordata_by_deviceid_by_currmonth
+
+
+===============================================
+
+July 13, 2020
+
+55. Add STOP and START polling button so its easy to verify that the data graphed is correct.
+    and also to verify historical data.
+
+    So when user is viewing historical data, 
+    user is expected to DISABLE the sensor and STOP polling.
+
+
+56. use multiple threads so API performance is faster. 
+    this is useful when many sensor are added to a dashboard.
+    specially useful since aggregrating data takes time.
+
+    refer to my old dashboard on how to use threads.

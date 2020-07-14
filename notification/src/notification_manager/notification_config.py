@@ -39,3 +39,6 @@ class config:
     CONFIG_MONGODB_TB_I2CSENSORS       = "sensors"
     CONFIG_MONGODB_TB_NOTIFICATIONS    = "sensors_notifications"
     CONFIG_MONGODB_TB_MENOS            = "sensors_menos"
+
+    CONFIG_MONGODB_TB_PAYMENTSUBSCRIPTION = "payment_subscription"
+

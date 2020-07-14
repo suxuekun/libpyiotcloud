@@ -523,7 +523,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_RECEIVE_SENSOR_READING:
         pass
 
-    elif api == "asdasdjhadkjasd":
+    elif api == "asdasdjhadkjasd": # obsoleted
         global start_timeX
         #printf(time.time())
         printf(time.time()-start_timeX)
@@ -1528,31 +1528,36 @@ def handle_api(api, subtopic, subpayload):
                 source = ldsu["UID"]
                 number = int(ldsu["SAID"])
                 mode = int(ldsu["MODE"])
-                g_ldsu_properties[source][number]["enabled"] = ldsu["enabled"]
-                g_ldsu_properties[source][number]["mode"] = mode
 
-                if g_ldsu_properties[source][number].get("attributes") is None:
-                    # get OBJ given UID
-                    obj = None
-                    for ldsu_descriptor in g_ldsu_descriptors:
-                        if ldsu_descriptor["UID"] == source:
-                            obj = ldsu_descriptor["OBJ"]
-                            break
-                    # get classname, minmax (given OBJ and number)
-                    descriptor = g_device_client.get_objidx(obj, number)
-                    classname = g_device_client.get_objidx_class(descriptor)
-                    min,max = g_device_client.get_objidx_minmax(descriptor, mode)
-                    format = g_device_client.get_objidx_format(descriptor)
-                    type = g_device_client.get_objidx_type(descriptor)
-                    accuracy = g_device_client.get_objidx_accuracy(descriptor)
-                    g_ldsu_properties[source][number]["attributes"] = {}
-                    g_ldsu_properties[source][number]["attributes"]["class"] = classname
-                    g_ldsu_properties[source][number]["attributes"]["minmax"] = [min,max]
-                    g_ldsu_properties[source][number]["attributes"]["format"] = format
-                    g_ldsu_properties[source][number]["attributes"]["type"] = type
-                    g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
-                    #print(g_ldsu_properties[source][number])
+                try:
+                    g_ldsu_properties[source][number]["enabled"] = ldsu["enabled"]
+                    g_ldsu_properties[source][number]["mode"] = mode
 
+                    if g_ldsu_properties[source][number].get("attributes") is None:
+                        # get OBJ given UID
+                        obj = None
+                        for ldsu_descriptor in g_ldsu_descriptors:
+                            if ldsu_descriptor["UID"] == source:
+                                obj = ldsu_descriptor["OBJ"]
+                                break
+                        # get classname, minmax (given OBJ and number)
+                        descriptor = g_device_client.get_objidx(obj, number)
+                        classname = g_device_client.get_objidx_class(descriptor)
+                        min,max = g_device_client.get_objidx_minmax(descriptor, mode)
+                        format = g_device_client.get_objidx_format(descriptor)
+                        type = g_device_client.get_objidx_type(descriptor)
+                        accuracy = g_device_client.get_objidx_accuracy(descriptor)
+                        g_ldsu_properties[source][number]["attributes"] = {}
+                        g_ldsu_properties[source][number]["attributes"]["class"] = classname
+                        g_ldsu_properties[source][number]["attributes"]["minmax"] = [min,max]
+                        g_ldsu_properties[source][number]["attributes"]["format"] = format
+                        g_ldsu_properties[source][number]["attributes"]["type"] = type
+                        g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
+                        #print(g_ldsu_properties[source][number])
+
+                except Exception as e:
+                    print(e)
+                    print("{} {} {}".format(source, number, mode))
             #printf_json(g_ldsu_properties[source])
 
         # UART
@@ -2035,6 +2040,8 @@ def get_random_data_ex(format, accuracy, min, max):
             return float("{0:.1f}".format(random.uniform(min, max)))
         elif accuracy == 2:
             return float("{0:.2f}".format(random.uniform(min, max)))
+        elif accuracy == 3:
+            return float("{0:.3f}".format(random.uniform(min, max)))
         return random.randint(min, max)
     elif format == "boolean":
         return True if random.randint(0, 1) else False

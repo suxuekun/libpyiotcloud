@@ -23,6 +23,10 @@
 		{
 			"AttributeName":    "motion detection",
 			"AttributeID":      "0x0500"
+		},
+		{
+			"AttributeName":    "pressure",
+			"AttributeID":      "0x0700"
 		}
 	]
 }

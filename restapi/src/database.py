@@ -558,13 +558,28 @@ class database_client:
 
 
     def get_menos_num_sms_by_deviceid_by_currmonth(self, deviceid):
-        return self._devices.get_menos_num_sms(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        usage = self._devices.get_subscription_usage(deviceid)
+        allocation = self._devices.get_subscription_allocation(deviceid)
+        if usage and allocation:
+            return usage["sms"], allocation["sms"]
+        return "0", "0"
+        #return self._devices.get_menos_num_sms(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
     def get_menos_num_email_by_deviceid_by_currmonth(self, deviceid):
-        return self._devices.get_menos_num_email(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        usage = self._devices.get_subscription_usage(deviceid)
+        allocation = self._devices.get_subscription_allocation(deviceid)
+        if usage and allocation:
+            return usage["email"], allocation["email"]
+        return "0", "0"
+        #return self._devices.get_menos_num_email(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
     def get_menos_num_notification_by_deviceid_by_currmonth(self, deviceid):
-        return self._devices.get_menos_num_notification(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        usage = self._devices.get_subscription_usage(deviceid)
+        allocation = self._devices.get_subscription_allocation(deviceid)
+        if usage and allocation:
+            return usage["notification"], allocation["notification"]
+        return "0", "0"
+        #return self._devices.get_menos_num_notification(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
     def get_menos_num_device_by_deviceid_by_currmonth(self, deviceid):
         return self._devices.get_menos_num_device(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
@@ -573,10 +588,20 @@ class database_client:
         return self._devices.get_menos_num_storage(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
     def get_menos_num_sensordata_by_deviceid_by_currmonth(self, deviceid):
-        bytes = self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
-        if bytes:
-            return bytes, self.bytes_to_kilobytes(bytes), self.bytes_to_megabytes(bytes), self.bytes_to_gigabytes(bytes)
-        return 0, 0, 0, 0
+        usage = self._devices.get_subscription_usage(deviceid)
+        allocation = self._devices.get_subscription_allocation(deviceid)
+        if usage and allocation:
+            if usage["storage"]:
+                _gb = float(usage["storage"])
+                _mb = config.CONFIG_KILOBYTE_CONVERSION * _gb
+                _kb = config.CONFIG_KILOBYTE_CONVERSION * _mb
+                _bytes = config.CONFIG_KILOBYTE_CONVERSION * _kb
+                return str(_bytes), str(_kb), str(_mb), usage["storage"], allocation["storage"]
+        return "0", "0", "0", "0", "0"
+        #bytes = self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        #if bytes:
+        #    return bytes, self.bytes_to_kilobytes(bytes), self.bytes_to_megabytes(bytes), self.bytes_to_gigabytes(bytes)
+        #return 0, 0, 0, 0
 
 
     ##########################################################
@@ -856,8 +881,22 @@ class database_client:
 
     def delete_device_sensor_reading(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_device_sensor_reading(deviceid)
-        self._devices.delete_device_sensor_reading_dataset(deviceid)
+        try:
+            self._devices.delete_device_sensor_reading(deviceid)
+        except:
+            pass
+        try:
+            self._devices.delete_device_sensor_reading_dataset(deviceid)
+        except:
+            pass
+        try:
+            self._devices.set_subscription_usage(deviceid, 'storage', 0)
+        except:
+            pass
+        try:
+            self._devices.set_subscription_notice(deviceid, 'storage', False)
+        except:
+            pass
 
     #def delete_user_sensor_reading(self, username):
     #    self._devices.delete_user_sensor_reading(username)
@@ -2364,6 +2403,51 @@ class database_client_mongodb:
                     size += len(str(item))
                 print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
         return size
+
+
+    ##########################################################
+    # subscription
+    ##########################################################
+
+    def get_subscription_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_PAYMENTSUBSCRIPTION]
+
+    def get_subscription_allocation(self, deviceid):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                return subscription['current']['plan']
+        return None
+
+    def get_subscription_usage(self, deviceid):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                return subscription["current"]
+        return None
+
+    def set_subscription_usage(self, deviceid, menos_type, new_usage):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                subscription["current"][menos_type] = str(new_usage)
+                devicesubscription.replace_one({'deviceid': deviceid}, subscription)
+                break
+
+    def set_subscription_notice(self, deviceid, menos_type, flag):
+        devicesubscription = self.get_subscription_document()
+        if devicesubscription:
+            for subscription in devicesubscription.find({ 'deviceid': deviceid }):
+                if subscription["current"].get("notice") is None:
+                    subscription["current"]["notice"] = {
+                        "sms": False,
+                        "email": False,
+                        "notification": False,
+                        "storage": False,
+                    }
+                subscription["current"]["notice"][menos_type] = flag
+                devicesubscription.replace_one({'deviceid': deviceid}, subscription)
+                break
 
 
     ##########################################################

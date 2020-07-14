@@ -13,36 +13,47 @@
     },
     {
       "IID": "11246",
-      "PORT": "1",
-      "DID": "1",
-      "PRV": "1.0",
-      "MFG": "DDMMYYYY",
-      "SNO": "BRT12345",
-      "UID": "BRTXXXXXXXXXXXXX",
-      "NAME": "Air Quality Sensor",
-      "OBJ": "32770"
-    },
-    {
-      "IID": "12345",
       "PORT": "2",
       "DID": "1",
       "PRV": "1.0",
       "MFG": "DDMMYYYY",
       "SNO": "BRT12345",
       "UID": "BRTXXXXXXXXXXXXX",
-      "NAME": "BRT 4-in-1 Sensor",
-      "OBJ": "32768"
+      "NAME": "Air Quality Sensor Type-A",
+      "OBJ": "32770"
     },
     {
-      "IID": "11246",
-      "PORT": "3",
+      "IID": "11247",
+      "PORT": "2",
       "DID": "1",
       "PRV": "1.0",
       "MFG": "DDMMYYYY",
       "SNO": "BRT12345",
       "UID": "BRTXXXXXXXXXXXXX",
-      "NAME": "Air Quality Sensor",
-      "OBJ": "32770"
+      "NAME": "Air Quality Sensor Type-B",
+      "OBJ": "32771"
+    },
+    {
+      "IID": "11248",
+      "PORT": "2",
+      "DID": "1",
+      "PRV": "1.0",
+      "MFG": "DDMMYYYY",
+      "SNO": "BRT12345",
+      "UID": "BRTXXXXXXXXXXXXX",
+      "NAME": "Air Quality Sensor Type-C",
+      "OBJ": "32772"
+    },
+    {
+      "IID": "11249",
+      "PORT": "2",
+      "DID": "1",
+      "PRV": "1.0",
+      "MFG": "DDMMYYYY",
+      "SNO": "BRT12345",
+      "UID": "BRTXXXXXXXXXXXXX",
+      "NAME": "Air Quality Sensor Type-D",
+      "OBJ": "32773"
     }
   ]
 }

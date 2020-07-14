@@ -458,21 +458,21 @@ table, th, td {
 	0% {
 		-webkit-transform: rotate(0deg);
 	}
-	
+
 	100% {
 		-webkit-transform: rotate(360deg);
 	}
-	
+
 }
 @keyframes spin {
 	0% {
 		transform: rotate(0deg);
 	}
-	
+
 	100% {
 		transform: rotate(360deg);
 	}
-	
+
 }
 .item-online {
 	color: green;
@@ -512,6 +512,6 @@ ui-gmap-google-map {
 		.angular-google-map-container {
 			height: 100%;
 		}
-		
+
 	}
 }

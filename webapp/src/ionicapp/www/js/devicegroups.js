@@ -71,9 +71,10 @@ angular.module('devicegroups', [])
                 })
                 .then(function (result) {
                     console.log(result.data);
-                    return result.data.devicegroups;
+                    return result;
                 })
                 .catch(function (error) {
+                    console.log(error.data);
                     if (error.data !== null) {
                         console.log("ERROR: Get Device Groups failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
                         
@@ -119,6 +120,7 @@ angular.module('devicegroups', [])
                 return result;
             })
             .catch(function (error) {
+                console.log(error.data);
                 if (error.data !== null) {
                     console.log("ERROR: Get Device Group failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
                     
@@ -156,9 +158,10 @@ angular.module('devicegroups', [])
             })
             .then(function (result) {
                 console.log(result.data);
-                return result.data.devicegroup.devices;
+                return result;
             })
             .catch(function (error) {
+                console.log(error.data);
                 if (error.data !== null) {
                     console.log("ERROR: Get Device Group failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
                     
@@ -196,9 +199,10 @@ angular.module('devicegroups', [])
             })
             .then(function (result) {
                 console.log(result.data);
-                return result.data.devices;
+                return result;
             })
             .catch(function (error) {
+                console.log(error.data);
                 if (error.data !== null) {
                     console.log("ERROR: Get Device Group failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
                     
@@ -236,9 +240,10 @@ angular.module('devicegroups', [])
             })
             .then(function (result) {
                 console.log(result.data);
-                return result.data;
+                return result;
             })
             .catch(function (error) {
+                console.log(error.data);
                 if (error.data !== null) {
                     console.log("ERROR: Get Mixed devices failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
                     

@@ -106,22 +106,58 @@ def tuple_to_string(timestamp, value):
     return "{},{}\n".format(timestamp, value)
 
 def generate_file(database_client, deviceid, uid, said, format, accuracy):
+    # An excel file can have 1024*1024 rows
+    # Since CSV files can be saved as excel by users, we are truncating the datasets by (1024*1024)-1
+    maxentries = 1048576-1
     contents = tuple_to_string("timestamp", "value")
     dataset = database_client.get_sensor_reading_dataset_by_deviceid(deviceid, uid, said)
+
+    fileno = 0
+    count = 0
     if format == "integer":
         for data in dataset:
             contents += tuple_to_string(data["timestamp"], int(data["value"]))
+
+            # support truncating
+            count += 1
+            if count == maxentries:
+                if fileno:
+                    write_file(deviceid, "{}-{}_{}".format(uid, said, fileno), contents)
+                else:
+                    write_file(deviceid, "{}-{}".format(uid, said), contents)
+                fileno += 1
+                # reset count and contents
+                count = 0
+                contents = tuple_to_string("timestamp", "value")
+
     else:
-        if int(accuracy) == 0:
-            for data in dataset:
-                contents += tuple_to_string(data["timestamp"], int(data["value"]))
-        elif int(accuracy) == 1:
-            for data in dataset:
-                contents += tuple_to_string(data["timestamp"], "{:.1f}".format(data["value"]))
-        else:
-            for data in dataset:
-                contents += tuple_to_string(data["timestamp"], "{:.2f}".format(data["value"]))
-    write_file(deviceid, "{}-{}".format(uid, said), contents)
+        for data in dataset:
+            value = int(data["value"])
+            if int(accuracy) == 1:
+                value = "{:.1f}".format(data["value"])
+            elif int(accuracy) == 2:
+                value = "{:.2f}".format(data["value"])
+            elif int(accuracy) == 3:
+                value = "{:.3f}".format(data["value"])
+            contents += tuple_to_string(data["timestamp"], value)
+
+            # support truncating
+            count += 1
+            if count == maxentries:
+                if fileno:
+                    write_file(deviceid, "{}-{}_{}".format(uid, said, fileno), contents)
+                else:
+                    write_file(deviceid, "{}-{}".format(uid, said), contents)
+                fileno += 1
+                # reset count and contents
+                count = 0
+                contents = tuple_to_string("timestamp", "value")
+
+    if fileno:
+        write_file(deviceid, "{}-{}_{}".format(uid, said, fileno), contents)
+    else:
+        write_file(deviceid, "{}-{}".format(uid, said), contents)
+
 
 def generate_files(database_client, deviceid, ldsus):
     threaded = True
@@ -187,36 +223,15 @@ def upload_zipfile(zip_file, contents):
         pass
     return None
 
-def construct_invoice_message(name, email, url, devicename, deviceid):
-    message =  "Hi {},\r\n\r\n\r\n".format(name)
-
-    message += "Sensor data for device {} with UUID {} is now available.\r\n".format(devicename, deviceid)
-    message += "Click the link below to download.\r\n\r\n"
-    message += url
-    message += "\r\n\r\n"
-
-    message += "\r\nBest Regards,\r\n"
-    message += "Bridgetek Pte. Ltd.\r\n"
-    return message
-
-def send_email(name, email, url, devicename, deviceid):
-    try:
-        message = construct_invoice_message(name, email, url, devicename, deviceid)
-        client = pinpoint_client()
-        client.initialize()
-        response = client.send_message(email, message)
-    except Exception as e:
-        print(e)
-        return False
-
-    try:
-        result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][email]["StatusCode"]==200
-        print("DOWNLOAD {} {} {} [{}]".format(email, deviceid, url, result))
-    except Exception as e:
-        print(e)
-        return False
-
-    return result
+def send_sensordata_download_link(messaging_client, name, email, url, devicename, deviceid):
+    topic = "{}{}{}{}send_sensordata_download_link".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR)
+    payload = { 
+        "name": name, 
+        "url": url, 
+        "devicename": devicename,
+        "recipients": [email]
+    }
+    messaging_client.publish(topic, json.dumps(payload), False)
 
 def download_device_sensor_data(database_client, deviceid, topic, payload):
     start_time = time.time()
@@ -242,7 +257,7 @@ def download_device_sensor_data(database_client, deviceid, topic, payload):
         if contents:
             url = upload_zipfile(zip_file, contents)
             if url:
-                send_email(payload["name"], payload["email"], url, payload["devicename"], deviceid)
+                send_sensordata_download_link(g_messaging_client, payload["name"], payload["email"], url, payload["devicename"], deviceid)
 
     delete_folder(deviceid)
     delete_zipfile(deviceid)

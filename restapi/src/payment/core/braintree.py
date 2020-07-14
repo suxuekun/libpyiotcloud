@@ -29,7 +29,6 @@ class BrainTreeClient(PaymentClient):
         return self.gateway.transaction.find(tid)
     
     def create_transaction(self, amount, payment_method_token, descriptor=None, device_data = None,submit = True):
-        str(Decimal(amount))
         options = {
             'amount': two_decimal_str(amount),
             'payment_method_token': payment_method_token,

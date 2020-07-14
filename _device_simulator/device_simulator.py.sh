@@ -23,12 +23,12 @@
 #
 ##########################################################
 
-DEVICE_ID="PH80XXRR06262017"
-DEVICE_SECRETKEY="warol8fmesdl23pse039tfyawetagtoi"
+DEVICE_ID=""
+DEVICE_SECRETKEY=""
 
 # For new devices
-DEVICE_SERIAL="00023"
-DEVICE_MACADD="CD:76:27:15:F9:56"
+DEVICE_SERIAL=""
+DEVICE_MACADD=""
 
 # For existing devices (backward compatibility)
 USER=""

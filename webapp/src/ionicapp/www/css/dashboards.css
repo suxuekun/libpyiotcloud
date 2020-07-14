@@ -125,12 +125,23 @@ hr {
 
 .dashboard-border {
   border: 1px solid #ccc!important;
+  background-color: #fff;
+  overflow: hidden;
+  margin: 20px 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .dashboard-container {
-  padding: 20px;
+  padding: 10px;
 }
 
 .dashboard-round-border {
-  border-radius: 5px;
+
+  border-radius: 2px;
+}
+
+
+.page_width_medium_dashboard {
+	max-width: 1000px;
+	margin: 0% auto;
 }

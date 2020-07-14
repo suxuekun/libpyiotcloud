@@ -99,7 +99,7 @@ class DashboardService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
 
-    def remove_chartId(self, dashboardId: str, chartId: str):
+    def remove_chart_gateway(self, dashboardId: str, chartId: str):
         try:
             entity = self.dashboardRepository.getById(dashboardId)
             dashboard = Dashboard.to_domain(entity)
@@ -117,8 +117,44 @@ class DashboardService:
             LoggerService().error(str(e), tag=self.tag)
             return False
 
+    def add_chart_gateway(self, dashboardId: str, chartId: str):
+
+        try:
+            dashboardEntity = self.dashboardRepository.getById(dashboardId)
+            dashoard = Dashboard.to_domain(dashboardEntity)
+            dashoard.add_chart_gateway(chartId)
+
+            self.dashboardRepository.update(
+                dashboardId, dashoard.model.to_primitive())
+
+        except UpdatedException as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+
+    def add_chart_sensor(self, dashboardId: str, chartId: str):
+
+        try:
+            dashboardEntity = self.dashboardRepository.getById(dashboardId)
+            dashoard = Dashboard.to_domain(dashboardEntity)
+            dashoard.add_chart_sensor(chartId)
+
+            self.dashboardRepository.update(
+                dashboardId, dashoard.model.to_primitive())
+
+        except UpdatedException as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+
     #  Param chartWithDashboard
-    def remove_many_charts_in_many_dashboards(self, chartWithDashboard: {}):
+    def remove_many_charts_gateways_in_many_dashboards(self, chartWithDashboard: {}):
         try:
             dashboardIds = list(map(lambda chart: chart, chartWithDashboard))
             entities = self.dashboardRepository.gets_with_ids(dashboardIds)
@@ -131,6 +167,43 @@ class DashboardService:
             self.dashboardRepository.update_many(dashboardIds, list(
                 map(lambda d: d.model.to_primitive, dashboards)))
             return True
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+    
+    def remove_many_charts_sensors_in_many_dashboards(self, chartWithDashboard: {}):
+        try:
+            dashboardIds = list(map(lambda chart: chart, chartWithDashboard))
+            entities = self.dashboardRepository.gets_with_ids(dashboardIds)
+
+            dashboards = list(map(lambda e: Dashboard.to_domain(e), entities))
+            for dashboard in dashboards:
+                dashboard.remove_chart_sensor(
+                    chartWithDashboard.get(dashboard._id))
+
+            self.dashboardRepository.update_many(dashboardIds, list(
+                map(lambda d: d.model.to_primitive, dashboards)))
+            return True
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+
+    def remove_chart_sensor(self, dashboardId: str, chartId: str):
+        try:
+            entity = self.dashboardRepository.getById(dashboardId)
+            dashboard = Dashboard.to_domain(entity)
+            dashboard.remove_chart_sensor(chartId)
+
+            print("Update remove chart Sensor: ")
+            print(dashboard.model.to_primitive())
+            self.dashboardRepository.update(
+                dashboardId, dashboard.model.to_primitive())
+            return True
+
+        except UpdatedException as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
+
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return False
