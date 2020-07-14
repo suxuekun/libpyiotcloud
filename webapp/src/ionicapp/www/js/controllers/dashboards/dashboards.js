@@ -530,7 +530,7 @@ angular.module('app.dashboardsCtrl', [])
       };
 
       buildChartsIdQueryParams = () => {
-        let minutesParams = "&selected_minutues=";
+        let minutesParams = "&selected_minutes=";
         let chartIdsParams = "&chartsId=";
 
         for (let index = 0; index < chartIdsQueryParams.length; index++) {

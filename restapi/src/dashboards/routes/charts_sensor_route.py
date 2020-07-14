@@ -53,7 +53,7 @@ def gets(dashboardId: str):
     query.selectedMinutes = []
     query.chartsId = []
 
-    selectedMinutes = queryParams.get("selected_minutues", "")
+    selectedMinutes = queryParams.get("selected_minutes", "")
     if selectedMinutes != "":
         parseSelectedMinutes = selectedMinutes.split(',')
         query.selectedMinutes = list(
