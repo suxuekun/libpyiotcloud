@@ -39,15 +39,21 @@ class device_peripheral_properties:
         self.messaging_requests = messaging_requests
 
 
-    def is_message_list_valid(self, notification):
+    def is_message_list_valid(self, notification, isuart=False):
         max_message_len = 100
 
         # check message parameters
         if notification.get("messages") is None:
             return False
         messages = notification["messages"]
-        if len(messages) != 2:
-            return False
+        if isuart:
+            if len(messages) != 1:
+                print("uart messages should be 1")
+                return False
+        else:
+            if len(messages) != 2:
+                print("ldsu messages should be 2")
+                return False
 
         # check if the messages are valid if enabled
         for message in messages:
@@ -417,7 +423,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'At least one of the device/devicegroup is not valid. All device/devicegroup recipients should be valid.'})
             print('\r\nERROR Set Uart: Device/device group list is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
-        if not self.is_message_list_valid(notification):
+        if not self.is_message_list_valid(notification, True):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the alert messages is not valid. All alert messages should be valid.'})
             print('\r\nERROR Set Uart: Alert messages is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
