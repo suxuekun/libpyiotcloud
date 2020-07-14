@@ -1,5 +1,5 @@
 ;(function(_global){
-    var app = _global.app
+    var app = angular.module('payments.service', [])
     app
     .service('BraintreePayment', ['$http', 'Server', 'User' ,
         function($http,Server,User){

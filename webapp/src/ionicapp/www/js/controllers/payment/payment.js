@@ -1,5 +1,5 @@
 ;(function(_global){
-	app = _global.app
+	var app = angular.module('app.paymentCtrl', [])
 
 	// function getHeader(User){
 	// 	return {'Authorization': 'Bearer ' + User.get_token().access}
