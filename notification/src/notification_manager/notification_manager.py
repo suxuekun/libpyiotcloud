@@ -352,10 +352,11 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
         # Device
         #
 
-        modem = notification["endpoints"]["modem"]
         isgroup = False
-        if modem.get("isgroup") is not None:
-            isgroup = modem["isgroup"]
+        if notification:
+            modem = notification["endpoints"]["modem"]
+            if modem.get("isgroup") is not None:
+                isgroup = modem["isgroup"]
 
         recipients = recipient.split(",")
         for x in range(len(recipients)):
@@ -381,7 +382,6 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
                         result = send_notification_device(messaging_client, deviceid, deviceid_recipient, message_updated)
                         print("{}: {} [{} {}] {}".format(deviceid, type_str, len(deviceid_recipient), len(message_updated), result ))
                         g_database_client.add_menos_transaction(username, deviceid, deviceid_recipient, message_updated, type_str, source.upper(), number, timestamp, condition, result)
-
 
     elif type == notification_types.STORAGE:
         #

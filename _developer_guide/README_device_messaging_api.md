@@ -273,9 +273,9 @@ DETAILED:
 		   - AT+N (Notification)
 		   - AT+O (mOdem)
 		           AT+O
-		           AT+O+DEVICEID
+		           AT+O+DEVICENAME
 		           AT+O++Hello World
-		           AT+O+DEVICEID+Hello World
+		           AT+O+DEVICENAME+Hello World
 		   - AT+S (Storage)
 		   - AT+D (Default)
 		           AT+D
