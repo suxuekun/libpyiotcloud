@@ -1,6 +1,4 @@
-;(function(_global){
-    var app = _global.app
-    app
+angular.module('payments.service', [])
     .service('BraintreePayment', ['$http', 'Server', 'User' ,
         function($http,Server,User){
             var ret = {
@@ -66,7 +64,5 @@
             };
             return ret;
         }]);
-
-}(window))
 
 

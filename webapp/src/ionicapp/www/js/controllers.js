@@ -1,8 +1,5 @@
-;(function(_global){
+var app = angular.module('app.controllers', []);
 
-app = angular.module('app.controllers', [])
-
-_global.app = app
 
 app
 .controller('homeCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -25377,5 +25374,4 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };  
 }])
 
-}(window))
  
