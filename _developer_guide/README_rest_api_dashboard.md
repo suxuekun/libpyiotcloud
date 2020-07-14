@@ -18,8 +18,6 @@ SUMMARY:
         B. GETS                            - GET    /dashboards/dashboard/{dashboardId}/gateways
         C. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}/gateways/{chartId}
         D. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}/gateways/{chartId}
-        E. GETS_EX                         - GET    /dashboards/dashboard/{dashboardId}/gateways/ex
-        F. GETS_EX_DETAIL                  - GET    /dashboards/dashboard/{dashboardId}/gateways/{chartId}/ex
         
     3. Gateway Attritubes:
 
@@ -143,113 +141,7 @@ DETAIL:
        
         B. GETS
         - Request:
-        GET: /dashboards/dashboard/{dashboardId}/gateways
-        headers: {'Authorization': 'Bearer ' + token.access}
-        queryParams:
-            - attributeId: string
-            - filterId: string, # get from attribute.filters
-            * Example:
-                /dashboards/{dashboardId}/gateways?attributeId=1&filterId=0
-            * Note:
-                attributeId & filterId get from api (3)
-        - Response:
-        {
-            'status': 'OK',
-            'data': [
-                {
-                  "id": string,
-                  "chartTypeId": number,
-                  "datasets": [
-                      {
-                        "labels": [string]
-                        "data": [number]
-                      }
-                  ],
-                  "datasetsEx": [
-                      {
-                          "label": string
-                          "data": number
-                      }
-                  ],
-                  "device": {
-                      "name": string,
-                      "uuid": string
-                  },
-                  "attribute": {
-                      "name: string,
-                      "id": string,
-                      "filters": [
-                          "name": string,
-                          "id": number
-                      ]
-                  }
-                }
-            ],
-            'message': 'Get chart responses successfully'
-        }
-
-        C. GET
-        - Request:
-        GET: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
-        headers: {'Authorization': 'Bearer ' + token.access}
-        queryParams:
-            - attributeId: string
-            - filterId: string, # get from attribute.filters 
-
-            * Example:
-                /dashboards/dashboard/{dashboardId}/gateways/{chartId}?attributeId=1&filterId=0
-            * Note:
-                attributeId & filterId get from api (3)
-
-        - Response:
-        {
-            'status': 'OK',
-            'data':
-                {
-                  "id": string,
-                  "chartTypeId": number,
-                  "datasets": [
-                      {
-                        "labels": [string]
-                        "data": [number]
-                      }
-                  ],
-                  "datasetsEx": [
-                      {
-                          "label": string
-                          "data": number
-                      }
-                  ],
-                  "device": {
-                      "name": string,
-                      "uuid": string
-                  },
-                  "attribute": {
-                      "name: string,
-                      "id": string,
-                      "filters": [
-                          "name": string,
-                          "id": number
-                      ]
-                  }
-                }
-            ],
-            'message': 'Get chart response successfully'
-        }
-
-        D. DELETE
-        - Request:
-        DELETE: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
-        headers: {'Authorization': 'Bearer ' + token.access}
-        - Response:
-        {
-            'status': 'OK',
-            'message': 'Delete successfully'
-        }
-
-        E. GETS_EX
-        - Request:
-        GETS: /dashboards/dashboard/{dashboardId}/gateways/ex
+        GETS: /dashboards/dashboard/{dashboardId}/gateways
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams: 
             - mobile: true or false (default=false, optional)
@@ -297,9 +189,9 @@ DETAIL:
             ]
         }
 
-        F. GETS_EX_DETAIL
+        C. GET_DETAIL
         - Request:
-        GETS: /dashboards/dashboard/{dashboardId}/gateways/{chartId}/ex
+        GETS: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams: 
             - mobile: true or false (default=false, optional)
@@ -345,6 +237,15 @@ DETAIL:
             }
         }
 
+        D. DELETE
+        - Request:
+        DELETE: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
+        headers: {'Authorization': 'Bearer ' + token.access}
+        - Response:
+        {
+            'status': 'OK',
+            'message': 'Delete successfully'
+        }
 
     3. Attributes
 
@@ -370,7 +271,6 @@ DETAIL:
             id: 2 => Count of alerts
             id: 3 => Upload bandwidth consumption
 
-
     4. Sensors
 
         A. CREATE
@@ -394,22 +294,24 @@ DETAIL:
         GET: /dashboards/dashboard/{dashboardId}/sensors
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
-            - minutes: int  (optional,)
+            - minutes: int (optional, default = 5, descriptions: value should in 5, 15, 30, 60, 1440, 10080)
             - timestamp: int (optional)
-            - points: int  (optional)
+            - points: int  (optional, descriptions: value should in 30 or 60)
             - mobile: true or false (default=false, optional)    
-            - selected_minutes: string  (optional, description:)
+            - selected_minutes: string  (optional)
             - chartsId: string  (optional)
+            - realtime (optional, default=true, description: if value is false, old data of historical will appear)
+            - timespan (optional, default=1, max=3, 
+                description: if value is 3, old data of historical will have datasets of three part of previous time. For example: current time is 9:00. timespan is 3, so api will reponse dataset for 8:50 - 8:55, 8:45 - 8:50, 8:40 - 8:45)
 
             * Note:
             - minutes: int  (default = 5 min, should convert hour or day to minutes)
             - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
-            - points: int  (default = 30, Just use only 30 & 60 points)
             - selected_minutes: string (example: &selected_minutues=15,30) 
             - chartsId: string (example: &chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2 )  
+            - timespan only work when realtime is false
 
         selected_minutes & chartsId shoulb be the same size and match index together
-
         For Example: &selected_minutues=15,30&chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2
             - chartId: 5f04962217e8e565d1fd4adf select time range is 15 minutes
             - chartId: 5f04966117e8e565d1fd4ae2 select time range is 30 minutes
@@ -434,24 +336,54 @@ DETAIL:
                         'port': int,
                         'name': string,
                         'sensorClass': string,
-                        'gatewayUUID': string
+                        'gatewayUUID': string,
+                        'minmax': [
+                            string
+                        ],
+                        'accuracy': float,
+                        'unit': string,
+                        'format': string
                     },
-                    'dataset': [{
+                    'datasets': [
                         {
-                            data: [float],
-                            lables: [int],
-                            low: [float],
-                            high: [float]
+                            'data': [float],
+                            'lables': [int],
+                            'low': [float],
+                            'high': [float]
                         }
-                    }],
-                    'datasetsEx': [{ (#if mobile is false)
+                    ],
+                    'oldDatasets': [ (#if realtime is false)
                         {
-                           x: int,
-                           y: float,
-                           high: float,
-                           low: float
+                            'data': [float],
+                            'lables': [int],
+                            'low': [float],
+                            'high': [float],
+                            'fromTimestamp': int,
+                            'toTimestamp': int
                         }
-                    }],
+                    ]
+                    'datasetsEx': [ (#if mobile is false)
+                        {
+                           'x': int,
+                           'y': float,
+                           'high': float,
+                           'low': float
+                        }
+                    ],
+                    'oldDatasetsEx': [ (#if mobile is false && realtime is false)
+                        {
+                           'datasets': [
+                               {
+                                    'x': int,
+                                    'y': float,
+                                    'high': float,
+                                    'low': float
+                               }
+                           ],
+                            'fromTimestamp': int,
+                            'toTimestamp': int
+                        }
+                    ],
                     'readings: [
                         {
                             highest: float,
@@ -469,15 +401,17 @@ DETAIL:
         GET: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
-            - minutes: int  (optional,)
+            - minutes: int (optional, default = 5, descriptions: value should in 5, 15, 30, 60, 1440, 10080)
             - timestamp: int (optional)
-            - points: int  (optional)
+            - points: int  (optional, descriptions: value should in 30 or 60)
             - mobile: true or false (default=false, optional)
-
+            - realtime (optional, default=true, description: if value is false, old data of historical will appear)
+            - timespan (optional, default=1, max=3, 
+                description: if value is 3, old data of historical will have datasets of three part of previous time. For example: current time is 9:00. timespan is 3, so api will reponse dataset for 8:50 - 8:55, 8:45 - 8:50, 8:40 - 8:45)
             * Note:
             - minutes: int  (default = 5 min, should convert hour or day to minutes)
             - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
-            - points: int  (default = 30, Just use only 30 & 60 points)
+            - timespan only work when realtime is false
 
         Example request: /dashboards/dashboard/5ef998655de8966f2de5064e/sensors/5efc2c38cc25092a0c952291?minutes=5&points=30
         
@@ -497,24 +431,54 @@ DETAIL:
                         'port': int,
                         'name': string,
                         'sensorClass': string,
-                        'gatewayUUID': string
+                        'gatewayUUID': string,
+                        'minmax': [
+                            string
+                        ],
+                        'accuracy': float,
+                        'unit': string,
+                        'format': string
                     },
-                    'dataset': [{
+                    'datasets': [
                         {
-                            data: [float],
-                            lables: [int],
-                            low: [float],
-                            high: [float]
+                            'data': [float],
+                            'lables': [int],
+                            'low': [float],
+                            'high': [float]
                         }
-                    }],
-                    'datasetsEx': [{ (#if mobile is false)
+                    ],
+                    'oldDatasets': [ (#if realtime is false)
                         {
-                           x: int,
-                           y: float,
-                           high: float,
-                           low: float
+                            'data': [float],
+                            'lables': [int],
+                            'low': [float],
+                            'high': [float],
+                            'fromTimestamp': int,
+                            'toTimestamp': int
                         }
-                    }],
+                    ]
+                    'datasetsEx': [ (#if mobile is false)
+                        {
+                           'x': int,
+                           'y': float,
+                           'high': float,
+                           'low': float
+                        }
+                    ],
+                    'oldDatasetsEx': [ (#if mobile is false && realtime is false)
+                        {
+                           'datasets': [
+                               {
+                                    'x': int,
+                                    'y': float,
+                                    'high': float,
+                                    'low': float
+                               }
+                           ],
+                            'fromTimestamp': int,
+                            'toTimestamp': int
+                        }
+                    ],
                     'readings: [
                         {
                             highest: float,
@@ -549,13 +513,16 @@ DETAIL:
             - points: int  (optional)
             - chartsId: string (require, max = 3, min = 2)
             - mobile: true or false (default=false, optional)
+            - realtime (optional, default=true, description: if value is false, old data of historical will appear)
+            - timespan (optional, default=1, max=3, 
+                description: if value is 3, old data of historical will have datasets of three part of previous time. For example: current time is 9:00. timespan is 3, so api will reponse dataset for 8:50 - 8:55, 8:45 - 8:50, 8:40 - 8:45)    
 
             * Note:
             - minutes: int  (default = 5 min, should convert hour or day to minutes)
             - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
-            - points: int  (default = 30, Just use only 30 & 60 points)
             - chartsId: string (example: &chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2 )
-
+            - timespan only work when realtime is false
+            
         Example request:
         /dashboards/dashboard/5ef998655de8966f2de5064e/sensors/comparison?chartsId=5efc2c38cc25092a0c952291,5efc3128c6c8bd539d036f28
 
@@ -574,24 +541,54 @@ DETAIL:
                         'port': int,
                         'name': string,
                         'sensorClass': string,
-                        'gatewayUUID': string
+                        'gatewayUUID': string,
+                        'minmax': [
+                            string
+                        ],
+                        'accuracy': float,
+                        'unit': string,
+                        'format': string
                     },
-                    'dataset': [{
+                    'datasets': [
                         {
-                            data: [float],
-                            lables: [int],
-                            low: [float],
-                            high: [float]
+                            'data': [float],
+                            'lables': [int],
+                            'low': [float],
+                            'high': [float]
                         }
-                    }],
-                    'datasetsEx': [{ (#if mobile is false)
+                    ],
+                    'oldDatasets': [ (#if realtime is false)
                         {
-                           x: int,
-                           y: float,
-                           high: float,
-                           low: float
+                            'data': [float],
+                            'lables': [int],
+                            'low': [float],
+                            'high': [float],
+                            'fromTimestamp': int,
+                            'toTimestamp': int
                         }
-                    }],
+                    ]
+                    'datasetsEx': [ (#if mobile is false)
+                        {
+                           'x': int,
+                           'y': float,
+                           'high': float,
+                           'low': float
+                        }
+                    ],
+                    'oldDatasetsEx': [ (#if mobile is false && realtime is false)
+                        {
+                           'datasets': [
+                               {
+                                    'x': int,
+                                    'y': float,
+                                    'high': float,
+                                    'low': float
+                               }
+                           ],
+                            'fromTimestamp': int,
+                            'toTimestamp': int
+                        }
+                    ],
                     'readings: [
                         {
                             highest: float,

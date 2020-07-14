@@ -11,6 +11,7 @@ from dashboards.routes.sensors_route import sensors_blueprint
 
 class DashboardsApp:
 
+
     def __init__(self, app):
         app.register_blueprint(charts_gateway_blueprint, url_prefix='/dashboards/dashboard/<dashboardId>/gateways')
         app.register_blueprint(charts_sensor_blueprint, url_prefix='/dashboards/dashboard/<dashboardId>/sensors')

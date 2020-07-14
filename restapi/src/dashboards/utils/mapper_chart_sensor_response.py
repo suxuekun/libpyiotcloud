@@ -7,56 +7,57 @@ import statistics
 def setup_empty_int_arrays(size: int):
     arrays = []
     for i in range(size):
-        arrays.append(0)
+        arrays.append(None)
     return arrays
 
 
 def setup_empty_mobile_dataset_sensor_response(size: int):
     arrays = []
     for i in range(size):
-        item = MobileDatasetSensorResponse()
-        item.x = 0
-        item.y = 0
-        item.low = 0
-        item.y = 0
+        item = MobileDatasetsSensorResponse()
+        item.x = None
+        item.y = None
+        item.low = None
+        item.y = None
         arrays.append(item)
     return arrays
 
 
-def map_to_sensor_dataset_mobile(dataset, query: ChartSensorQuery, customMinutes: int = 0):
+def map_to_sensor_dataset_mobile(dataset, points: int, timestamp: int, minutes: int, customMinutes: int = 0):
 
     defaultTimeRangeInSecond = 5
-    minutes = query.minutes
+    minutes = minutes
     if customMinutes != 0:
         minutes = customMinutes
 
-    seconds = query.minutes * 60
-    timeRange = seconds / query.points
+    seconds = minutes * 60
+    timeRange = seconds / points
     timeStart = datetime.fromtimestamp(
-        query.timestamp) - timedelta(minutes=minutes)
+        timestamp) - timedelta(minutes=minutes)
     timeEnd = timeStart + timedelta(seconds=timeRange)
 
     datasetResponse = []
-    for index in range(query.points):
+    totalPoints = points + 1
+    for index in range(totalPoints):
 
-        item = MobileDatasetSensorResponse()
+        item = MobileDatasetsSensorResponse()
         item.x = int(timeStart.timestamp())
         pointsValue = find_value_with_timestamp_in_range(
-            dataset, int(timeStart.timestamp()), int(timeEnd.timestamp()))
+            dataset, timeStart)
 
         if len(pointsValue) > 0:
             if minutes == 5:
-                data[index] = get_value_when_minutues_is_five(pointsValue)
-                low[index] = 0
-                high[index] = 0
+                item.y= get_value_when_minutues_is_five(pointsValue)
+                item.low = None
+                item.high = None
             else:
-                data[index] = round(statistics.mean(pointsValue), 2)
-                low[index] = min(pointsValue)
-                high[index] = max(pointsValue)
+                item.y = round(statistics.mean(pointsValue), 2)
+                item.low = min(pointsValue)
+                item.high = max(pointsValue)
         else:
-            item.y = 0
-            item.low = 0
-            item.high = 0
+            item.y = None
+            item.low = None
+            item.high = None
 
         # Renew plan for timeStart and timeEnd
         timeStart = timeEnd
@@ -65,59 +66,66 @@ def map_to_sensor_dataset_mobile(dataset, query: ChartSensorQuery, customMinutes
 
     return datasetResponse
 
-def map_to_sensor_dataset(dataset, query: ChartSensorQuery, customMinutes: int = 0):
+
+def map_to_sensor_dataset(dataset, points: int, timestamp: int, minutes: int, customMinutes: int = 0):
 
     defaultTimeRangeInSecond = 5
 
-    minutes = query.minutes
+    minutes = minutes
     if customMinutes != 0:
         minutes = customMinutes
 
     seconds = minutes * 60
-    timeRange = seconds / query.points
+    timeRange = seconds / points
     timeStart = datetime.fromtimestamp(
-        query.timestamp) - timedelta(minutes=minutes)
+        timestamp) - timedelta(minutes=minutes)
     timeEnd = timeStart + timedelta(seconds=timeRange)
 
-    data = setup_empty_int_arrays(query.points)
-    low = setup_empty_int_arrays(query.points)
-    high = setup_empty_int_arrays(query.points)
+    # points is 30 => 31 points
+    totalPoints = points + 1
+    data = setup_empty_int_arrays(totalPoints)
+    low = setup_empty_int_arrays(totalPoints)
+    high = setup_empty_int_arrays(totalPoints)
     timeArrays = []
 
-    for index in range(query.points):
+    for index in range(totalPoints):
         timeArrays.append(int(timeStart.timestamp()))
         pointsValue = find_value_with_timestamp_in_range(
-            dataset, int(timeStart.timestamp()), int(timeEnd.timestamp()))
+            dataset, timeStart)
 
-        if len(pointsValue):
+        if len(pointsValue) > 0:
             if minutes == 5:
                 data[index] = get_value_when_minutues_is_five(pointsValue)
-                low[index] = 0
-                high[index] = 0
+                low[index] = None
+                high[index] = None
             else:
                 data[index] = round(statistics.mean(pointsValue), 2)
                 low[index] = min(pointsValue)
                 high[index] = max(pointsValue)
-
         # Renew plan for timeStart and timeEnd
         timeStart = timeEnd
         timeEnd = timeStart + timedelta(seconds=timeRange)
 
-    datasetResponse = DatasetSensorResponse()
+    datasetResponse = DatasetsSensorResponse()
     datasetResponse.data = data
     datasetResponse.low = low
     datasetResponse.high = high
     datasetResponse.labels = timeArrays
+
     return datasetResponse
 
-def find_value_with_timestamp_in_range(readings, timeStart: int, timeEnd: int):
+
+def find_value_with_timestamp_in_range(datasets, timeStart):
     values = []
-    for reading in readings:
-        if reading["timestamp"] >= timeStart and reading["timestamp"] <= timeEnd:
-            values.append(reading["value"])
+    timePreviors = (timeStart - timedelta(seconds=5)).timestamp()
+    timeNext = (timeStart + timedelta(seconds=5)).timestamp()
+    for dataset in datasets:
+        if dataset["timestamp"] >= timePreviors and dataset["timestamp"] <= timeNext:
+            values.append(dataset["value"])
         else:
-            if reading["timestamp"] > timeEnd:
+            if dataset["timestamp"] > timeNext:
                 return values
+
     return values
 
 
@@ -126,17 +134,74 @@ def get_value_when_minutues_is_five(values: []):
     if len(values) == 0:
         return 0
 
-    # It'mean time range is 10 seconds has 2 value, we will get lastest value
-    if len(values) == 2:
-        return values[1]
-
+    # It'mean time range is 10 seconds has 2 value, we will get first value
     return values[0]
 
 
-def map_to_charts_sensor_response(charts, dictSensors: {}, query: ChartSensorQuery):
+def map_to_charts_sensor_response(charts, dictSensors: {}, query: ChartSensorQuery, customMinutes: int = 0):
+
     response = list(map(lambda chart: map_to_chart_sensor_response(
-        chart, dictSensors.get(chart.get("deviceId")), query), charts))
+        chart, dictSensors.get(chart.get("deviceId")), query, customMinutes=customMinutes), charts))
     return response
+
+
+def map_to_old__datasets_mobile_response(dataset, query: ChartSensorQuery, customMinutes: int = 0):
+    print("Start to map mobile response")
+
+    calculateTimeRange = query.timeSpan + 1
+    listTimestamp = []
+
+    minutes = query.minutes
+    if customMinutes != 0:
+        minutes = customMinutes
+
+    for i in range(calculateTimeRange):
+        if i > 0:
+            previousTimestamp = (datetime.fromtimestamp(
+                query.timestamp) - timedelta(minutes=minutes*i)).timestamp()
+            listTimestamp.append(int(previousTimestamp))
+
+    oldDatasets = []
+    for timestamp in listTimestamp:
+        datasets = map_to_sensor_dataset_mobile(
+            dataset, query.points, timestamp, query.minutes, customMinutes=customMinutes)
+        
+        fromTimestamp = (datetime.fromtimestamp(timestamp) -
+                       timedelta(minutes=minutes)).timestamp()
+        oldDataset = OldMobileDatasetSensorResponse.create(
+            fromTimestamp, timestamp, datasets)
+        oldDatasets.append(oldDataset)
+
+    return oldDatasets
+
+
+def map_to_old_datasets_web_response(dataset, query: ChartSensorQuery, customMinutes: int = 0):
+
+    calculateTimeRange = query.timeSpan + 1
+    listTimestamp = []
+
+    minutes = query.minutes
+    if customMinutes != 0:
+        minutes = customMinutes
+
+    for i in range(calculateTimeRange):
+        if i > 0:
+            previousTimestamp = (datetime.fromtimestamp(
+                query.timestamp) - timedelta(minutes=minutes*i)).timestamp()
+            listTimestamp.append(int(previousTimestamp))
+
+    oldDatasets = []
+
+    for timestamp in listTimestamp:
+        datasets = map_to_sensor_dataset(
+            dataset, query.points, timestamp, query.minutes, customMinutes=customMinutes)
+
+        fromTimestamp = (datetime.fromtimestamp(timestamp) -
+                       timedelta(minutes=minutes)).timestamp()
+        oldDataset = OldDatasetSensorResponse.create(
+            fromTimestamp, timestamp, datasets)
+        oldDatasets.append(oldDataset)
+    return oldDatasets
 
 
 def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customMinutes: int = 0) -> SensorResponse:
@@ -150,6 +215,10 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
     device.name = sensor["name"]
     device.sensorClass = sensor["class"]
     device.gatewayUUID = sensor["gatewayUUID"]
+    device.minmax = sensor["minmax"]
+    device.accuracy = float(sensor["accuracy"])
+    device.unit = sensor["unit"]
+    device.format = sensor["format"]
 
     sensorReadings = sensor["sensor_readings"]
     readingsResponse = ReadingSensorResponse()
@@ -167,6 +236,7 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
     if customMinutes != 0:
         minutes = customMinutes
 
+    # Mobile response
     if query.isMobile:
         mobileResponse = MobileChartSensorResponse()
         mobileResponse.selectedMinutes = minutes
@@ -175,12 +245,18 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
         mobileResponse.device = device
         mobileResponse.readings = readingsResponse
         mobileResponse.datasetsEx = []
+        print(" OK la map ")
         if sensor["dataset"] is not None:
-            mobileResponse.datasetsEx = (
-                map_to_sensor_dataset_mobile(sensor["dataset"], query, minutes))
-
+            mobileResponse.datasetsEx = map_to_sensor_dataset_mobile(
+                sensor["dataset"], query.points, query.timestamp, query.minutes, customMinutes=minutes)
+            if query.isRealtime == False:
+                print("OKdas d asdss das das ad")
+                mobileResponse.oldDatasetsEx = map_to_old__datasets_mobile_response(
+                    sensor["dataset"], query, customMinutes=minutes)
+        
         return mobileResponse.to_primitive()
 
+    # Web Response
     response = WebChartSensorResponse()
     response.id = chart["_id"]
     response.chartTypeId = chart["chartTypeId"]
@@ -188,11 +264,13 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
     response.readings = readingsResponse
     response.selectedMinutes = minutes
 
-    dataset = DatasetSensorResponse()
+    datasets = DatasetsSensorResponse()
     if sensor["dataset"] is not None:
-        dataset = map_to_sensor_dataset(
-            sensor["dataset"], query, customMinutes=minutes)
+        datasets = map_to_sensor_dataset(
+            sensor["dataset"], query.points, query.timestamp, query.minutes, customMinutes=minutes)
 
-    response.dataset = dataset
+    response.datasets = datasets
+    if query.isRealtime == False:
+        response.oldDatasets = map_to_old_datasets_web_response(sensor["dataset"], query, customMinutes=minutes)
 
     return response.to_primitive()

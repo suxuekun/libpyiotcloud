@@ -23,7 +23,7 @@ angular.module('app.dashboardsCtrl', [])
 
       $scope.$on("$ionicView.beforeLeave", function () {
         console.log("Clear timer");
-        clearInterval(timerChartSensor);
+        stopTimeChartSensor();
       });
 
       // Init life cycle
@@ -89,9 +89,12 @@ angular.module('app.dashboardsCtrl', [])
       }
 
       $scope.viewDetail = (dashboard) => {
+        stopTimeChartSensor();
+        $scope.chartsGatewaysView = [];
+        $scope.sensorsView = [];
         $scope.dashboardDetail = dashboard;
         $scope.selectedColor = $scope.dashboardDetail.color ? `${$scope.dashboardDetail.color}` : defaultColor;
-        switch($scope.activeTab) {
+        switch ($scope.activeTab) {
           case 0:
             getChartGateways();
             return;
@@ -99,7 +102,6 @@ angular.module('app.dashboardsCtrl', [])
             getChartSensors();
             return;
         }
-
       }
 
       // Init private functions
@@ -155,7 +157,8 @@ angular.module('app.dashboardsCtrl', [])
       ];
 
       $scope.chartsGateways = [];
-      $scope.chartsGatewaysView = []
+      $scope.chartsGatewaysView = [];
+      $scope.sensorsView = [];
       $scope.activeTab = 0
       $scope.tabLength = 2
       $scope.changeActiveTab = (index) => {
@@ -165,15 +168,22 @@ angular.module('app.dashboardsCtrl', [])
           startTimeChartSensor();
           return;
         }
-        clearInterval(timerChartSensor);
+        stopTimeChartSensor();
       }
       const startTimeChartSensor = () => {
         timerChartSensor = setInterval(() => {
           getChartSensors();
         }, 5000);
       }
+
+      const stopTimeChartSensor = () => {
+        clearInterval(timerChartSensor);
+      }
+
       $scope.selectColor = (color) => $scope.selectedColor = color
-      $scope.close = () => $state.go('menu.dashboards')
+      $scope.close = () => $state.go('menu.dashboards', {}, {
+        reload: true
+      });
       $scope.sensors_datachart_piechart_sensors_statuses_options = {
         "legend": {
           "display": true,
@@ -182,21 +192,30 @@ angular.module('app.dashboardsCtrl', [])
         "animation": true,
       };
 
+      $scope.selectFilter = (chartId, attributeId, filterId) => {
+        console.log("OK Try to test: " + chartId + "dsdasdas -- " + filterId);
+        const index = $scope.chartsGatewaysView.findIndex((c) => c.id == chartId);
+        chart = $scope.chartsGatewaysView[index];
+        const datasetIndex = chart.datasets.findIndex((d) => d.filterId == filterId);
+        chart.selectedDataset = chart.datasets[datasetIndex];
+
+      };
 
       mappingChartGatewayToView = (c) => {
-        const labels = c.datasets.labels;
-        const values = c.datasets.data;
+        const selectedDataset = c.datasets[0];
+        const datasets = c.datasets;
         return {
-          "labels": labels,
-          "values": values,
-          "deviceName": c.device.name,
-          "id": c.id,
-          "deviceUUID": c.device.uuid,
-          "typeId": c.chartTypeId,
-          "attribute": c.attribute,
-          "currentSelectFilter": c.attribute.filters.length > 0 ? c.attribute.filters[0] : {}
+          datasets: datasets,
+          selectedDataset: selectedDataset,
+          deviceName: c.device.name,
+          id: c.id,
+          deviceUUID: c.device.uuid,
+          typeId: c.chartTypeId,
+          attribute: c.attribute,
+          currentSelectFilter: c.attribute.filters.length > 0 ? c.attribute.filters[0] : {}
         }
       }
+
       getChartGateways = () => {
         $http({
             method: 'GET',
@@ -280,7 +299,7 @@ angular.module('app.dashboardsCtrl', [])
       }
 
       addNewChartSensor = () => {
-        clearInterval(timerChartSensor);
+        stopTimeChartSensor();
         const params = {
           'dashboard': $scope.dashboardDetail,
           'dashboardId': $scope.dashboardDetail.id
@@ -338,10 +357,6 @@ angular.module('app.dashboardsCtrl', [])
           ]
         });
       }
-
-      $scope.selectFilter = (chartId, filterId) => {
-        console.log("OK Try to test: " + chartId + "dsdasdas -- " + filterId);
-      };
 
       getSensorColor = (sensorClass) => {
         switch (sensorClass) {
@@ -429,20 +444,21 @@ angular.module('app.dashboardsCtrl', [])
       }
 
       mapDataToSensorViews = (sensors) => {
+        console.log("Charts: ", sensors);
         const result = sensors.map(c => {
-          const dataset = c.dataset;
-          labels = dataset.labels.map((timestamp) => {
+          const datasets = c.datasets;
+          labels = datasets.labels.map((timestamp) => {
             const date = new Date(timestamp * 1000);
             return ('0' + date.getHours()).slice(-2) +
               ":" + ('0' + date.getMinutes()).slice(-2) + ":" +
               ('0' + date.getSeconds()).slice(-2);
           });
           const lowAndHighs = [];
-          for (let index = 0; index < dataset.high.length; index++) {
+          for (let index = 0; index < datasets.high.length; index++) {
             const item = {
               "ticks": {
-                "max": parseFloat(dataset.high[index]),
-                "min": parseFloat(dataset.low[index]),
+                "max": parseFloat(datasets.high[index]),
+                "min": parseFloat(datasets.low[index]),
               }
             };
             lowAndHighs.push(item)
@@ -450,7 +466,7 @@ angular.module('app.dashboardsCtrl', [])
           return {
             selectedTimes: selectedTimes,
             currentSelectTime: getSelectedTime(c.selectedMinutes),
-            data: [dataset.data],
+            data: [datasets.data],
             labels: labels,
             device: c.device,
             id: c.id,
@@ -482,7 +498,6 @@ angular.module('app.dashboardsCtrl', [])
             }
           }
         });
-        console.log("Result sensor: ", result);
         return result;
       };
 
@@ -508,6 +523,10 @@ angular.module('app.dashboardsCtrl', [])
           minutes: minutes,
           chartId: chartId
         });
+        stopTimeChartSensor();
+        getChartSensors();
+        startTimeChartSensor();
+
       };
 
       buildChartsIdQueryParams = () => {
@@ -543,9 +562,7 @@ angular.module('app.dashboardsCtrl', [])
           })
           .then(function (result) {
             const charts = result.data.data
-            $scope.sensors = charts;
             $scope.sensorsView = mapDataToSensorViews(charts);
-            console.log("Chart Sensors: ", charts);
           })
           .catch(function (error) {
             console.log(error);
@@ -572,7 +589,7 @@ angular.module('app.dashboardsCtrl', [])
         $state.go('compareChartSensor', params, {
           reload: true
         });
-        clearInterval(timerChartSensor);
+        stopTimeChartSensor();
       }
 
     }
@@ -602,7 +619,9 @@ angular.module('app.dashboardsCtrl', [])
       console.log("Name: ", $scope.data.name);
       $scope.selectColor = (color) => $scope.data.selectedColor = color
 
-      $scope.close = () => $state.go('menu.dashboards')
+      $scope.close = () => $state.go('menu.dashboards', {}, {
+        reload: true
+      });
 
       $scope.save = () => {
         const request = {
@@ -643,7 +662,9 @@ angular.module('app.dashboardsCtrl', [])
 
       const server = Server.rest_api;
       let dashboard = $stateParams.dashboard;
-      $scope.close = () => $state.go('menu.dashboards')
+      $scope.close = () => $state.go('menu.dashboards', {}, {
+        reload: true
+      })
       $scope.currentStep = 0;
 
       $scope.data = {
@@ -828,16 +849,17 @@ angular.module('app.dashboardsCtrl', [])
   .controller('addNewChartSensorCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User',
     function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
       const server = Server.rest_api;
-      $scope.close = () => $state.go('menu.dashboards')
+      $scope.close = () => $state.go('menu.dashboards', {}, {
+        reload: true
+      });
       let dashboard = $stateParams.dashboard;
       $scope.currentStep = 0;
       $scope.data = {
         'token': User.get_token(),
       }
       $scope.devicesGroups = [];
-      $scope.sensors = [];
       $scope.chartTypes = [];
-      let cachedSensors = [];
+      $scope.sensorsView = [];
 
       reset = () => {
         $scope.currentStep = 0;
@@ -859,9 +881,10 @@ angular.module('app.dashboardsCtrl', [])
         };
       }
 
+
       $scope.nextToSellectionSensor = () => {
-        const gatewayId = $scope.selectedGateway.deviceid;
-        if (!$scope.selectedGateway.deviceid) {
+        const gatewayName = $scope.selectedGateway.devicename;
+        if (!gatewayName) {
           $ionicPopup.alert({
             title: 'Select gateway',
             template: 'You have to select one gateway',
@@ -869,7 +892,7 @@ angular.module('app.dashboardsCtrl', [])
           return;
         }
 
-        getSensors(gatewayId);
+        getSensors(gatewayName);
         $scope.currentStep = 1;
       }
 
@@ -961,18 +984,29 @@ angular.module('app.dashboardsCtrl', [])
           });
       }
 
-      getSensors = (gatewayId) => {
+      getSensors = (gatewayName) => {
         $http({
             method: 'GET',
-            url: `${server}/gateways/${gatewayId}/sensors`,
+            url: `${server}/devices/device/${gatewayName}/ldsbus/0/sensors`,
             headers: {
               'Authorization': 'Bearer ' + $scope.data.token.access,
               'Content-Type': 'application/json'
             },
           })
           .then(function (result) {
-            $scope.sensors = result.data.data;
-            cachedSensors = $scope.sensors;
+            sensors = result.data.sensors;
+            $scope.sensors = sensors.map((s) => {
+              return {
+                id: `${s.source}-${s.number}`,
+                sensorname: s.sensorname,
+                enabled: s.enabled,
+                class: s.class,
+                port: s.port,
+                number: s.number,
+                source: s.source,
+                deviceid: s.deviceid
+              }
+            });
           })
           .catch(function (error) {
             console.log(error);
@@ -1026,9 +1060,13 @@ angular.module('app.dashboardsCtrl', [])
         }, 5000);
       }
 
+      const stopTimeChartSensor = () => {
+        clearInterval(timerChartSensor);
+      }
+
       $scope.$on("$ionicView.beforeLeave", function () {
         console.log("Clear timer of comparision");
-        clearInterval(timerChartSensor);
+        stopTimeChartSensor();
       });
 
       getChartsIdQueryParams = (chartsId) => {
@@ -1046,14 +1084,17 @@ angular.module('app.dashboardsCtrl', [])
       $scope.close = () => {
         $scope.currentStep = 0;
         $scope.comapareCharts = {};
-        $state.go('menu.dashboards');
+        $state.go('menu.dashboards', {}, {
+          reload: true
+        });
       };
       $scope.back = () => {
+        stopTimeChartSensor();
         $scope.currentStep = 0;
         $scope.comapareCharts = {};
+        $scope.currentSelectedPoints = selectedPoints[0];
       }
-      const selectedPoints = [
-        {
+      const selectedPoints = [{
           value: 30,
           name: '30 points'
         },
@@ -1062,15 +1103,21 @@ angular.module('app.dashboardsCtrl', [])
           name: '60 points'
         }
       ]
-      let pointsQueryParam= 'points=30';
-      $scope.currentSelectedPoints = selectedPoints[0];
+
+      let pointsQueryParam = 'points=30';
+      let currentSelectedPoints = selectedPoints[0];
+
+      const resetPointQueryParam = () => {
+        pointsQueryParam = 'points=30';
+        currentSelectedPoints = selectedPoints[0];
+      }
+
       $scope.updatePointUrl = (point) => {
         pointsQueryParam = `points=${point}`;
         foundIndex = selectedPoints.findIndex(p => p.value == point);
-        $scope.currentSelectedPoints = selectedPoints[foundIndex];
-        currentSelectedPoints = point;
+        currentSelectedPoints = selectedPoints[foundIndex];
 
-        clearInterval(timerChartSensor);
+        stopTimeChartSensor();
         getChartsSensorsCompare();
         startTimeChartSensor();
       }
@@ -1116,12 +1163,14 @@ angular.module('app.dashboardsCtrl', [])
         minuteQueryParams = `&minutes=${minutes}`;
         currentSelectedMinutes = minutes;
 
-        clearInterval(timerChartSensor);
+        stopTimeChartSensor();
         getChartsSensorsCompare();
         startTimeChartSensor();
       };
 
       $scope.compare = () => {
+        console.log("Compare: ", currentSelectedPoints);
+        resetPointQueryParam();
         getChartsSensorsCompare();
         startTimeChartSensor();
       }
@@ -1147,7 +1196,7 @@ angular.module('app.dashboardsCtrl', [])
               return;
             }
 
-            const labels = charts[0].dataset.labels.map((timestamp) => {
+            const labels = charts[0].datasets.labels.map((timestamp) => {
               const date = new Date(timestamp * 1000);
               return ('0' + date.getHours()).slice(-2) +
                 ":" + ('0' + date.getMinutes()).slice(-2) + ":" +
@@ -1159,7 +1208,7 @@ angular.module('app.dashboardsCtrl', [])
             const datasetOverride = [];
 
             for (const chart of charts) {
-              data.push(chart.dataset.data);
+              data.push(chart.datasets.data);
               datasetOverride.push({
                 label: chart.device.sensorName
               })
@@ -1167,6 +1216,7 @@ angular.module('app.dashboardsCtrl', [])
 
             $scope.comapareCharts = {
               selectedTimes: selectedTimes,
+              currentSelectedPoints: currentSelectedPoints,
               currentSelectTime: getSelectedTime(currentSelectedMinutes),
               data: data,
               labels: labels,
@@ -1198,7 +1248,7 @@ angular.module('app.dashboardsCtrl', [])
             $scope.currentStep = 1;
           })
           .catch(function (error) {
-            clearInterval(timerChartSensor);
+            stopTimeChartSensor();
             console.log("Error ne : ", error);
             $ionicPopup.alert({
               title: 'Compare',
