@@ -2871,6 +2871,7 @@ def http_get_firmware_binary(filename, filesize):
     global CONFIG_DEVICE_ID
     global CONFIG_USERNAME
     global CONFIG_PASSWORD
+    global CONFIG_HTTP_HOST
 
     # in order for the device secret key to not be compromise easily,
     # we now retrieve the authcode via an HTTPS API
@@ -2882,7 +2883,7 @@ def http_get_firmware_binary(filename, filesize):
         return False
 
 
-    conn = http_initialize_connection()
+    conn = http_initialize_connection(CONFIG_HTTP_HOST)
     #headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
     #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
     headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
