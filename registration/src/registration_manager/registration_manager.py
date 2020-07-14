@@ -83,19 +83,23 @@ def print_json(json_object):
 
 def set_descriptor(database_client, deviceid, topic, payload):
 
-    print("{} {}".format(topic, deviceid))
-
     # find if deviceid exists
     devicename = database_client.get_devicename(deviceid)
     if devicename is None:
+        print("Invalid device {}".format(deviceid))
         return
 
+    # check parameter
     payload = json.loads(payload)
+    if payload.get("value") is None:
+        print("Invalid parameter {}".format(deviceid))
+        return
     #print_json(payload)
 
+    print("GWAY {} {}".format(deviceid, devicename))
+
     # set the descriptor in the database
-    if payload.get("value"):
-        database_client.set_device_descriptor_by_deviceid(deviceid, payload["value"])
+    database_client.set_device_descriptor_by_deviceid(deviceid, payload["value"])
 
 
 def _set_status_for_nonpresent_ldsus(database_client, username, deviceid, new_ldsus):
@@ -236,30 +240,54 @@ def set_ldsu_descs_ex(database_client, deviceid, topic, payload, devicename, use
 
 def set_ldsu_descs(database_client, deviceid, topic, payload):
 
-    print("{} {}".format(topic, deviceid))
+    start_time = time.time()
 
     # find if deviceid exists
     devicename, username = database_client.get_devicename_username(deviceid)
     if devicename is None:
+        print("Invalid device {}".format(deviceid))
         return
 
+    # check parameter
     payload = json.loads(payload)
+    if payload.get("value") is None:
+        print("Invalid parameter {}".format(deviceid))
+        return
     #print_json(payload)
 
     # support for multiple chunks in LDSU registration
     if payload.get("chunk"):
         if payload["chunk"].get("TSEQ") is None:
+            print("Invalid parameter {} TSEQ".format(deviceid))
             return
         if payload["chunk"].get("SEQN") is None:
+            print("Invalid parameter {} SEQN".format(deviceid))
             return
         if int(payload["chunk"]["TSEQ"]) > 1:
             set_ldsu_descs_ex(database_client, deviceid, topic, payload, devicename, username)
+
+            # add logs
+            if payload["chunk"].get("TOT") is None:
+                print("LDSU {} {} [seq:{}/{}]".format(deviceid, devicename, payload["chunk"]["SEQN"], payload["chunk"]["TSEQ"]))
+            else:
+                print("LDSU {} {} [seq:{}/{} ldsu:{}]".format(deviceid, devicename, payload["chunk"]["SEQN"], payload["chunk"]["TSEQ"], payload["chunk"]["TOT"]))
+            if int(payload["chunk"]["SEQN"]) == int(payload["chunk"]["TSEQ"])-1:
+                # print elapsed time
+                print(time.time() - start_time) 
+                print("")
             return
+
+    print("LDSU {} {} [{}]".format(deviceid, devicename, len(payload["value"])))
 
     # set status for non-present LDSUs
     # save each ldsu to database
     _set_status_for_nonpresent_ldsus(database_client, username, deviceid, payload["value"])
     _save_ldsus(database_client, username, deviceid, payload["value"])
+
+
+    # print elapsed time
+    print(time.time() - start_time) 
+    print("")
 
 
 #def set_registration(database_client, deviceid, topic, payload):

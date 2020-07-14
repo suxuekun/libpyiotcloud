@@ -238,7 +238,7 @@ def get_configuration(database_client, deviceid, topic, payload):
 
 def get_configuration_ex(database_client, deviceid, topic, payload):
 
-    print("{} {}".format(topic, deviceid))
+    start_time = time.time()
 
     # find if deviceid exists
     devicename = database_client.get_devicename(deviceid)
@@ -259,6 +259,7 @@ def get_configuration_ex(database_client, deviceid, topic, payload):
     # read configurations from the database
     configurations = database_client.get_all_device_peripheral_configuration(deviceid)
     if len(configurations) == 0:
+        print("{} {} {}".format(deviceid, devicename, len(configurations)))
         # if no entry found, just send an empty json
         new_payload = {}
         new_payload = json.dumps(new_payload)
@@ -269,6 +270,7 @@ def get_configuration_ex(database_client, deviceid, topic, payload):
     # set all counters to 0
     count_uart = 0
     count_ldsu = 0
+    count_enabled = 0
 
     # add configuration to the payload response
     for configuration in configurations:
@@ -292,6 +294,11 @@ def get_configuration_ex(database_client, deviceid, topic, payload):
                 props["MODE"] = str(0)
             new_payload["ldsu"].append(props)
             count_ldsu += 1
+
+            if configuration["enabled"]:
+                count_enabled += 1
+
+    print("{} {} {} [uart:{} ldsu:{}]".format(deviceid, devicename, len(configurations), count_uart, count_enabled))
 
     # if GET_ALL_PERIPHERAL_CONFIGURATION,
     #   only peripherals with configured sensors will be included
@@ -330,6 +337,10 @@ def get_configuration_ex(database_client, deviceid, topic, payload):
     #print_json(new_payload)
     new_payload = json.dumps(new_payload)
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+
+    # print elapsed time
+    print(time.time() - start_time) 
+    print("")
 
 
 def del_configuration(database_client, deviceid, topic, payload):
@@ -654,11 +665,11 @@ if __name__ == '__main__':
     # Subscribe to messages sent for this device
     time.sleep(1)
     subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_CONFIGURATION)
-    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
-    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_CONFIGURATION)
+    #subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
+    #subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_CONFIGURATION)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
+    #g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    #g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
