@@ -298,7 +298,7 @@ def get_configuration_ex(database_client, deviceid, topic, payload):
             if configuration["enabled"]:
                 count_enabled += 1
 
-    print("{} {} {} [uart:{} ldsu:{}]".format(deviceid, devicename, len(configurations), count_uart, count_enabled))
+    print("{} {} [configured:{} uart:{} enabled:{}]".format(deviceid, devicename, len(configurations), count_uart, count_enabled))
 
     # if GET_ALL_PERIPHERAL_CONFIGURATION,
     #   only peripherals with configured sensors will be included
