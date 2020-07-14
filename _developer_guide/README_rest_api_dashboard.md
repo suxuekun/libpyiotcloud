@@ -312,11 +312,11 @@ DETAIL:
             - timespan only work when realtime is false
 
         selected_minutes & chartsId shoulb be the same size and match index together
-        For Example: &selected_minutues=15,30&chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2
+        For Example: &selected_minutes=15,30&chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2
             - chartId: 5f04962217e8e565d1fd4adf select time range is 15 minutes
             - chartId: 5f04966117e8e565d1fd4ae2 select time range is 30 minutes
 
-        If we have 3 charts but we send request with "&selected_minutues=15,30&chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2". 
+        If we have 3 charts but we send request with "&selected_minutes=15,30&chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2". 
         The another chart without selected timeRange will be use value default is 15
 
         Example request: /dashboards/dashboard/5ef998655de8966f2de5064e/sensors?minutes=5&points=30

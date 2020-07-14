@@ -8,27 +8,33 @@ class ISensorReadingsLatestRepository(IMongoBaseRepository):
     def gets_dataset_with_same_gateway(self, sensors, timestampBegin, timestampEnd):
         pass
 
-
+    def gets_dataset(self, sensors, timestampBegin, timestampEnd):
+        pass
+      
 class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestRepository):
 
-    def gets_dataset_with_same_gateway(self, sensors, timestampBegin, timestampEnd):
-
+    def gets_dataset(self, sensors, timestampBegin, timestampEnd):
         if len(sensors) == 0:
             raise QueriedManyException("Cannot query sensors")
 
-        gatewayUUID = sensors[0]["deviceid"]
+
+        setsSensorsDeviceid = set()
         for sensor in sensors:
-            if sensor["deviceid"] != gatewayUUID:
-                raise QueriedManyException("Sensors is not the same gateway")
+            if sensor["deviceid"] not in setsSensorsDeviceid:
+                setsSensorsDeviceid.add(sensor["deviceid"])
+        
+        totalReports = []
+        for gatewayUUID in setsSensorsDeviceid:
+            filterSensors = list(filter(lambda s: s["deviceid"] == gatewayUUID, sensors))
+            reports = self.gets_dataset_with_same_gateway(gatewayUUID, filterSensors, timestampBegin, timestampEnd)
+            totalReports.extend(reports)
+        
+        return totalReports
+
+    def gets_dataset_with_same_gateway(self, gatewayUUID, sensors, timestampBegin, timestampEnd):
 
         sources = list(map(lambda s: s["source"], sensors))
         numbers = list(map(lambda s: int(s["number"]), sensors))
-
-        gatewayUUID = sensors[0]["deviceid"]
-        for sensor in sensors:
-            if sensor["deviceid"] != gatewayUUID:
-                raise QueriedManyException("Sensors is not the same gateway")
-
         collectionName = "sensors_readings_dataset_" + gatewayUUID
         pipeline = [
             {

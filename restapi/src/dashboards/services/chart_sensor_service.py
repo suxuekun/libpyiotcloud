@@ -111,11 +111,11 @@ class ChartSensorService:
                 sensorIds = list(map(lambda c: c["deviceId"], chartEntites))
                 sensors = self.sensorRepository.gets_with_ids(ids=sensorIds)
                 if len(sensors) == 0:
-                    return Response.fail("Unknown sensors")
+                    return Response.success([], message="Get chart responses successfully")
                 
                 lastMinutes = datetime.fromtimestamp(
                     query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
-                results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
+                results = self.sensorReadingsLatestRepository.gets_dataset(
                     sensors, int(lastMinutes.timestamp()), query.timestamp)
 
                 dictSensors = {}
@@ -149,7 +149,7 @@ class ChartSensorService:
                 lastMinutes = datetime.fromtimestamp(
                     query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
                     
-                firstResults = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
+                firstResults = self.sensorReadingsLatestRepository.gets_dataset(
                     sensors, int(lastMinutes.timestamp()), query.timestamp)
                 results = firstResults
                 dictSensors = {}
@@ -168,7 +168,7 @@ class ChartSensorService:
             maxMinutes = max(query.selectedMinutes)
             lastMinutes = datetime.fromtimestamp(
                 query.timestamp) - timedelta(minutes=maxMinutes * calculateMultiTimeRange)
-            secondResults = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
+            secondResults = self.sensorReadingsLatestRepository.gets_dataset(
                 selectedSensors, int(lastMinutes.timestamp()), query.timestamp)
             dictSensors = {}
 
@@ -226,7 +226,7 @@ class ChartSensorService:
             timEnd = datetime.fromtimestamp(
                 query.timestamp) + timedelta(seconds=timeRange)
 
-            results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
+            results = self.sensorReadingsLatestRepository.gets_dataset(
                 sensors, int(lastMinutes.timestamp()), timEnd)
 
             dictSensors = {}
@@ -264,7 +264,7 @@ class ChartSensorService:
             lastMinutes = datetime.fromtimestamp(
                 query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
 
-            results = self.sensorReadingsLatestRepository.gets_dataset_with_same_gateway(
+            results = self.sensorReadingsLatestRepository.gets_dataset(
                 [sensor], int(lastMinutes.timestamp()), query.timestamp)
 
             if len(results) == 0:

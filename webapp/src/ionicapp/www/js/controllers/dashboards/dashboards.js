@@ -24,6 +24,12 @@ angular.module('app.dashboardsCtrl', [])
       $scope.$on("$ionicView.beforeLeave", function () {
         console.log("Clear timer");
         stopTimeChartSensor();
+
+        $scope.dashboardDetail = {};
+        $scope.chartsGatewaysView = [];
+        $scope.sensorsView = [];
+        $scope.activeTab = 0
+
       });
 
       // Init life cycle
@@ -137,6 +143,10 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
           });
       }
       // Scope of dashboard detail
@@ -231,6 +241,10 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
           });
       }
 
@@ -256,6 +270,11 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
+
           });
       }
 
@@ -282,7 +301,7 @@ angular.module('app.dashboardsCtrl', [])
             console.error(error);
             $ionicPopup.alert({
               title: 'Dashboard',
-              template: 'Update dashboard was failed!',
+              template: `${error.data.message}`,
             });
           });
       }
@@ -475,6 +494,8 @@ angular.module('app.dashboardsCtrl', [])
             datasetOverride: [{
               label: c.device.sensorClass
             }],
+            readings: c.readings,
+            typeId: c.chartTypeId,
             options: {
               "animation": false,
               "legend": {
@@ -530,7 +551,7 @@ angular.module('app.dashboardsCtrl', [])
       };
 
       buildChartsIdQueryParams = () => {
-        let minutesParams = "&selected_minutues=";
+        let minutesParams = "&selected_minutes=";
         let chartIdsParams = "&chartsId=";
 
         for (let index = 0; index < chartIdsQueryParams.length; index++) {
@@ -566,6 +587,10 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
           });
       }
 
@@ -650,7 +675,7 @@ angular.module('app.dashboardsCtrl', [])
             console.error(error);
             $ionicPopup.alert({
               title: 'Dashboard',
-              template: 'Create new dashboard was failed!',
+              template: `${error.data.message}`,
             });
           });
       }
@@ -718,6 +743,10 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
           });
       }
 
@@ -731,6 +760,10 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
           });
       }
 
@@ -744,6 +777,10 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
           });
       }
 
@@ -881,7 +918,6 @@ angular.module('app.dashboardsCtrl', [])
         };
       }
 
-
       $scope.nextToSellectionSensor = () => {
         const gatewayName = $scope.selectedGateway.devicename;
         if (!gatewayName) {
@@ -944,9 +980,7 @@ angular.module('app.dashboardsCtrl', [])
           })
           .then(function (result) {
             reset()
-            $state.go('menu.dashboards', {}, {
-              reload: true
-            })
+            $scope.close();
           })
           .catch(function (error) {
             console.log(error);
@@ -981,6 +1015,10 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
           });
       }
 
@@ -1004,12 +1042,16 @@ angular.module('app.dashboardsCtrl', [])
                 port: s.port,
                 number: s.number,
                 source: s.source,
-                deviceid: s.deviceid
+                deviceid: s.deviceid,
               }
             });
           })
           .catch(function (error) {
             console.log(error);
+            $ionicPopup.alert({
+              title: 'Dashboard',
+              template: `${error.data.message}`,
+            });
           });
       }
 
@@ -1223,8 +1265,14 @@ angular.module('app.dashboardsCtrl', [])
               datasetOverride: datasetOverride,
               selectedPoints: selectedPoints,
               colors: [
+                // ['#FFC900'],
+                // ['#F38124'],
+                // ['#B6A2FC'],
                 '#FFC900',
-                '#F38124'
+                '#F38124',
+                '#B6A2FC',
+                '#3C5A99',
+                '#11C1F3'
               ],
               options: {
                 animation: false,
