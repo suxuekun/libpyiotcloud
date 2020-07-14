@@ -43,7 +43,6 @@ class DatasetAttributeResponse(Model):
     filterId = IntType()
     filterName = StringType()
 
-
 class DatasetExAttributeResponse(Model):
     filterId = IntType()
     filterName = StringType()

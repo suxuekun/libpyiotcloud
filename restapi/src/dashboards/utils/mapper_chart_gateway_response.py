@@ -158,8 +158,8 @@ def map_to_chart_gateway_to_web_response(chartGateway, dictReports: {}, attribut
         chartGateway["attributeId"], chartResponse.device.uuid, dictReports)
 
     if chartGateway["attributeId"] == STORAGE_USAGE_ID:
-        used = 0
-        free = 0
+        used = 0.0
+        free = 0.0
         if report is not None:
             used = report[USED_STORAGE_VALUE]
             free = report[FREE_STORAGE_VALUE]
@@ -178,8 +178,8 @@ def map_to_chart_gateway_to_web_response(chartGateway, dictReports: {}, attribut
         filters = chartResponse.attribute.filters
         chartResponse.datasets = []
         for item in filters:
-            online = 0
-            offline = 100
+            online = 0.0
+            offline = 100.0
             valueForTime = report[item["name"]]
             if valueForTime is not None:
                 online = valueForTime[ONLINE_VALUE]
@@ -201,12 +201,9 @@ def map_to_chart_gateway_to_web_response(chartGateway, dictReports: {}, attribut
 
         chartResponse.datasets = []
         for item in filters:
-            sent = 0
-            remaining = 100
-
-            print(report)
+            sent = 0.0
+            remaining = 100.0
             valueForTime = report[item["name"]]
-            print(report)
             if valueForTime is not None:
                 sent = valueForTime[SENT_VALUE]
                 remaining = valueForTime[REMAINING_VALUE]
@@ -220,7 +217,6 @@ def map_to_chart_gateway_to_web_response(chartGateway, dictReports: {}, attribut
                     SENT_VALUE, REMAINING_VALUE
                 ]
             }))
-        print(chartResponse.to_primitive())
         return chartResponse.to_primitive()
 
     if chartGateway["attributeId"] == BAND_WIDTH_ID:
@@ -228,14 +224,14 @@ def map_to_chart_gateway_to_web_response(chartGateway, dictReports: {}, attribut
             chartResponse.datasets = []
         chartResponse.datasets.append(DatasetAttributeResponse({
             "data": [
-                80
+                80.0
             ],
             "labels": [
                 BAND_WIDTH_STORE_VALUE
             ]
         }))
         return chartResponse.to_primitive()
-    return 0
+    return 0.0
 
 
 def map_attribute_to_attribute_response(attribute) -> AttributeResponse:
