@@ -1,5 +1,3 @@
-;(function(_global){
-
 var app = angular.module('app.controllers', []);
 
 
@@ -25376,5 +25374,4 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };  
 }])
 
-}(window))
  
