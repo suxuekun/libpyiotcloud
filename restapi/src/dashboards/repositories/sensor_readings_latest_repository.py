@@ -33,60 +33,44 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
 
     def gets_dataset_with_same_gateway(self, gatewayUUID, sensors, timestampBegin, timestampEnd):
 
-        sources = list(map(lambda s: s["source"], sensors))
-        numbers = list(map(lambda s: int(s["number"]), sensors))
+        sids = list(map(lambda s: "{}.{}".format(s["source"], s["number"]), sensors))
         collectionName = "sensors_readings_dataset_" + gatewayUUID
         pipeline = [
             {
                 '$match': {
-                    'source': {
-                        '$in': sources
+                    'sid': {
+                        '$in': sids
                     },
-                    'number': {
-                        '$in': numbers
-                    }
                 }
             },
             {
                 '$lookup': {
                     'from': collectionName,
-                    'localField': 'source',
-                    'foreignField': 'source',
+                    'let': {
+                        'sensors_readings_latest_sid': '$sid',
+                    },
+                    'pipeline': [
+                        {
+                            '$match':
+                                {
+                                    '$expr': {
+                                        '$and': [
+                                            {'$eq': ['$sid', '$$sensors_readings_latest_sid'] },
+                                            {'$gte': ['$timestamp', timestampBegin]},
+                                            {'$lte': ['$timestamp', timestampEnd]}
+                                        ]
+                                    }
+                                }
+                        }
+                    ],
                     'as': 'dataset'
                 }
             },
             {
                 '$project': {
-                    'source': 1,
-                    'number': 1,
+                    'sid': 1,
                     'sensor_readings': 1,
-                    'dataset': {
-                        '$filter': {
-                            'input': '$dataset',
-                            'as': 'data',
-                            'cond': {
-                                '$and': [
-                                    {
-                                        '$eq':
-                                            [
-                                                '$$data.source',
-                                                '$source'
-                                            ]
-                                    },
-                                    {
-                                        '$eq':
-                                            [
-                                                '$$data.number',
-                                                '$number'
-                                            ]
-                                    },
-                                    {'$gte': ['$$data.timestamp',
-                                              timestampBegin]},
-                                    {'$lte': ['$$data.timestamp', timestampEnd]},
-                                ]
-                            }
-                        }
-                    }
+                    'dataset': 1
                 },
             },
         ]
@@ -109,7 +93,7 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             newReport["format"] = s["format"]
             newReport["accuracy"] = s["accuracy"]
             newReport["minmax"] = s["minmax"]
-            
+            newReport["enabled"] = s["enabled"]
             sensorReport = self._get_sensor_report_detail(
                 s["source"], int(s["number"]), sensorsReports)
 
@@ -126,8 +110,9 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
         return reports
 
     def _get_sensor_report_detail(self, source: str, number: int, reports):
+        sid = "{}.{}".format(source, number)
         for r in reports:
-            if r["source"] == source and r["number"] == number:
+            if r["sid"] == sid:
                 return r
 
         return None

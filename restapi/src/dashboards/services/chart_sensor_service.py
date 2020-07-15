@@ -1,4 +1,5 @@
 
+import time
 from datetime import datetime, timezone, timedelta
 from dashboards.repositories.dashboard_repository import IDashboardRepository
 from dashboards.repositories.chart_sensor_repository import IChartSensorRepository
@@ -95,6 +96,7 @@ class ChartSensorService:
             return Response.fail("Sorry, there is something wrong")
 
     def gets(self, dashboardId: str, userId: str, query: ChartSensorQuery):
+        timestart = time.time()
         try:
             query.validate()
 
@@ -124,6 +126,7 @@ class ChartSensorService:
 
                 response = map_to_charts_sensor_response(
                     charts=chartEntites, dictSensors=dictSensors, query=query)
+                print("{}".format(time.time() - timestart))
                 return Response.success(data=response, message="Get chart responses successfully")
 
             dictSelectedMinutesAndChartsId = {}
@@ -184,6 +187,7 @@ class ChartSensorService:
                     chart, sensor, query, customMinutes=dictSelectedMinutesAndChartsId[chart["_id"]])
                 response.append(itemResponse)
 
+            print("{}".format(time.time() - timestart))
             return Response.success(data=response, message="Get chart responses successfully")
 
         except ChartSensorQueryException as e:
