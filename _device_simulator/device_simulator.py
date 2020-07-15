@@ -1993,23 +1993,20 @@ def set_configuration(filename = None):
 
 def save_configuration(json_config):
     try:
-        now = datetime.datetime.now()
-        filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d_%H%M%S"))
-        f = open(filename, "w")
         json_formatted_str = json.dumps(json_config, indent=2)
-        if (json_formatted_str != "{}"):
+        if json_formatted_str != "{}":
+            now = datetime.datetime.now()
+            filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d_%H%M%S"))
+            f = open(filename, "w")
             f.write(json_formatted_str)
-        f.close()
-
-        printf("")
-        if (json_formatted_str != "{}"):
+            f.close()
             printf("Device configuration saved to {}".format(filename))
         else:
             printf("Device configuration is empty; not saving to file")
         printf("")
-    except:
+    except Exception as e:
         printf("exception")
-        pass
+        printf(e)
 
 def req_otastatus(ver):
     printf("")
