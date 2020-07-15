@@ -369,5 +369,7 @@ July 15, 2020
 
     you should only collect the data for the specific time range before you aggregate
 
+60. another issue related to charts not appearing
 
+    - dashboard id is "undefined" (See screenshot of the REST API logs)
 
