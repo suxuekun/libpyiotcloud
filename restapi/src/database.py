@@ -3621,75 +3621,25 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_dataset_document(self, deviceid):
-        # separate collection per device
-        return self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
         # one collection for all devices
         #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        # separate collection per device
+        collection = self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
+        collection.create_index('sid')
+        return collection
 
-    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
+    def add_sensor_reading_dataset(self, username, deviceid, source, number, value, subclass_value):
         timestamp = int(time.time())
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         item = {}
         #item['username'] = username
         #item['deviceid'] = deviceid
-        item['source'] = source
-        if address is not None:
-            item['address'] = address
+        item['sid'] = "{}.{}".format(source, number)
+        #item['source'] = source
+        #item['number'] = number
         item['timestamp'] = timestamp
         item['value'] = value
-        if subclass_value is not None:
-            item['subclass_value'] = subclass_value
-
-        if address is not None:
-            readings = sensorreadings.find({'source': source, 'address': address})
-        else:
-            readings = sensorreadings.find({'source': source})
-        if readings.count() >= config.CONFIG_MAX_DATASET:
-            sensorreadings.delete_one(readings[0])
         sensorreadings.insert_one(item)
-        #print("add_sensor_reading_dataset")
-
-    def get_sensor_reading_dataset_by_deviceid(self, deviceid, source, address):
-        # if sensor has a subclass data becomes  [[], [], ...]
-        # if sensor has no subclass data becomes [[]]
-        dataset  = {"labels": [], "data": []}
-        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
-        if sensorreadings:
-            if address is None:
-                readings = sensorreadings.find({'source': source})
-                for sensorreading in readings:
-                    #print(sensorreading)
-                    if sensorreading.get("value"):
-                        if sensorreading.get("subclass_value"):
-                            dataset["labels"].append(sensorreading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                                dataset["data"].append([])
-                            dataset["data"][0].append(sensorreading["value"])
-                            dataset["data"][1].append(sensorreading["subclass_value"])
-                        else:
-                            dataset["labels"].append(sensorreading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                            dataset["data"][0].append(sensorreading["value"])
-            else:
-                readings = sensorreadings.find({'source': source, 'address': address})
-                for sensorreading in readings:
-                    if sensorreading.get("value"):
-                        if sensorreading.get("subclass_value"):
-                            dataset["labels"].append(sensorreading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                                dataset["data"].append([])
-                            dataset["data"][0].append(sensorreading["value"])
-                            dataset["data"][1].append(sensorreading["subclass_value"])
-                        else:
-                            dataset["labels"].append(sensorreading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                            dataset["data"][0].append(sensorreading["value"])
-        #print(dataset)
-        return dataset
 
     def get_sensor_reading_dataset_by_deviceid_timebound(self, deviceid, source, number, datebegin, dateend, period, maxpoints):
         # if sensor has a subclass data becomes  [[], [], ...]
