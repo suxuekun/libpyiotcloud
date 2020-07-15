@@ -277,6 +277,8 @@ def get_configuration_ex(database_client, deviceid, topic, payload):
         number = configuration["number"]
         source = configuration["source"]
         if source == "uart":
+            if configuration.get("enabled") is not None:
+                configuration.pop("enabled")
             configuration.pop("source")
             configuration.pop("number")
             new_payload[source][number-1] = configuration

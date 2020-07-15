@@ -497,7 +497,6 @@ DETAILED:
 		     ],
 		     'uart': [
 		       {
-		         'enabled': int,
 		         'attributes': {
 		           'baudrate': int,
 		           'parity': int,
