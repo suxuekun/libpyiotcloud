@@ -720,10 +720,12 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_dataset_document(self, deviceid):
-        # separate collection per device
-        return self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
         # one collection for all devices
         #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        # separate collection per device
+        collection = self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
+        collection.create_index('sid')
+        return collection
 
     def add_ldsus_batch_ldsu_sensor_reading_dataset(self, username, deviceid, cached):
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
