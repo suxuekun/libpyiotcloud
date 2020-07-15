@@ -351,8 +351,23 @@ July 14, 2020
 
     some error logs appear in the rest api - "float division by zero"
 
-58. 
 
+===============================================
+
+July 15, 2020 
+
+58. can you include sensor["enabled"] parameter as well so webapp/mobile can use it to mark if sensor is enabled or disabled
+
+59. rest api error "ChartSensorService Total size of documents in sensors_readings_dataset_PH80XXRR071420C4 matching pipeline's $lookup stage exceeds 16793600 bytes"
+
+    some logic problem here on how data is aggregated.
+
+    you should not be collecting all data before aggregation
+    - if you use this, this would be CRAZY SLOW when user has 1GB/3GB/10GB sensor data (BASIC/PRO/ENTERPRISE PLAN)
+    - this would be super INEFFICIENT because you only need 5 minute time range, not every data
+    - this is a CRITICAL PERFORMANCE issue
+
+    you should only collect the data for the specific time range before you aggregate
 
 
 
