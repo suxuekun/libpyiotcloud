@@ -70,9 +70,10 @@ SUMMARY:
 
 	5. Sensor Reading
 		A. PUBLISH SENSOR READING           pub_sensor_reading
-		B. STORE SENSOR READING             str_sensor_reading
-		C. RECEIVE SENSOR READING           rcv_sensor_reading
-		D. REQUEST SENSOR READING           req_sensor_reading   // OBSOLETED
+		B. PUBLISH SENSOR READING SINGLE    pub_sensor_reading_single
+		C. STORE SENSOR READING             str_sensor_reading
+		D. RECEIVE SENSOR READING           rcv_sensor_reading
+		E. REQUEST SENSOR READING           req_sensor_reading   // OBSOLETED
 
 	6. OTA Firmware Update
 
@@ -525,7 +526,18 @@ DETAILED:
 		   // Performance:
 		   //   1 LDSU  - 4 sensors with 1 point each  - 4 points total in single DB insert command   => 15 milliseconds
 
-		B. STORE SENSOR READING
+		B. PUBLISH SENSOR READING SINGLE
+		-  Publish:
+		   topic: DEVICEID/pub_sensor_reading_single
+		   payload:
+		   {
+		     "UID":  string,      // LDSU UUID
+		     "TS":   string,      // timestamp in epoch
+		     "SAID": string,      // LDSU SAID
+		     "VAL":  string       // if disabled, use "NaN"
+		   }
+
+		C. STORE SENSOR READING
 		-  Publish:
 		   topic: DEVICEID/str_sensor_reading
 		   payload: 
@@ -556,10 +568,10 @@ DETAILED:
 		   // To test with device simulator, set CONFIG_TEST_CACHED_SENSOR_VALUES to True
 		   //
 
-		C. RECEIVE SENSOR READING    rcv_sensor_reading
+		D. RECEIVE SENSOR READING    rcv_sensor_reading
 		   // This is for sensor forwarding feature (sensor data to actuator); tested using CONTINUOUS mode
 
-		D. REQUEST SENSOR READING    req_sensor_reading // OBSOLETED
+		E. REQUEST SENSOR READING    req_sensor_reading // OBSOLETED
 
 
 	6. OTA Firmware Update
