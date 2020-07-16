@@ -2105,7 +2105,7 @@ class TimerThread(threading.Thread):
                         #printf("{} {}".format(int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
                         value = get_random_data_ex(attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]))
                         value = str(value)
-                        printf("{} {} {} {} {} {}".format(value, attributes["class"], attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
+                        printf("{} {} {} {} [{}-{}]".format(value, attributes["class"], attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
                         has_enabled = True
                     else:
                         value = "NaN"
@@ -2119,7 +2119,7 @@ class TimerThread(threading.Thread):
                 payload["UID"] = ldsu_key
                 payload["TS"] = str(int(time.time()))
                 payload["SNS"] = values
-                printf_json(payload)
+                #printf_json(payload)
                 publish(topic, payload)
 
     def process_input_devices(self):
