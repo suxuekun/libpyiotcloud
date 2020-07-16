@@ -217,7 +217,7 @@ class device_dashboard_old:
         return comparisons
 
     def get_device_stats(self, entityname, devices, sensordevicename):
-        print("\nget_device_stats\n")
+        #print("\nget_device_stats\n")
         stats = {}
 
         if sensordevicename is not None: # All devices
@@ -865,11 +865,12 @@ class device_dashboard_old:
                     thread_list.append(thr) 
                     thr.start()
             else:
-                readings = self.database_client.get_user_sensors_readings(entityname)
-                for sensor in sensors_list:
-                    thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, None, devices, ))
-                    thread_list.append(thr) 
-                    thr.start()
+                for device in devices:
+                    readings = self.database_client.get_device_sensors_readings(entityname, device["devicename"])
+                    for sensor in sensors_list:
+                        thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, None, devices, ))
+                        thread_list.append(thr) 
+                        thr.start()
             for thr in thread_list:
                 thr.join()
 
