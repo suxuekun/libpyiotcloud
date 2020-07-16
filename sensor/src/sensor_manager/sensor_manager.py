@@ -62,10 +62,11 @@ CONFIG_AMQP_TLS_PORT        = 5671
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
-API_RECEIVE_SENSOR_READING  = "rcv_sensor_reading"
-API_REQUEST_SENSOR_READING  = "req_sensor_reading"
-API_PUBLISH_SENSOR_READING  = "pub_sensor_reading"
-API_STORE_SENSOR_READING    = "str_sensor_reading"
+API_RECEIVE_SENSOR_READING        = "rcv_sensor_reading"
+API_REQUEST_SENSOR_READING        = "req_sensor_reading"
+API_PUBLISH_SENSOR_READING        = "pub_sensor_reading"
+API_PUBLISH_SENSOR_READING_SINGLE = "pub_sensor_reading_single"
+API_STORE_SENSOR_READING          = "str_sensor_reading"
 
 
 
@@ -437,7 +438,7 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     username, devicename = database_client.get_username_devicename(deviceid)
     if username is None or devicename is None:
         return
-    if payload.get("UID") is None or payload.get("SNS") is None or payload.get("TS") is None:
+    if payload.get("UID") is None or payload.get("TS") is None or payload.get("SNS") is None:
         return
 
     # check sensor data usage balance
@@ -479,6 +480,51 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
 
     # update sensor data usage balance
     update_usage(database_client, deviceid)
+
+    # print elapsed time
+    #print(time.time() - start_time) 
+    #print("")
+
+
+def add_sensor_reading_single(database_client, deviceid, topic, payload):
+
+    #start_time = time.time()
+    #print(deviceid)
+    #print(topic)
+    payload = json.loads(payload)
+
+    username, devicename = database_client.get_username_devicename(deviceid)
+    if username is None or devicename is None:
+        return
+    if payload.get("UID") is None or payload.get("TS") is None or payload.get("SAID") is None or payload.get("VAL") is None:
+        return
+
+    # check sensor data usage balance
+    allow = check_usage(database_client, deviceid, username)
+    if not allow:
+        #print("{} storing not permitted, no more available storage allocation.".format(deviceid))
+        send_notification_status(g_messaging_client, deviceid, "NG. no more available storage allocation.")
+        return
+
+
+    thr_list = []
+    if payload["VAL"] != "NaN":
+
+        # Store sensor reading - single db insert but multiple threads
+        thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], int(payload["SAID"]), float(payload["VAL"]), int(payload["TS"]), ))
+        thr1.start()
+        thr_list.append(thr1)
+
+        # Forward sensor reading (if applicable)
+        thr2 = threading.Thread(target = forward_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], int(payload["SAID"]), float(payload["VAL"]), ))
+        thr2.start()
+        thr_list.append(thr2)
+
+        for thr in thr_list:
+            thr.join()
+
+        # update sensor data usage balance
+        update_usage(database_client, deviceid)
 
     # print elapsed time
     #print(time.time() - start_time) 
@@ -557,6 +603,14 @@ def on_message(subtopic, subpayload):
             thr.start()
         except Exception as e:
             print("exception API_PUBLISH_SENSOR_READING")
+            print(e)
+            return
+    elif topic == API_PUBLISH_SENSOR_READING_SINGLE:
+        try:
+            thr = threading.Thread(target = add_sensor_reading_single, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_PUBLISH_SENSOR_READING_SINGLE")
             print(e)
             return
     elif topic == API_STORE_SENSOR_READING: # for cached values
@@ -663,10 +717,12 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
-    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_STORE_SENSOR_READING)
+    subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING_SINGLE)
+    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_STORE_SENSOR_READING)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

@@ -276,6 +276,7 @@ API_STATUS_NOTIFICATION          = "status_notification"
 API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING       = "req_sensor_reading"
 API_PUBLISH_SENSOR_READING       = "pub_sensor_reading"
+API_PUBLISH_SENSOR_READING_SINGLE= "pub_sensor_reading_single"
 API_STORE_SENSOR_READING         = "str_sensor_reading"
 
 # heartbeat
@@ -2080,47 +2081,38 @@ class TimerThread(threading.Thread):
         self.exit = True
 
     def process_ldsu_input_devices(self):
-        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
-
-#        sensors = { 
-#            "UID": string,          # LDSU UUID
-#            "TS": string,           # TIMESTAMP
-#            "SNS": ["", "", "", ""] # VALUES
-#        }
+        topic  = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
+        topic2 = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING_SINGLE)
+        send_as_ldsu = True
 
         ldsu_keys = list(g_ldsu_properties.keys())
         for ldsu_key in ldsu_keys:
             has_enabled = False
             values = []
             # generate random value for enabled sensors of the LDSU
+            said = 0
             for ldsu_device in g_ldsu_properties[ldsu_key]:
                 if ldsu_device.get("attributes"):
                     attributes = ldsu_device["attributes"]
                     # generate random value if sensor is enabled
                     if ldsu_device["enabled"] and attributes["type"] == "input":
-                        #print(ldsu_device)
-                        #print(attributes)
-                        #printf("{} {}".format(attributes["class"], attributes["format"] ))
-                        #printf("{}".format(int(attributes["accuracy"]) ))
-                        #printf("{} {}".format(int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
-                        value = get_random_data_ex(attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]))
-                        value = str(value)
+                        value = str( get_random_data_ex(attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1])) )
                         printf("{} {} {} {} [{}-{}]".format(value, attributes["class"], attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
-                        has_enabled = True
+
+                        if send_as_ldsu:
+                            has_enabled = True
+                        else:
+                            publish(topic2, {"UID": ldsu_key, "TS": str(int(time.time())), "SAID": str(said), "VAL": value})
                     else:
                         value = "NaN"
                 else:
                     value = "NaN"
                 values.append(value)
+                said += 1
 
             # if one of the LDSU device is enabled, then publish
             if has_enabled:
-                payload = {}
-                payload["UID"] = ldsu_key
-                payload["TS"] = str(int(time.time()))
-                payload["SNS"] = values
-                #printf_json(payload)
-                publish(topic, payload)
+                publish(topic, {"UID": ldsu_key, "TS": str(int(time.time())), "SNS": values})
 
     def process_input_devices(self):
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)

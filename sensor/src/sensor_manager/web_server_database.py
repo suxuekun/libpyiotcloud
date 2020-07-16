@@ -853,7 +853,7 @@ class database_client_mongodb:
         #readings = sensorreadings.find({'source': source, 'number': number})
         #if readings.count() >= config.CONFIG_MAX_DATASET:
         #    sensorreadings.delete_one(readings[0])
-        #sensorreadings.insert_one(item)
+        sensorreadings.insert_one(item)
         #print("add_sensor_reading_dataset")
 
     def get_sensor_reading_dataset_by_deviceid(self, deviceid, source, number):
