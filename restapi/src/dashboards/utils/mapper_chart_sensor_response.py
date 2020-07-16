@@ -219,7 +219,8 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
     device.accuracy = float(sensor["accuracy"])
     device.unit = sensor["unit"]
     device.format = sensor["format"]
-
+    device.enabled = sensor["enabled"]
+    
     sensorReadings = sensor["sensor_readings"]
     readingsResponse = ReadingSensorResponse()
     if sensor["sensor_readings"] is not None:

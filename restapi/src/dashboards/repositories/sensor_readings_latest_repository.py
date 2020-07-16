@@ -10,25 +10,27 @@ class ISensorReadingsLatestRepository(IMongoBaseRepository):
 
     def gets_dataset(self, sensors, timestampBegin, timestampEnd):
         pass
-      
+
+
 class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestRepository):
 
     def gets_dataset(self, sensors, timestampBegin, timestampEnd):
         if len(sensors) == 0:
             raise QueriedManyException("Cannot query sensors")
 
-
         setsSensorsDeviceid = set()
         for sensor in sensors:
             if sensor["deviceid"] not in setsSensorsDeviceid:
                 setsSensorsDeviceid.add(sensor["deviceid"])
-        
+
         totalReports = []
         for gatewayUUID in setsSensorsDeviceid:
-            filterSensors = list(filter(lambda s: s["deviceid"] == gatewayUUID, sensors))
-            reports = self.gets_dataset_with_same_gateway(gatewayUUID, filterSensors, timestampBegin, timestampEnd)
+            filterSensors = list(
+                filter(lambda s: s["deviceid"] == gatewayUUID, sensors))
+            reports = self.gets_dataset_with_same_gateway(
+                gatewayUUID, filterSensors, timestampBegin, timestampEnd)
             totalReports.extend(reports)
-        
+
         return totalReports
 
     def gets_dataset_with_same_gateway(self, gatewayUUID, sensors, timestampBegin, timestampEnd):
@@ -44,14 +46,37 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
                     },
                     'number': {
                         '$in': numbers
-                    }
+                    },
                 }
             },
             {
                 '$lookup': {
                     'from': collectionName,
-                    'localField': 'source',
-                    'foreignField': 'source',
+                    'let': {
+                        'sensors_readings_latest_source': '$source',
+                        'sensors_readings_latest_number': '$number',
+                    },
+                    'pipeline': [
+                        {
+                            '$match':
+                                {
+                                    '$expr': {
+                                        '$and': [
+                                            {
+                                                '$eq': [
+                                                    '$number',
+                                                    '$$sensors_readings_latest_number'
+                                                ]
+                                            },
+                                            {'$gte': ['$timestamp',
+                                                      timestampBegin]},
+                                            {'$lte': [
+                                                '$timestamp', timestampEnd]}
+                                        ]
+                                    }
+                                }
+                        }
+                    ],
                     'as': 'dataset'
                 }
             },
@@ -60,44 +85,18 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
                     'source': 1,
                     'number': 1,
                     'sensor_readings': 1,
-                    'dataset': {
-                        '$filter': {
-                            'input': '$dataset',
-                            'as': 'data',
-                            'cond': {
-                                '$and': [
-                                    {
-                                        '$eq':
-                                            [
-                                                '$$data.source',
-                                                '$source'
-                                            ]
-                                    },
-                                    {
-                                        '$eq':
-                                            [
-                                                '$$data.number',
-                                                '$number'
-                                            ]
-                                    },
-                                    {'$gte': ['$$data.timestamp',
-                                              timestampBegin]},
-                                    {'$lte': ['$$data.timestamp', timestampEnd]},
-                                ]
-                            }
-                        }
-                    }
+                    'dataset': 1
                 },
             },
         ]
+
         cursors = self.collection.aggregate(pipeline)
         sensorsReports = list(cursors)
-
         reports = []
+
         for s in sensors:
             newReport = {}
             newReport["sensorId"] = str(s["_id"])
-            newReport["enabled"] = s["enabled"]
             newReport["sensorname"] = s["sensorname"]
             newReport["port"] = s["port"]
             newReport["name"] = s["name"]
@@ -109,7 +108,8 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             newReport["format"] = s["format"]
             newReport["accuracy"] = s["accuracy"]
             newReport["minmax"] = s["minmax"]
-            
+            newReport["enabled"] = s["enabled"]
+
             sensorReport = self._get_sensor_report_detail(
                 s["source"], int(s["number"]), sensorsReports)
 
@@ -120,7 +120,7 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             else:
                 newReport["dataset"] = []
                 newReport["sensor_readings"] = None
-            
+
             reports.append(newReport)
 
         return reports

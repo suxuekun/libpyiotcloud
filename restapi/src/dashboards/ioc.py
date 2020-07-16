@@ -54,6 +54,7 @@ deviceRepository = DeviceRepository(
 
 sensorRepository = SensorRepository(
     mongoclient=mongoClient, db=db, collectionName="sensors")
+    
 sensorReadingsLatestRepository = SensorReadingsLatestRepository(
     mongoclient=sensorDataMongoClient, db=sensorDataDb, collectionName="sensors_readings_latest")
 

@@ -68,7 +68,8 @@ class SensorResponse(Model):
     accuracy = FloatType()
     unit = StringType()
     format = StringType()
-
+    enabled = IntType()
+    
 class ChartSensorReponse(Model):
     id = StringType()
     chartTypeId = IntType()

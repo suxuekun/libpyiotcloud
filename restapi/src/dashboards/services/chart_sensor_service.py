@@ -18,6 +18,7 @@ from dashboards.services.dashboard_service import DashboardService
 from dashboards.exceptions.chart_sensor_query_exception import ChartSensorQueryException
 from dashboards.repositories.sensor_repository import ISensorRepository
 from dashboards.repositories.sensor_readings_latest_repository import ISensorReadingsLatestRepository
+import time
 
 
 class ChartSensorService:
@@ -96,6 +97,10 @@ class ChartSensorService:
 
     def gets(self, dashboardId: str, userId: str, query: ChartSensorQuery):
         try:
+
+            timestart = time.time()
+            print("Time start: ")
+            print(timestart)
             query.validate()
 
             chartEntites = self.chartRepository.gets_charts(
@@ -124,6 +129,9 @@ class ChartSensorService:
 
                 response = map_to_charts_sensor_response(
                     charts=chartEntites, dictSensors=dictSensors, query=query)
+                
+                print("Time end: ")
+                print("{}".format(time.time() - timestart))
                 return Response.success(data=response, message="Get chart responses successfully")
 
             dictSelectedMinutesAndChartsId = {}
