@@ -232,14 +232,14 @@ def upload_zipfile(zip_file, contents):
     return None
 
 def send_sensordata_download_link(messaging_client, name, email, url, devicename, deviceid):
-    topic = "{}{}{}{}send_sensordata_download_link".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR)
+    topic = "{}{}{}{}email{}send_sensordata_download_link".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
     payload = { 
         "name": name, 
         "url": url, 
         "devicename": devicename,
         "recipients": [email]
     }
-    messaging_client.publish(topic, json.dumps(payload), False)
+    messaging_client.publish(topic, json.dumps(payload), True)
 
 def download_device_sensor_data(database_client, deviceid, topic, payload):
     start_time = time.time()

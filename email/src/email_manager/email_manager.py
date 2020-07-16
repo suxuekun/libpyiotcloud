@@ -65,6 +65,8 @@ CONFIG_AMQP_TLS_PORT            = 5671
 
 CONFIG_PREPEND_REPLY_TOPIC      = "server"
 CONFIG_SEPARATOR                = '/'
+CONFIG_WILDCARD                 = '#'
+CONFIG_EMAIL                    = "email"
 
 CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
 
@@ -315,27 +317,30 @@ def on_message(subtopic, subpayload):
     #print(subtopic)
     #print(subpayload)
 
-    arr_subtopic = subtopic.split(CONFIG_SEPARATOR, 2)
-    if len(arr_subtopic) != 3:
+    params = 4
+    arr_subtopic = subtopic.split(CONFIG_SEPARATOR, params-1)
+    if len(arr_subtopic) != params:
         return
 
     payload = subpayload.decode("utf-8")
     topic = arr_subtopic[2]
+    subtopic = arr_subtopic[3]
 
 
     if len(email_handler) != len(email_types):
         print("email_handler != email_types")
         return 
 
-    for x in range(len(email_types)):
-        if topic == email_types[x]:
-            try:
-                thr = threading.Thread(target = email_handler[x], args = (g_database_client, arr_subtopic[1], topic, payload ))
-                thr.start()
-            except Exception as e:
-                print("exception {}".format(email_types[x]))
-                print(e)
-                return
+    if topic == CONFIG_EMAIL:
+        for x in range(len(email_types)):
+            if subtopic == email_types[x]:
+                try:
+                    thr = threading.Thread(target = email_handler[x], args = (g_database_client, arr_subtopic[1], subtopic, payload ))
+                    thr.start()
+                except Exception as e:
+                    print("exception {}".format(email_types[x]))
+                    print(e)
+                    return
 
 
 def on_mqtt_message(client, userdata, msg):
@@ -444,9 +449,8 @@ if __name__ == '__main__':
 
 
     # Subscribe to messages sent for this device
-    for email_type in email_types:
-        subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, email_type)
-        g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    subtopic  = "{}{}+{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, CONFIG_EMAIL, CONFIG_SEPARATOR, CONFIG_WILDCARD)
+    g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

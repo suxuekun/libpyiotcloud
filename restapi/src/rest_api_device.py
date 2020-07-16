@@ -668,7 +668,7 @@ class device:
 
             # send email confirmation
             try:
-                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + data["deviceid"] + CONFIG_SEPARATOR + "send_device_registration"
+                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + data["deviceid"] + CONFIG_SEPARATOR + "email" + CONFIG_SEPARATOR + "send_device_registration"
                 payload  = json.dumps({"serialnumber": data["serialnumber"], "recipients": [username]})
                 self.messaging_client.publish(pubtopic, payload)
             except Exception as e:
@@ -704,7 +704,7 @@ class device:
 
             # send email confirmation
             try:
-                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + "send_device_unregistration"
+                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + "email" + CONFIG_SEPARATOR + "send_device_unregistration"
                 payload  = json.dumps({"serialnumber": device["serialnumber"], "recipients": [username]})
                 self.messaging_client.publish(pubtopic, payload)
             except:

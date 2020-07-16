@@ -265,7 +265,7 @@ class access_control:
 
                     # send email invitation
                     try:
-                        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + orgname + CONFIG_SEPARATOR + "send_invitation_organization"
+                        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + orgname + CONFIG_SEPARATOR + "email" + CONFIG_SEPARATOR + "send_invitation_organization"
                         payload  = {"orgid": orgid, "owner": username, "recipients": []}
                         for result in results:
                             if result["result"] == 1:

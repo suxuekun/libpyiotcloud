@@ -418,7 +418,7 @@ class identity_authentication:
 
         # send email confirmation
         try:
-            pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + "" + CONFIG_SEPARATOR + "send_account_creation"
+            pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + "" + CONFIG_SEPARATOR + "email" + CONFIG_SEPARATOR + "send_account_creation"
             payload  = json.dumps({"recipients": [username]})
             self.messaging_client.publish(pubtopic, payload)
         except Exception as e:
@@ -879,7 +879,7 @@ class identity_authentication:
 
         # send email confirmation
         try:
-            pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + "" + CONFIG_SEPARATOR + "send_account_deletion"
+            pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + "" + CONFIG_SEPARATOR + "email" + CONFIG_SEPARATOR + "send_account_deletion"
             payload  = json.dumps({"recipients": [username]})
             self.messaging_client.publish(pubtopic, payload)
         except Exception as e:

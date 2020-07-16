@@ -108,7 +108,7 @@ def send_notification_status(messaging_client, deviceid, status):
     messaging_client.publish(topic, json.dumps(payload), False)
 
 def send_usage_notice(messaging_client, deviceid, menos_type, subscription, recipients):
-    topic = "{}{}{}{}send_usage_notice".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR)
+    topic = "{}{}{}{}email{}send_usage_notice".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
     payload = { 
         "menos_type": menos_type, 
         "subscription": subscription, 
