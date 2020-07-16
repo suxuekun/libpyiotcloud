@@ -11,12 +11,12 @@ class config:
     CONFIG_PINPOINT_EMAIL                       = os.environ["AWS_PINPOINT_EMAIL"]
     CONFIG_USE_APIURL                           = os.environ["CONFIG_USE_APIURL"]
 
-    CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT              = "Bridgetek IoT Modem receipt"
-    CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION         = "Bridgetek IoT Modem organization"
-    CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE          = "Bridgetek IoT Modem usage notice"
-    CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL         = "Bridgetek IoT Modem sensor data download"
-    CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEREGISTRATION   = "Bridgetek IoT Modem device registration"
-    CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEUNREGISTRATION = "Bridgetek IoT Modem device unregistration"
-    CONFIG_PINPOINT_EMAIL_SUBJECT_ACCOUNTCREATION      = "Bridgetek IoT Modem account creation"
-    CONFIG_PINPOINT_EMAIL_SUBJECT_ACCOUNTDELETION      = "Bridgetek IoT Modem account deletion"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT              = "Bridgetek IoT Portal receipt"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION         = "Bridgetek IoT Portal organization"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE          = "Bridgetek IoT Portal usage notice"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL         = "Bridgetek IoT Portal sensor data download"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEREGISTRATION   = "Bridgetek IoT Portal device registration"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEUNREGISTRATION = "Bridgetek IoT Portal device unregistration"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_ACCOUNTCREATION      = "Bridgetek IoT Portal account creation"
+    CONFIG_PINPOINT_EMAIL_SUBJECT_ACCOUNTDELETION      = "Bridgetek IoT Portal account deletion"
 
