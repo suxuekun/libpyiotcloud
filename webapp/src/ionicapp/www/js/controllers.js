@@ -1,7 +1,5 @@
-var app = angular.module('app.controllers', []);
-
-
-app
+angular.module('app.controllers', [])
+  
 .controller('homeCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -8558,6 +8556,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             // handle show parameter for sensor
             for (let indexy=0; indexy<result.data.sensors.length; indexy++) {
                 let found = false;
+                if (result.data.sensors[indexy].unit === "C") {
+                    result.data.sensors[indexy].unit = "\u00B0C";
+                }
                 for (let indexz=0; indexz<$scope.sensors.length; indexz++) {
                     if ($scope.sensors[indexz].devicename === result.data.sensors[indexy].devicename &&
                         $scope.sensors[indexz].sensorname === result.data.sensors[indexy].sensorname) {
@@ -8645,6 +8646,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     $scope.sensors[indexy].dataset.devicename = $scope.sensors[indexy].devicename;
                     $scope.sensors[indexy].dataset.sensorname = $scope.sensors[indexy].sensorname;
                     $scope.sensors[indexy].dataset.unit       = $scope.sensors[indexy].unit;
+                    if ($scope.sensors[indexy].dataset.unit === "C") {
+                        $scope.sensors[indexy].dataset.unit = "\u00B0C";
+                    }
                     $scope.sensors[indexy].dataset.format     = $scope.sensors[indexy].format;
                     //$scope.sensors[indexy].dataset.units      = $scope.sensors[indexy].unit;
                     //$scope.sensors[indexy].dataset.formats    = $scope.sensors[indexy].format;
@@ -11437,6 +11441,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                             $scope.data.sensors[x].readings = result.data.sensor.readings;
                             break;
                         }
+                    if ($scope.data.sensors[x].unit === "C") {
+                        $scope.data.sensors[x].unit = "\u00B0C";
+                    }
                 }
             }
         })
@@ -11480,7 +11487,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                     }
                     else {
                         $scope.data.sensors[i].enabled_bool = false;
-                    }                    
+                    }
+                    if ($scope.data.sensors[i].unit === "C") {
+                        $scope.data.sensors[i].unit = "\u00B0C";
+                    }
                 }
             }
         })
@@ -25373,5 +25383,4 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $state.go('menu.organizations', param, {reload:true} );    
     };  
 }])
-
  
