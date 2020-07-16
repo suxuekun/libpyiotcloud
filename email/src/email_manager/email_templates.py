@@ -96,3 +96,24 @@ class email_templates:
 
 		message += self.add_footer()
 		return message
+
+	def construct_account_creation_message(self, name=None):
+
+		message = self.add_header(name)
+
+		message += "You have successfully created an account in IoT Portal.\r\n"
+		message += "\r\n"
+
+		message += self.add_footer()
+		return message
+
+	def construct_account_deletion_message(self, name=None):
+
+		message = self.add_header(name)
+
+		message += "You have successfully deleted your account in IoT Portal.\r\n"
+		message += "\r\n"
+
+		message += self.add_footer()
+		return message
+

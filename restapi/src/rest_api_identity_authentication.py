@@ -36,14 +36,17 @@ from phonenumbers.phonenumberutil import (
 CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER = True
 CONFIG_USE_REDIS_FOR_IDP            = True
 CONFIG_SUPPORT_MFA                  = True
+CONFIG_SEPARATOR            = '/'
+CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
 
 
 class identity_authentication:
 
-    def __init__(self, database_client, redis_client):
+    def __init__(self, database_client, messaging_client, redis_client):
         self.database_client = database_client
         self.redis_client = redis_client
+        self.messaging_client = messaging_client
 
 
     ########################################################################################################
@@ -411,6 +414,15 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
             print('\r\nERROR Confirm Signup: Invalid code [{},{}]\r\n'.format(username, confirmationcode))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+        # send email confirmation
+        try:
+            pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + "" + CONFIG_SEPARATOR + "send_account_creation"
+            payload  = json.dumps({"recipients": [username]})
+            self.messaging_client.publish(pubtopic, payload)
+        except Exception as e:
+            print("Exception encountered {} publish".format(e))
 
         response = json.dumps({'status': 'OK', 'message': 'User registration confirmed successfully'})
         print('\r\nConfirm Signup successful: {}\r\n{}\r\n'.format(username, response))
@@ -861,7 +873,18 @@ class identity_authentication:
             print('\r\nERROR Delete user: Internal error [{}]\r\n'.format(username))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
+
         # TODO: delete user devices
+
+
+        # send email confirmation
+        try:
+            pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + "" + CONFIG_SEPARATOR + "send_account_deletion"
+            payload  = json.dumps({"recipients": [username]})
+            self.messaging_client.publish(pubtopic, payload)
+        except Exception as e:
+            print("Exception encountered {} publish".format(e))
+
 
         msg = {'status': 'OK', 'message': 'Delete user successful.'}
         if new_token:
