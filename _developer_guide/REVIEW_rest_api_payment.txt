@@ -384,4 +384,4 @@ July 17, 2020
 
 82. Please remove files that have whitespace conflicts with current code. 
 
-
+83. webapp/src/ionicapp/www/templates/gateways.html has <<<<< HEAD
