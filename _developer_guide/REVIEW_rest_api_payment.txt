@@ -416,3 +416,9 @@ July 17, 2020
 84. Please remove files that have whitespace conflicts with current code. 
 
 85. webapp/src/ionicapp/www/templates/gateways.html has "<<<<< HEAD"
+
+86. requirements.py does not include APScheduler and pytz
+
+
+
+
