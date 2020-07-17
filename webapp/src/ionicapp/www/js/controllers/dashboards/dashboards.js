@@ -494,6 +494,7 @@ angular.module('app.dashboardsCtrl', [])
             selectedTimes: selectedTimes,
             currentSelectTime: getSelectedTime(c.selectedMinutes),
             oldDatasets: c.oldDatasets,
+            datasets: c.datasets,
             data: [datasets.data],
             labels: labels,
             device: c.device,
@@ -521,12 +522,20 @@ angular.module('app.dashboardsCtrl', [])
                   }
                 }]
               },
-              legendCallback: function (chart) {
-                // Return the HTML string here.
-                console.log("Get LengendCallback: ,", chart);
-                return "test";
-              }
-            }
+              tooltips: {
+                enabled: true,
+                callbacks: {
+                  title: function (tooltipItem, data) {
+                    // console.log("Dasd adas dassadaa :", c.device);
+                    return c.device.sensorName;
+                  },
+                  label: function (tooltipItem, data) {
+                    return ' ' + data.datasets[tooltipItem.datasetIndex].label + ' ' + tooltipItem.yLabel;
+                  }
+                }
+              },
+            },
+
           }
         });
         return result;
@@ -596,19 +605,18 @@ angular.module('app.dashboardsCtrl', [])
           return;
         }
 
-        if (currentTimespan == chart.oldDatasets.length - 1) {
+        if (currentTimespan == chart.oldDatasets.length) {
           $ionicPopup.alert({
             title: 'Dashboard',
             template: "Sorry we just support 3 times historicals",
           });
           return;
         }
-        const timespan = currentTimespan + 1;
-        const datasets = chart.oldDatasets[timespan];
+        const datasets = chart.oldDatasets[currentTimespan];
+        chart.currentTimespan = currentTimespan + 1;
         chart.data = [datasets.data];
         const labels = mapLabelsOfDatasets(datasets);
         chart.labels = labels;
-        chart.currentTimespan = timespan;
       };
 
       $scope.opacityOfHistoricalButton = 0.5;
@@ -627,18 +635,19 @@ angular.module('app.dashboardsCtrl', [])
         }
 
         if (currentTimespan == 0) {
-          $ionicPopup.alert({
-            title: 'Dashboard',
-            template: "Sorry it is current time now",
-          });
+          // Update datasets is current time
+          const datasets = chart.datasets;
+          chart.data = [datasets.data];
+          chart.labels = mapLabelsOfDatasets(datasets);
+          chart.currentTimespan = 0;
+
           return;
         }
         const timespan = currentTimespan - 1;
+        chart.currentTimespan = timespan;
         const datasets = chart.oldDatasets[timespan];
         chart.data = [datasets.data];
-        const labels = mapLabelsOfDatasets(datasets);
-        chart.labels = labels;
-        chart.currentTimespan = timespan;
+        chart.labels = mapLabelsOfDatasets(datasets);
       };
 
       $scope.toggelRealTime = () => {
