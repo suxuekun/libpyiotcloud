@@ -345,6 +345,10 @@ July 17, 2020
     The webhook APIs are also APIs so should also be documented similar to the other APIs.
 
     Also include how to trigger/test the APIs (including using Postman if possible) 
+ 
+    There are various questions necessary that can be included in the documentation:
+    for recurring payments, in braintree we set it to retry twice if failed ..
+    will we get webhooks for all retries or only on the last retry?
 
 71. Please document the APIs that are used for testing purposes ONLY.
 
