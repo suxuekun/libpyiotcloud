@@ -1928,7 +1928,7 @@ DETAILED:
 		                },
 		                'storage': {
 		                    'enable': boolean,
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string, // this will contain the URL of the log file containing the alerts triggered, read-only not to be modified by frontend
 		                },
 		            }
 		        }
