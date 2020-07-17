@@ -53,7 +53,6 @@ class PaymentService():
 
     def _assign_draft(self,subscription,plan):
         draft = NextSubscription()
-        draft.bt_sub = str(ObjectId())
         draft.plan = plan
         # next_month_first_day = timestamp_util.get_next_month_first_day()
         # draft.start = timestamp_util.get_next_month_first_day_timestamp()
