@@ -348,8 +348,8 @@ July 17, 2020
 
 71. Please document the APIs that are used for testing purposes ONLY.
 
-72. Please provide a way how to easily disable this APIs that are to be used for testing only.
-    As this should not be part of the production code.
+72. Please provide a way how to easily disable these APIs (possibly via ENVIRONMENT VARIABLE) that are to be used for testing only.
+    As this should NOT be part of the production code.
 
 73. The webhooks should not be blocking APIs. 
 
@@ -384,7 +384,9 @@ July 17, 2020
 
     Should not have two mains.
 
-80. The schedular should run as a separate docker container instead. not part of the restapi container.
+80. The schedular should run as a separate docker container for maintainability and scalability. 
+
+    not part of the restapi container.
 
 81. Create a sequence diagram for the schedular docker container.    
 
