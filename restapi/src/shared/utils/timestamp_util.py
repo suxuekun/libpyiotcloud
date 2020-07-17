@@ -1,3 +1,4 @@
+import functools
 from datetime import datetime, timezone, timedelta
 import time
 import calendar
@@ -60,6 +61,19 @@ def timestamp_from_date_string(date_string,string_format = '%m/%d/%Y'):
     d = datetime_from_string(date_string,string_format)
     return int(d.timestamp())
 
+def timing(f):
+    @functools.wraps(f)
+    def wrap(*args):
+        dt1 = datetime.now()
+        print(f'{f.__name__} function start:{dt1}')
+        ret = f(*args)
+        dt2 = datetime.now()
+        print(f'{f.__name__} function  end :{dt2}')
+        print(f'{f.__name__} function cost :{(dt2.timestamp() - dt1.timestamp()) * 1000.0} ms')
+        return ret
+
+    return wrap
+
 # if __name__ == "__main__":
 #     r = percent_of_month_left()
 #     print (r)
@@ -119,6 +133,6 @@ if __name__ == "__main__":
 
     print(datetime.fromtimestamp(int(next_month_first_day_timestamp)),datetime.fromtimestamp(int(next_month_last_day_timestamp)))
 
-
+    timing(get_next_month_first_day_timestamp)()
 
 

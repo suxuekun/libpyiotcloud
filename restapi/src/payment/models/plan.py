@@ -14,7 +14,18 @@ class Usage(Model):
     sms = DecimalType(default=0)
     email = StringType(default=0)
     notification = StringType(default=0)
-    storage = StringType(default=0)  # count on MB 1000 up ?
+    storage = StringType(default=0)  # count on GB ?
+
+    def reset_usage(self):
+        self.sms = 0
+        self.email = 0
+        self.notification = 0
+        self.storage = 0
+
+    def reset_email_notification(self):
+        self.email = 0
+        self.notification = 0
+
 
 class AbstractPlan(BaseIotModel,Usage):
     name = StringType()

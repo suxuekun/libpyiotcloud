@@ -1,7 +1,7 @@
 import json
 from bson import ObjectId
 from schematics import Model
-from schematics.types import StringType, ModelType, BooleanType
+from schematics.types import StringType, ModelType, BooleanType, IntType
 
 from payment.models.plan import Plan, Usage
 from shared.client.db.mongo.test import TestMongoDB
@@ -9,9 +9,9 @@ from shared.core.model import UserMixin, BaseIotModel, DeviceMixin, PeriodMixin,
 from shared.utils import timestamp_util
 
 class SubScriptionStatus():
-    NORMAL = "normal" # current = next , normal status
-    CANCEL = "cancel" # current = paid plan subscription, next = free = None, in cancel status this month
-    DOWNGRADE = "downgrade" # current = paid plan subscription != next = paid plan subscription , next.plan.price < current.plan.price, switch plan to a lower plan in ext month
+    NORMAL:str = "normal" # current = next , normal status
+    CANCEL: str = "cancel" # current = paid plan subscription, next = free = None, in cancel status this month
+    DOWNGRADE:str = "downgrade" # current = paid plan subscription != next = paid plan subscription , next.plan.price < current.plan.price, switch plan to a lower plan in ext month
     # DRAFT = "draft" # draft, submitted but not yet confirm paid from payment side
 
 class SubScriptionCancelReason():
@@ -19,9 +19,29 @@ class SubScriptionCancelReason():
     USER_EXTERNAL = 'user_external'
     SYSTEM = 'system'
 
+class PaymentStatus():
+    OVERDUE:str = "over due"
+    PENDING:str = "pending"
+    SUCCESS:str = "success"
+    FAIL:str = "fail"
+
+class PaymentSettings():
+    MAX_RETRY = 2
+
 class AbstractSubscription(BaseIotModel,DeviceMixin):
     status = StringType()
+    payment_status = StringType()
+    retry_count = IntType(default = 0)
     cancel_reason = StringType()
+
+    def is_max_retry(self):
+        return self.retry_count >= PaymentSettings.MAX_RETRY
+
+    def reset(self):
+        self.status = SubScriptionStatus.NORMAL
+        self.payment_status = PaymentStatus.PENDING
+        self.retry_count = 0
+        self.cancel_reason = ""
 
 class AbstractSubscriptionHistory(BaseIotModel,Usage,MonthPeriodMixin):
     pass
@@ -29,7 +49,6 @@ class AbstractSubscriptionHistory(BaseIotModel,Usage,MonthPeriodMixin):
 class SubscriptionItem(BaseIotModel):
     plan = ModelType(Plan)
     bt_sub = StringType()
-
     def get_braintree_subscription_id(self):
         return self.bt_sub
 
@@ -62,7 +81,7 @@ class Subscription(AbstractSubscription,UserMixin):
         self.draft = None
 
     def cancel(self):
-        self.status == SubScriptionStatus.CANCEL
+        self.status = SubScriptionStatus.CANCEL
 
     def __str__(self):
         return self.device.__str__()

@@ -1,15 +1,17 @@
 from payment.core import payment_client
 from payment.models.device import DeviceLinkModel
-from payment.models.subscription import SubScriptionStatus
-from shared.client.clients.database_client import db_client
+from payment.models.subscription import SubScriptionStatus, SubScriptionCancelReason, NextSubscription, PaymentStatus, \
+    CurrentSubscription, Subscription
 from shared.simple_api.service import BaseMongoService, throw_bad_db_query
+from shared.utils import timestamp_util
 
 
 class SubscriptionService(BaseMongoService):
-    def __init__(self,device_repo,plan_service,*args,**kwargs):
+    def __init__(self,device_repo,plan_service,payment_client,*args,**kwargs):
         super(SubscriptionService,self).__init__(*args,**kwargs)
         self.device_repo = device_repo
         self.plan_service = plan_service
+        self.payment_client = payment_client
 
     def _match_device_subscription(self,devices,subscriptions):
         sub_idx = dict([(x.deviceid,x)for x in subscriptions])
@@ -90,11 +92,21 @@ class SubscriptionService(BaseMongoService):
         self.delete(subscription._id)
 
     def get_subscription_by_bt_id(self,bt_sub_id):
-        return self.repo.get_one({'next':{'bt_sub':bt_sub_id}})
+        query = {'next.bt_sub':bt_sub_id}
+        print(query)
+        obj = self.repo.get_one(query)
+        if (obj):
+            item = Subscription(obj,strict=False)
+            print(item.to_primitive())
+            return item
+        print('failed to find with id')
+        return None
 
     def cancel_subscription_by_bt_id(self,bt_sub_id):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
-        return self.cancel_subscription(sub)
+        if (sub):
+            return self.cancel_subscription_immediately(sub,SubScriptionCancelReason.SYSTEM)
+        return sub
 
     def subscription_recurring_paid_by_bt_id(self,bt_sub_id):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
@@ -108,33 +120,65 @@ class SubscriptionService(BaseMongoService):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
         return self.subscription_recurring_overdue(sub)
 
-    def cancel_subscription(self,subscription):
-        #TODO
-        # subscription.status = SubScriptionStatus.CANCEL
-        pass
+    def cancel_subscription_immediately(self,subscription,reason):
+        subscription.current.plan = self.plan_service.get_free_plan()
+        subscription.current.bt_sub = None
+        subscription.current.validate()
+        subscription.payment_status = PaymentStatus.FAIL
+        return self.cancel_subscription(subscription,reason)
+
+    def cancel_subscription(self,subscription,reason):
+        subscription.status = SubScriptionStatus.CANCEL
+        subscription.cancel_reason = reason
+        subscription.next = next = NextSubscription()
+        next.plan = self.plan_service.get_free_plan()
+        # next_month_first_day = timestamp_util.get_next_month_first_day()
+        # next.start = timestamp_util.get_next_month_first_day_timestamp()
+        # next.end = timestamp_util.get_last_day_of_month_timestamp(timestamp_util.get_next_month_first_day())
+        next.validate()
+        subscription.validate()
+        res = self.repo.update(subscription._id, subscription.to_primitive())
+        return res
 
     def subscription_recurring_paid(self,subscription):
-        #TODO
-        pass
+        subscription.payment_status = PaymentStatus.SUCCESS
+        subscription.validate()
+        res = self.repo.update(subscription._id, subscription.to_primitive())
+        return res
 
     def subscription_recurring_fail(self,subscription):
-        #TODO
-        pass
-    def subscription_recurring_overdue(self,subscrption):
-        #TODO
-        pass
+        subscription.retry_count = (subscription.retry_count or 0) +1
+        if (subscription.is_max_retry()):
+            res = self.cancel_subscription_immediately(subscription,SubScriptionCancelReason.SYSTEM)
+        else:
+            subscription.validate()
+            res = self.repo.update(subscription._id, subscription.to_primitive())
+        return res
 
+    def subscription_recurring_overdue(self,subscription):
+        subscription.payment_status = PaymentStatus.OVERDUE
+        subscription.validate()
+        res = self.repo.update(subscription._id, subscription.to_primitive())
+        return res
 
+    def subscription_reset_usage(self,subscription):
+        subscription.current.reset_email_notification()
+        subscription.current.validate()
+        res = self.repo.update(subscription._id, subscription.to_primitive())
+        return res
 
-
-
-
-
-
-
-
-
-
+    def move_subscription_to_next_month(self,subscription):
+        sms = subscription.current.sms
+        storage = subscription.current.storage
+        subscription.current = CurrentSubscription(subscription.next.to_primitive())
+        subscription.current.start = timestamp_util.get_first_day_of_month_timestamp()
+        subscription.current.end = timestamp_util.get_last_day_of_month_timestamp()
+        subscription.current.sms = sms
+        subscription.current.storage = storage
+        subscription.current.validate()
+        subscription.reset()
+        subscription.validate()
+        self.repo.update(subscription._id,subscription.to_primitive())
 if __name__ == "__main__":
     pass
 

@@ -30,7 +30,7 @@ class SubscriptionResource(Resource,GetMixin):
     @throw_bad_request
     def get(self, id):
         data = self.service.get(id)
-        #get_usage(data)
+        # get_usage(data)
         res = self.to_api_data(data)
         if res:
             return self.to_result(res)
@@ -47,7 +47,7 @@ class SubscriptionListResource(Resource,BaseResource):
         request = getRequest()
         query = informations.get_entityname_query(request)
         data = self.service.get_current_subscriptions(query)
-        #for item in data:
-        #    get_usage(item)
+        # for item in data:
+        #     get_usage(item)
         res = [self.to_api_data(x) for x in data]
         return self.to_result(res)

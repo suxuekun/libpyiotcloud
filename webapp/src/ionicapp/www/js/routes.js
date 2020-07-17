@@ -1,13 +1,13 @@
 angular.module('app.routes', [])
 
-.config(function($stateProvider, $urlRouterProvider) {
+  .config(function ($stateProvider, $urlRouterProvider) {
 
-  // Ionic uses AngularUI Router which uses the concept of states
-  // Learn more here: https://github.com/angular-ui/ui-router
-  // Set up the various states which the app can be in.
-  // Each state's controller can be found in controllers.js
-  $stateProvider
-    
+    // Ionic uses AngularUI Router which uses the concept of states
+    // Learn more here: https://github.com/angular-ui/ui-router
+    // Set up the various states which the app can be in.
+    // Each state's controller can be found in controllers.js
+    $stateProvider
+
 
       .state('home', {
     url: '/page_home',
@@ -91,34 +91,34 @@ angular.module('app.routes', [])
     }
   })
 
-  .state('menu.profile', {
-    url: '/page_profile',
-	params: {
-		username: "",
-		token: "",
-		activeSection: ""		
-},
-    views: {
-      'side-menu21': {
-        templateUrl: 'templates/profile.html',
-        controller: 'profileCtrl'
-      }
-    }
-  })
+      .state('menu.profile', {
+        url: '/page_profile',
+        params: {
+          username: "",
+          token: "",
+          activeSection: ""
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/profile.html',
+            controller: 'profileCtrl'
+          }
+        }
+      })
 
-  .state('menu.credits', {
-    url: '/page_credits',
-	params: {
-		username: "",
-		token: ""		
-},
-    views: {
-      'side-menu21': {
-        templateUrl: 'templates/credits.html',
-        controller: 'creditsCtrl'
-      }
-    }
-  })
+      .state('menu.credits', {
+        url: '/page_credits',
+        params: {
+          username: "",
+          token: ""
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/credits.html',
+            controller: 'creditsCtrl'
+          }
+        }
+      })
       .state('menu.transaction', {
         url: '/page_transaction',
         params: {
@@ -203,7 +203,7 @@ angular.module('app.routes', [])
           }
         }
       })
-      
+
       .state('menu.subscription_change_confirm', {
         url: '/page_subscription_change_confirm',
         params: {
@@ -260,95 +260,95 @@ angular.module('app.routes', [])
         }
       })
 
-  .state('topUpCredits', {
-    url: '/page_topup',
-	params: {
-		username: "",
-		token: "",
-		credits: ""		
-},
-    templateUrl: 'templates/topUpCredits.html',
-    controller: 'topUpCreditsCtrl'
-  })
+      .state('topUpCredits', {
+        url: '/page_topup',
+        params: {
+          username: "",
+          token: "",
+          credits: ""
+        },
+        templateUrl: 'templates/topUpCredits.html',
+        controller: 'topUpCreditsCtrl'
+      })
 
-  .state('creditPurchases', {
-    url: '/page_credit_purchases',
-	params: {
-		username: "",
-		token: "",
-		credits: ""		
-},
-    templateUrl: 'templates/creditPurchases.html',
-    controller: 'creditPurchasesCtrl'
-  })
+      .state('creditPurchases', {
+        url: '/page_credit_purchases',
+        params: {
+          username: "",
+          token: "",
+          credits: ""
+        },
+        templateUrl: 'templates/creditPurchases.html',
+        controller: 'creditPurchasesCtrl'
+      })
 
-  .state('purchaseDetails', {
-    url: '/page_purchase_details',
-	params: {
-		username: "",
-		token: "",
-		credits: "",
-		id: ""		
-},
-    templateUrl: 'templates/purchaseDetails.html',
-    controller: 'purchaseDetailsCtrl'
-  })
+      .state('purchaseDetails', {
+        url: '/page_purchase_details',
+        params: {
+          username: "",
+          token: "",
+          credits: "",
+          id: ""
+        },
+        templateUrl: 'templates/purchaseDetails.html',
+        controller: 'purchaseDetailsCtrl'
+      })
 
-  .state('transactionDetails', {
-    url: '/page62',
-	params: {
-		username: "",
-		token: "",
-		transaction: ""		
-},
-    templateUrl: 'templates/transactionDetails.html',
-    controller: 'transactionDetailsCtrl'
-  })
+      .state('transactionDetails', {
+        url: '/page62',
+        params: {
+          username: "",
+          token: "",
+          transaction: ""
+        },
+        templateUrl: 'templates/transactionDetails.html',
+        controller: 'transactionDetailsCtrl'
+      })
 
-  .state('paymentConfirmation', {
-    url: '/page_payment_confirmation',
-    templateUrl: 'templates/paymentConfirmation.html',
-    controller: 'paymentConfirmationCtrl'
-  })
+      .state('paymentConfirmation', {
+        url: '/page_payment_confirmation',
+        templateUrl: 'templates/paymentConfirmation.html',
+        controller: 'paymentConfirmationCtrl'
+      })
 
-  .state('menu', {
-    url: '/menu',
-    templateUrl: 'templates/menu.html',
-    controller: 'menuCtrl'
-  })
+      .state('menu', {
+        url: '/menu',
+        templateUrl: 'templates/menu.html',
+        controller: 'menuCtrl'
+      })
 
-  .state('login', {
-    url: '/page_login',
-    templateUrl: 'templates/login.html',
-    controller: 'loginCtrl'
-  })
+      .state('login', {
+        url: '/page_login',
+        templateUrl: 'templates/login.html',
+        controller: 'loginCtrl'
+      })
 
-  .state('signup', {
-    url: '/page_signup',
-    templateUrl: 'templates/signup.html',
-    controller: 'signupCtrl'
-  })
+      .state('signup', {
+        url: '/page_signup',
+        templateUrl: 'templates/signup.html',
+        controller: 'signupCtrl'
+      })
 
-  .state('recover', {
-    url: '/page_recover',
-    templateUrl: 'templates/recover.html',
-    controller: 'recoverCtrl'
-  })
+      .state('recover', {
+        url: '/page_recover',
+        templateUrl: 'templates/recover.html',
+        controller: 'recoverCtrl'
+      })
 
-  .state('resetPassword', {
-    url: '/page_reset_password',
-	params: {
-		username: ""		
-},
-    templateUrl: 'templates/resetPassword.html',
-    controller: 'resetPasswordCtrl'
-  })
+      .state('resetPassword', {
+        url: '/page_reset_password',
+        params: {
+          username: ""
+        },
+        templateUrl: 'templates/resetPassword.html',
+        controller: 'resetPasswordCtrl'
+      })
 
   .state('changePassword', {
     url: '/page_change_password',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     templateUrl: 'templates/changePassword.html',
     controller: 'changePasswordCtrl'
@@ -357,7 +357,7 @@ angular.module('app.routes', [])
   .state('confirmRegistration', {
     url: '/page_confirm_registration',
 	params: {
-		username: ""		
+		username: ""
 },
     templateUrl: 'templates/confirmRegistration.html',
     controller: 'confirmRegistrationCtrl'
@@ -366,7 +366,7 @@ angular.module('app.routes', [])
   .state('confirmMFA', {
     url: '/page_confirm_mfa',
 	params: {
-		username: ""		
+		username: ""
 },
     templateUrl: 'templates/confirmMFA.html',
     controller: 'confirmMFACtrl'
@@ -376,7 +376,7 @@ angular.module('app.routes', [])
     url: '/page_confirm_phone_number',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     templateUrl: 'templates/confirmPhoneNumber.html',
     controller: 'confirmPhoneNumberCtrl'
@@ -386,7 +386,7 @@ angular.module('app.routes', [])
     url: '/page_about',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     views: {
       'side-menu21': {
@@ -400,7 +400,7 @@ angular.module('app.routes', [])
     url: '/page_feedback',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     views: {
       'side-menu21': {
@@ -414,7 +414,7 @@ angular.module('app.routes', [])
     url: '/page_register_gateway',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     templateUrl: 'templates/addGateway.html',
     controller: 'addGatewayCtrl'
@@ -424,7 +424,7 @@ angular.module('app.routes', [])
     url: '/page_add_gatewatgroup',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     templateUrl: 'templates/addGatewayGroup.html',
     controller: 'addGatewayGroupCtrl'
@@ -442,7 +442,7 @@ angular.module('app.routes', [])
 		heartbeat: "",
 		version: "",
 		poemacaddress: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/viewGateway.html',
     controller: 'viewGatewayCtrl'
@@ -453,7 +453,7 @@ angular.module('app.routes', [])
 	params: {
 		username: "",
 		token: "",
-		devicegroupname: ""		
+		devicegroupname: ""
 },
     templateUrl: 'templates/updateGatewayGroup.html',
     controller: 'updateGatewayGroupCtrl'
@@ -465,7 +465,7 @@ angular.module('app.routes', [])
 		username: "",
 		token: "",
 		activeSection: "1",
-		devicegroupname: ""		
+		devicegroupname: ""
 },
     templateUrl: 'templates/viewGatewayGroup.html',
     controller: 'viewGatewayGroupCtrl'
@@ -481,7 +481,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		devicestatus: "",
 		deviceversion: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/gatewayLocation.html',
     controller: 'gatewayLocationCtrl'
@@ -499,7 +499,7 @@ angular.module('app.routes', [])
 		heartbeat: "",
 		version: "",
 		firmware: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/oTAFirmwareUpdate.html',
     controller: 'oTAFirmwareUpdateCtrl'
@@ -516,7 +516,7 @@ angular.module('app.routes', [])
 		timestamp: "",
 		heartbeat: "",
 		version: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/gatewayGeneralSettings.html',
     controller: 'gatewayGeneralSettingsCtrl'
@@ -533,7 +533,7 @@ angular.module('app.routes', [])
 		timestamp: "",
 		heartbeat: "",
 		version: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/gatewayDescriptor.html',
     controller: 'gatewayDescriptorCtrl'
@@ -550,7 +550,7 @@ angular.module('app.routes', [])
 		deviceversion: "",
 		devicestatus: "",
 		location: "",
-		poemacaddress: ""		
+		poemacaddress: ""
 },
     templateUrl: 'templates/gateway.html',
     controller: 'gatewayCtrl'
@@ -565,7 +565,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		location: ""		
+		location: ""
 },
     views: {
       'side-menu21': {
@@ -584,7 +584,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/deviceGPIO.html',
     controller: 'deviceGPIOCtrl'
@@ -599,7 +599,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/deviceUART.html',
     controller: 'deviceUARTCtrl'
@@ -614,7 +614,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/deviceI2C.html',
     controller: 'deviceI2CCtrl'
@@ -630,7 +630,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		location: "",
-		activeSection: ""		
+		activeSection: ""
 },
     templateUrl: 'templates/deviceLDSBUS.html',
     controller: 'deviceLDSBUSCtrl'
@@ -647,7 +647,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		location: "",
 		activeSection: "",
-		ldsus: ""		
+		ldsus: ""
 },
     templateUrl: 'templates/lDSUs.html',
     controller: 'lDSUsCtrl'
@@ -664,7 +664,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		location: "",
 		activeSection: "",
-		sensors: ""		
+		sensors: ""
 },
     templateUrl: 'templates/sensors.html',
     controller: 'sensorsCtrl'
@@ -681,7 +681,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		location: "",
 		activeSection: "",
-		actuators: ""		
+		actuators: ""
 },
     templateUrl: 'templates/actuators.html',
     controller: 'actuatorsCtrl'
@@ -696,7 +696,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/deviceADC.html',
     controller: 'deviceADCCtrl'
@@ -711,7 +711,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/deviceTPROBE.html',
     controller: 'deviceTPROBECtrl'
@@ -726,7 +726,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		location: ""		
+		location: ""
 },
     templateUrl: 'templates/device1WIRE.html',
     controller: 'device1WIRECtrl'
@@ -743,7 +743,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		attributes: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/viewI2CDevice.html',
     controller: 'viewI2CDeviceCtrl'
@@ -760,7 +760,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		attributes: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/viewADCDevice.html',
     controller: 'viewADCDeviceCtrl'
@@ -778,7 +778,7 @@ angular.module('app.routes', [])
 		sensor: "",
 		attributes: "",
 		source: "",
-		multiclass: ""		
+		multiclass: ""
 },
     templateUrl: 'templates/viewTPROBEDevice.html',
     controller: 'viewTPROBEDeviceCtrl'
@@ -795,7 +795,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		attributes: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/view1WIREDevice.html',
     controller: 'view1WIREDeviceCtrl'
@@ -815,7 +815,7 @@ angular.module('app.routes', [])
 		sensors: "",
 		sensor: "",
 		source: "",
-		multiclass: ""		
+		multiclass: ""
 },
     templateUrl: 'templates/viewLDSUDevice.html',
     controller: 'viewLDSUDeviceCtrl'
@@ -830,7 +830,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		sensor: ""		
+		sensor: ""
 },
     templateUrl: 'templates/unknown.html',
     controller: 'unknownCtrl'
@@ -847,7 +847,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		source: "",
-		multiclass: ""		
+		multiclass: ""
 },
     templateUrl: 'templates/multiclass.html',
     controller: 'multiclassCtrl'
@@ -865,7 +865,7 @@ angular.module('app.routes', [])
 		sensor: "",
 		attributes: "",
 		source: "",
-		from: ""		
+		from: ""
 },
     templateUrl: 'templates/light.html',
     controller: 'lightCtrl'
@@ -883,7 +883,7 @@ angular.module('app.routes', [])
 		sensor: "",
 		attributes: "",
 		source: "",
-		colortype: ""		
+		colortype: ""
 },
     templateUrl: 'templates/lightRGB.html',
     controller: 'lightRGBCtrl'
@@ -903,7 +903,7 @@ angular.module('app.routes', [])
 		multiclass: "",
 		location: "",
 		activeSection: "",
-		sensors: ""		
+		sensors: ""
 },
     templateUrl: 'templates/temperature.html',
     controller: 'temperatureCtrl'
@@ -923,7 +923,7 @@ angular.module('app.routes', [])
 		multiclass: "",
 		location: "",
 		activeSection: "",
-		sensors: ""		
+		sensors: ""
 },
     templateUrl: 'templates/humidity.html',
     controller: 'humidityCtrl'
@@ -943,7 +943,7 @@ angular.module('app.routes', [])
 		multiclass: "",
 		location: "",
 		activeSection: "",
-		sensors: ""		
+		sensors: ""
 },
     templateUrl: 'templates/ambientLight.html',
     controller: 'ambientLightCtrl'
@@ -963,7 +963,7 @@ angular.module('app.routes', [])
 		multiclass: "",
 		location: "",
 		activeSection: "",
-		sensors: ""		
+		sensors: ""
 },
     templateUrl: 'templates/motionDetection.html',
     controller: 'motionDetectionCtrl'
@@ -983,7 +983,7 @@ angular.module('app.routes', [])
 		multiclass: "",
 		location: "",
 		activeSection: "",
-		sensors: ""		
+		sensors: ""
 },
     templateUrl: 'templates/cO2Gas.html',
     controller: 'cO2GasCtrl'
@@ -1003,7 +1003,7 @@ angular.module('app.routes', [])
 		multiclass: "",
 		location: "",
 		activeSection: "",
-		sensors: ""		
+		sensors: ""
 },
     templateUrl: 'templates/vOCGas.html',
     controller: 'vOCGasCtrl'
@@ -1023,7 +1023,7 @@ angular.module('app.routes', [])
 		multiclass: "",
 		location: "",
 		activeSection: "",
-		sensors: ""		
+		sensors: ""
 },
     templateUrl: 'templates/pressure.html',
     controller: 'pressureCtrl'
@@ -1039,7 +1039,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		sensor: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/display.html',
     controller: 'displayCtrl'
@@ -1055,7 +1055,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		sensor: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/speaker.html',
     controller: 'speakerCtrl'
@@ -1071,7 +1071,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		sensor: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/potentiometer.html',
     controller: 'potentiometerCtrl'
@@ -1087,7 +1087,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		sensor: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/anemometer.html',
     controller: 'anemometerCtrl'
@@ -1103,7 +1103,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		sensor: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/battery.html',
     controller: 'batteryCtrl'
@@ -1119,7 +1119,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		sensor: "",
-		source: ""		
+		source: ""
 },
     templateUrl: 'templates/fluid.html',
     controller: 'fluidCtrl'
@@ -1134,7 +1134,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		i2cnumber: ""		
+		i2cnumber: ""
 },
     templateUrl: 'templates/addI2CDevice.html',
     controller: 'addI2CDeviceCtrl'
@@ -1149,7 +1149,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		adcnumber: ""		
+		adcnumber: ""
 },
     templateUrl: 'templates/addADCDevice.html',
     controller: 'addADCDeviceCtrl'
@@ -1164,7 +1164,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		tprobenumber: ""		
+		tprobenumber: ""
 },
     templateUrl: 'templates/addTPROBEDevice.html',
     controller: 'addTPROBEDeviceCtrl'
@@ -1179,7 +1179,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		onewirenumber: ""		
+		onewirenumber: ""
 },
     templateUrl: 'templates/add1WIREDevice.html',
     controller: 'add1WIREDeviceCtrl'
@@ -1195,7 +1195,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		i2c: "",
-		i2cnumber: ""		
+		i2cnumber: ""
 },
     templateUrl: 'templates/addI2CDeviceDetails.html',
     controller: 'addI2CDeviceDetailsCtrl'
@@ -1211,7 +1211,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		adc: "",
-		adcnumber: ""		
+		adcnumber: ""
 },
     templateUrl: 'templates/addADCDeviceDetails.html',
     controller: 'addADCDeviceDetailsCtrl'
@@ -1227,7 +1227,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		tprobe: "",
-		tprobenumber: ""		
+		tprobenumber: ""
 },
     templateUrl: 'templates/addTPROBEDeviceDetails.html',
     controller: 'addTPROBEDeviceDetailsCtrl'
@@ -1243,7 +1243,7 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		onewire: "",
-		onewirenumber: ""		
+		onewirenumber: ""
 },
     templateUrl: 'templates/add1WIREDeviceDetails.html',
     controller: 'add1WIREDeviceDetailsCtrl'
@@ -1258,7 +1258,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		status: ""		
+		status: ""
 },
     templateUrl: 'templates/deviceNotifications.html',
     controller: 'deviceNotificationsCtrl'
@@ -1268,7 +1268,7 @@ angular.module('app.routes', [])
     url: '/page_troubleshooting',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     views: {
       'side-menu21': {
@@ -1282,7 +1282,7 @@ angular.module('app.routes', [])
     url: '/page_alerts',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     views: {
       'side-menu21': {
@@ -1297,7 +1297,7 @@ angular.module('app.routes', [])
 	params: {
 		username: "",
 		token: "",
-		section: "1"		
+		section: "1"
 },
     views: {
       'side-menu21': {
@@ -1312,7 +1312,7 @@ angular.module('app.routes', [])
 	params: {
 		username: "",
 		token: "",
-		orgname: ""		
+		orgname: ""
 },
     templateUrl: 'templates/addOrganizationUser.html',
     controller: 'addOrganizationUserCtrl'
@@ -1323,7 +1323,7 @@ angular.module('app.routes', [])
 	params: {
 		username: "",
 		token: "",
-		orgname: ""		
+		orgname: ""
 },
     templateUrl: 'templates/addOrganizationGroup.html',
     controller: 'addOrganizationGroupCtrl'
@@ -1334,7 +1334,7 @@ angular.module('app.routes', [])
 	params: {
 		username: "",
 		token: "",
-		orgname: ""		
+		orgname: ""
 },
     templateUrl: 'templates/addOrganizationPolicy.html',
     controller: 'addOrganizationPolicyCtrl'
@@ -1348,7 +1348,7 @@ angular.module('app.routes', [])
 		orgname: "",
 		policyname: "",
 		settings: "",
-		type: ""		
+		type: ""
 },
     templateUrl: 'templates/updateOrganizationPolicy.html',
     controller: 'updateOrganizationPolicyCtrl'
@@ -1358,7 +1358,7 @@ angular.module('app.routes', [])
     url: '/page_create_organization',
 	params: {
 		username: "",
-		token: ""		
+		token: ""
 },
     templateUrl: 'templates/updateOrganizations.html',
     controller: 'updateOrganizationsCtrl'
@@ -1370,7 +1370,7 @@ angular.module('app.routes', [])
 		username: "",
 		token: "",
 		orgname: "",
-		groupname: ""		
+		groupname: ""
 },
     templateUrl: 'templates/updateOrganizationGroupUsers.html',
     controller: 'updateOrganizationGroupUsersCtrl'
@@ -1382,13 +1382,13 @@ angular.module('app.routes', [])
 		username: "",
 		token: "",
 		orgname: "",
-		groupname: ""		
+		groupname: ""
 },
     templateUrl: 'templates/updateOrganizationGroupPolicies.html',
     controller: 'updateOrganizationGroupPoliciesCtrl'
   })
 
-$urlRouterProvider.otherwise('/page_home')
+    $urlRouterProvider.otherwise('/page_home')
 
 
-});
+  });

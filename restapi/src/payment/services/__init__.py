@@ -1,3 +1,4 @@
+from payment.core import payment_client
 from payment.models.billing_address import BillingAddress
 from payment.models.customer import UserCustomer
 from payment.models.plan import Plan
@@ -23,7 +24,11 @@ promocode_usecount_service = PromocodeUseCountService(Promocode_Usecount,promoco
 promocode_service = PromocodeS3Service(model=PromoCode,repo=s3_promocode_repo,usecount_service=promocode_usecount_service)
 
 transaction_service = TransactionService(Transaction,transaction_repo)
-subscription_service = SubscriptionService(model=Subscription,repo=subscription_repo,device_repo=device_repo,plan_service = plan_service)
+subscription_service = SubscriptionService(model=Subscription,
+                                           repo=subscription_repo,
+                                           device_repo=device_repo,
+                                           plan_service = plan_service,
+                                           payment_client=payment_client)
 
 # complex service allow to register other simple service
 payment_service = PaymentService(plan_repo=plan_repo,
