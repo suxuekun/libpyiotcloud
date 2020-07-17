@@ -981,8 +981,6 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 # Main entry point
 ###################################################################################
-from dashboards_app.app import DashboardsApp
-
 def initialize():
 
     global CONFIG_SEPARATOR

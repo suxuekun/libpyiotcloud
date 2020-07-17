@@ -1,14 +1,9 @@
 import pytz
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
-from apscheduler.jobstores.mongodb import MongoDBJobStore
-from shared.client.connection.mongo import DefaultMongoConnection
 
 db = "iot_scheduler"
 collection = "payment_scheduler"
-client = DefaultMongoConnection().conn
-jobstores = {
-    'default': MongoDBJobStore(client=client, database=db,collection=collection)
-}
+
 executors = {
     'default': ThreadPoolExecutor(20),
     'processpool': ProcessPoolExecutor(5)

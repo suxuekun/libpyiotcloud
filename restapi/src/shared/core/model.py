@@ -1,9 +1,5 @@
-import datetime
-import uuid
-
-from bson import ObjectId
 from schematics import Model
-from schematics.types import DateTimeType, BooleanType, TimestampType, StringType, UUIDType, IntType
+from schematics.types import BooleanType, StringType, UUIDType, IntType
 
 from shared.utils import timestamp_util
 
