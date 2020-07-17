@@ -571,6 +571,11 @@ class device:
             #print(data["deviceid"])
             #print(data["serialnumber"])
 
+            # check devicename
+            if len(devicename) > 32 or len(devicename) == 0:
+                response = json.dumps({'status': 'NG', 'message': 'Devicename length is invalid'})
+                print('\r\nERROR Add Device: Devicename length is invalid [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_400_BAD_REQUEST
 
             # check parameters are valid format and length
             result1 = self._check_deviceid(data["deviceid"])
@@ -986,13 +991,13 @@ class device:
 
         # check if new device name is already registered
         data = flask.request.get_json()
-        if not data.get("new_devicename"):
+        if data.get("new_devicename") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Update Device Name: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
-        if len(data["new_devicename"]) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Update Device Name: Empty parameter found\r\n')
+        if len(data["new_devicename"]) > 32 or len(data["new_devicename"]) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Devicename length is invalid'})
+            print('\r\nERROR Update Device Name: Devicename length is invalid\r\n')
             return response, status.HTTP_400_BAD_REQUEST
         device = self.database_client.find_device(entityname, data["new_devicename"])
         if device:

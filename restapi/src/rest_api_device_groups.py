@@ -242,9 +242,9 @@ class device_groups:
                     return response, status.HTTP_401_UNAUTHORIZED
 
             # check devicegroupname
-            if len(devicegroupname) == 0:
-                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-                print('\r\nERROR Add DeviceGroup: Empty parameter found\r\n')
+            if len(devicegroupname) > 32 or len(devicegroupname) == 0:
+                response = json.dumps({'status': 'NG', 'message': 'Devicegroupname length is invalid'})
+                print('\r\nERROR Add DeviceGroup: Devicegroupname length is invalid [{},{}]\r\n'.format(entityname, devicegroupname))
                 return response, status.HTTP_400_BAD_REQUEST
 
             # check device group if exist
@@ -665,13 +665,14 @@ class device_groups:
 
         # check if new device group name is already registered
         data = flask.request.get_json()
-        if not data.get("new_groupname"):
+        if data.get("new_groupname") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Update Device Group Name: Parameters not included [{},{}]\r\n'.format(entityname, devicegroupname))
             return response, status.HTTP_400_BAD_REQUEST
-        if len(data["new_groupname"]) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Update Device Group Name: Empty parameter found\r\n')
+        # check devicegroupname
+        if len(data["new_groupname"]) > 32 or len(data["new_groupname"]) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Devicegroupname length is invalid'})
+            print('\r\nERROR Update Device Group Name: Devicegroupname length is invalid [{},{}]\r\n'.format(entityname, devicegroupname))
             return response, status.HTTP_400_BAD_REQUEST
         if self.database_client.get_devicegroup(entityname, data["new_groupname"]) is not None:
             response = json.dumps({'status': 'NG', 'message': 'Device group name is already registered'})

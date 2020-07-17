@@ -1061,20 +1061,11 @@ class device_peripheral_properties:
             return response, status.HTTP_401_UNAUTHORIZED
 
         # get username from token
-        data = flask.request.get_json()
-
-        # check parameter input
-        if data['name'] is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-            print('\r\nERROR Invalid parameters\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
         username = self.database_client.get_username_from_token({'access': auth_header_token})
         if username is None:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-
 
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
@@ -1091,6 +1082,18 @@ class device_peripheral_properties:
             # no active organization, just a normal user
             entityname = username
 
+
+        # check parameters
+        data = flask.request.get_json()
+        if data.get('name') is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        # check LDSUdevicename
+        if len(data['name']) > 32 or len(data['name']) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'LDSUdevicename length is invalid'})
+            print('\r\nERROR Change Peripheral Sensor Name: LDSUdevicename length is invalid [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
         # check if device is registered
         deviceinfo = self.database_client.find_device(entityname, devicename)
