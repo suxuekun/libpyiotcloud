@@ -355,19 +355,36 @@ July 17, 2020
 
     It should save any information immediately and delegate the processing to some thread handlers for processing.
 
+    Note that it needs to send email in certain conditions after saving info from database.
+
     this is because recurring payments can arrive simultaneously for all devices. 
 
     so cannot afford the webhooks to be blocking. (Example if there are 100-1000 device subscriptions)
 
-74. Include documentation on README_rest_api_dashboard.md how to improve testability of cancellations.
+74. some of the webhooks require sending emails
 
-75. Include documentation on README_rest_api_dashboard.md how to improve testability of recurring payments.
+    FYI: for email sending, there is already a docker container for sending emails.
 
-76. In .gitignore, restapi/src/.vscode already exist, please check.
 
-77. In reset_usage() on plan.py, should not reset SMS to 0 as SMS is roll-over to the next month (topup model)
 
-78. In reset_usage() on plan.py, should also reset the "notice" objects to false if exists 
+    emails are sent for various cases:
+
+
+    - OK: account creation/deletion, device registration/unregistration, download sensor data, organization invitation
+
+
+    - TODO: subscription related - payment acknowledgement, subscription upgrade/cancel
+
+
+75. Include documentation on README_rest_api_dashboard.md how to improve testability of cancellations.
+
+76. Include documentation on README_rest_api_dashboard.md how to improve testability of recurring payments.
+
+77. In .gitignore, restapi/src/.vscode already exist, please check.
+
+78. In reset_usage() on plan.py, should not reset SMS to 0 as SMS is roll-over to the next month (topup model)
+
+79. In reset_usage() on plan.py, should also reset the "notice" objects to false if exists 
  
     notice: {
       sms: boolean, 
@@ -380,21 +397,18 @@ July 17, 2020
 
     But should not reset "sms" to false
 
-79. config.py has __name__ == "__main__"
+80. config.py has __name__ == "__main__"
 
     Should not have two mains.
 
-80. The schedular should run as a separate docker container for maintainability and scalability. 
+81. The schedular should run as a separate docker container for maintainability and scalability. 
 
     not part of the restapi container.
 
-81. Create a sequence diagram for the schedular docker container.    
+82. Create a sequence diagram for the schedular docker container.    
 
-82. In rest_api_device.py, please remove as the current code is already ok.
+83. In rest_api_device.py, please remove as the current code is already ok.
 
-83. Please remove files that have whitespace conflicts with current code. 
+84. Please remove files that have whitespace conflicts with current code. 
 
-84. webapp/src/ionicapp/www/templates/gateways.html has "<<<<< HEAD"
-
-
-
+85. webapp/src/ionicapp/www/templates/gateways.html has "<<<<< HEAD"
