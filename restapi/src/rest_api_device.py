@@ -1030,6 +1030,7 @@ class device:
 
         # update the device name
         self.database_client.update_devicename(entityname, devicename, data["new_devicename"])
+        
 
         msg = {'status': 'OK', 'message': 'Device name updated successfully.'}
         if new_token:

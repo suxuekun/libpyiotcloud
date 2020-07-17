@@ -24,6 +24,8 @@ from device_client import device_client
 #import http.client
 #import threading
 #import copy
+#import statistics
+from message_broker_api import message_broker_api
 from rest_api_messaging_requests import messaging_requests
 from rest_api_identity_authentication import identity_authentication
 from rest_api_access_control import access_control
@@ -40,6 +42,7 @@ from rest_api_device_dashboard_old import device_dashboard_old
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
 from shared.client.clients.database_client import db_client
+from shared.middlewares.default_middleware import DefaultMiddleWare
 from dashboards.dashboards_app import DashboardsApp
 from payment.app import PaymentApp
 
@@ -914,13 +917,13 @@ def get_device_firmware_updates():
     return g_other_stuffs.get_device_firmware_updates()
 
 
-# This is for the device simulator.
+# This is for the device simulator. 
 # This can be easily blocked by removing entry in nginx.conf.
 @app.route('/devicesimulator/devicepassword', methods=['GET'])
 def compute_device_password():
     return g_other_stuffs.compute_device_password()
 
-# This is for the device simulator.
+# This is for the device simulator. 
 # This can be easily blocked by removing entry in nginx.conf.
 @app.route('/devicesimulator/otaauthcode', methods=['GET'])
 def compute_ota_authcode():
@@ -981,6 +984,7 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 # Main entry point
 ###################################################################################
+
 def initialize():
 
     global CONFIG_SEPARATOR
