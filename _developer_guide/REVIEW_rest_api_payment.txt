@@ -363,7 +363,8 @@ July 17, 2020
 
     this is because recurring payments can arrive simultaneously for all devices. 
 
-    so cannot afford the webhooks to be blocking. (Example if there are 100-1000 device subscriptions)
+    so cannot afford the webhooks to be blocking. 
+   (Example if there are 100-1000 device subscriptions. webhooks for recurring subscription charging may arrive simultaneously within 1 second interval?)
 
 74. some of the webhooks require sending emails
 
