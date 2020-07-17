@@ -13,15 +13,18 @@ from payment.services import subscription_service
 
 
 def subscription_canceled(webhook_notification):
+    print('handle subscription canceled')
     bt_sub_id = webhook_notification.subscription.id
     return subscription_service.cancel_subscription_by_bt_id(bt_sub_id)
 
 
 def subscription_charge_success(webhook_notification):
+    print('handle subscription success')
     bt_sub_id = webhook_notification.subscription.id
     return subscription_service.subscription_recurring_paid_by_bt_id(bt_sub_id)
 
 def subscription_charge_fail(webhook_notification):
+    print('handle subscription fail')
     bt_sub_id = webhook_notification.subscription.id
     return subscription_service.subscription_recurring_fail_by_bt_id(bt_sub_id)
 
@@ -31,6 +34,7 @@ def subscription_went_active(webhook_notification):
     # return subscription_service.what_to_do_on_active(bt_sub_id)
 
 def subscription_pass_due(webhook_notification):
+    print('handle subscription past_due')
     bt_sub_id = webhook_notification.subscription.id
     return subscription_service.subscription_recurring_overdue_by_bt_id(bt_sub_id)
 

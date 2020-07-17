@@ -8,7 +8,6 @@ import braintree
 
 def disbursement(webhook_notification):
     # TODO
-
     pass
 
 def disbursement_exception(webhook_notification):

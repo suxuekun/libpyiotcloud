@@ -1,19 +1,13 @@
 import os
 import flask
 from example_module.app import ExampleApp
-from flask_json import FlaskJSON, JsonError, json_response, as_json
-from flask_cors import CORS
-from flask_api import status
 #from certificate_generator import certificate_generator
 from messaging_client import messaging_client
 from rest_api_config import config
-from database import database_categorylabel, database_crudindex
 from flask_cors import CORS
 from flask_api import status
-import jwt
 #from jose import jwk, jwt
 from s3_client import s3_client
-import threading
 from redis_client import redis_client
 from device_client import device_client
 #import ssl
@@ -29,8 +23,6 @@ from device_client import device_client
 #import http.client
 #import threading
 #import copy
-import statistics
-from message_broker_api import message_broker_api
 from rest_api_messaging_requests import messaging_requests
 from rest_api_identity_authentication import identity_authentication
 from rest_api_access_control import access_control
@@ -47,7 +39,6 @@ from rest_api_device_dashboard_old import device_dashboard_old
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
 from shared.client.clients.database_client import db_client
-from shared.middlewares.default_middleware import DefaultMiddleWare
 from dashboards.dashboards_app import DashboardsApp
 #from payment.app import PaymentApp
 

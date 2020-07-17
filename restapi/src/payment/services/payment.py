@@ -4,7 +4,7 @@ from bson import ObjectId
 
 from payment.models.plan import Plan
 from payment.models.subscription import NextSubscription, Subscription, CurrentSubscription, SubScriptionStatus, \
-    SubScriptionCancelReason
+    SubScriptionCancelReason, PaymentStatus
 from payment.models.transaction import Transaction, TransactionStatus
 from shared.simple_api.service import throw_bad_db_query
 from shared.utils import timestamp_util
@@ -55,8 +55,8 @@ class PaymentService():
         draft = NextSubscription()
         draft.plan = plan
         # next_month_first_day = timestamp_util.get_next_month_first_day()
-        draft.start = timestamp_util.get_next_month_first_day_timestamp()
-        draft.end = timestamp_util.get_last_day_of_month_timestamp(timestamp_util.get_next_month_first_day())
+        # draft.start = timestamp_util.get_next_month_first_day_timestamp()
+        # draft.end = timestamp_util.get_last_day_of_month_timestamp(timestamp_util.get_next_month_first_day())
         draft.validate()
 
         subscription.draft = draft
@@ -94,6 +94,7 @@ class PaymentService():
             subscription.current.end = timestamp_util.get_last_day_of_month_timestamp()
             subscription.current.validate()
             subscription.status = SubScriptionStatus.NORMAL
+            subscription.payment_status = PaymentStatus.SUCCESS
             self._confirm_subscription_plan_change(subscription,commit=True)
             return prorate
         return -1

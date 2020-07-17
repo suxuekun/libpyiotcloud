@@ -7,6 +7,8 @@ class WebhookStatus():
     PENDING = 'pending'
     PROCESSING = 'processing'
     PROCESSED = 'processed'
+    FAIL = 'fail'
+    IGNORE = 'ignore'
 
 class AbstractWebhook(BaseModel,MongoIdMixin):
     kind = StringType()
