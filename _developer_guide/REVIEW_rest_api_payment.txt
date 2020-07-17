@@ -336,3 +336,52 @@ July 10, 2020
 -   not when user goes to the Subscription page. 
 -   because if user starts testing with MENOS alerts but NEVER go to the subscription page, then that will cause issue
 
+
+===============================================
+
+July 17, 2020
+
+70. Please include documentation of the webhook APIs in README_rest_api_dashboard.md.
+    The webhook APIs are also APIs so should also be documented similar to the other APIs.
+
+    Also include how to trigger/test the APIs (including using Postman if possible) 
+
+71. Please document the APIs that are used for testing purposes ONLY.
+
+72. Please provide a way how to easily disable this APIs that are to be used for testing only.
+    As this should not be part of the production code.
+
+73. Include documentation on README_rest_api_dashboard.md how to improve testability of cancellations.
+
+74. Include documentation on README_rest_api_dashboard.md how to improve testability of recurring payments.
+
+75. In .gitignore, restapi/src/.vscode already exist, please check.
+
+76. In reset_usage() on plan.py, should not reset SMS to 0 as SMS is roll-over to the next month (topup model)
+
+77. In reset_usage() on plan.py, should also reset the "notice" objects to false if exists 
+ 
+    notice: {
+      sms: boolean, 
+      email: boolean, 
+      notification: boolean, 
+      storage: boolean
+    }
+
+    The notice parameter indicates if threshold notice was already sent
+
+    But should not reset "sms" to false
+
+78. config.py has __name__ == "__main__"
+
+    Should not have two mains.
+
+79. The schedular should run as a separate docker container instead. not part of the restapi container.
+
+80. Create a sequence diagram for the schedular docker container.    
+
+81. In rest_api_device.py, please remove as the current code is already ok.
+
+82. Please remove files that have whitespace conflicts with current code. 
+
+
