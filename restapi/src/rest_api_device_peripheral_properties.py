@@ -1085,6 +1085,10 @@ class device_peripheral_properties:
 
         # check parameters
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Change Peripheral Sensor Name: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get('name') is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')

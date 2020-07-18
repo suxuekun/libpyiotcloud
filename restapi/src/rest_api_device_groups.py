@@ -665,6 +665,10 @@ class device_groups:
 
         # check if new device group name is already registered
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Update Device Group Name: Parameters not included [{},{}]\r\n'.format(entityname, devicegroupname))
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("new_groupname") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Update Device Group Name: Parameters not included [{},{}]\r\n'.format(entityname, devicegroupname))
