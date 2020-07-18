@@ -1594,6 +1594,8 @@ class database_client_mongodb:
         #mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = DefaultMongoDB().conn
         self.client = DefaultMongoDB().db
+        self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index([('username', 1), ('devicename', 1)])
+        self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index('deviceid')
         self.patch()
 
         # different database for sensor dashboarding

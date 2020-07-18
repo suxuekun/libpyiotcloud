@@ -681,8 +681,7 @@ class database_client_mongodb:
     def get_sensorreadings_document(self):
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
         collection = self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
-        collection.create_index('sid')
-        collection.create_index('deviceid')
+        collection.create_index([('deviceid', 1), ('sid', 1)])
         return collection
 
     def update_sensor_reading(self, username, deviceid, source, number, sensor_readings):
