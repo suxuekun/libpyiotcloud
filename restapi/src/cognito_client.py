@@ -477,7 +477,7 @@ class cognito_client:
 		if claims["client_id"] != config.CONFIG_CLIENT_ID:
 			print('Token was not issued for this client_id')
 			return 3
-		if claims["username"] != username:
+		if claims["username"].lower() != username.lower():
 			print('Token was not issued for this username')
 			return 4
 		if claims['iss'] != self.keys_iss:

@@ -67,7 +67,7 @@ class identity_authentication:
         data = flask.request.get_json()
         if data.get("code") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Login IDP STORE CODE: Empty parameter found [{}]\r\n'.format(username))
+            print('\r\nERROR Login IDP STORE CODE: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
         if CONFIG_USE_REDIS_FOR_IDP:
@@ -308,7 +308,7 @@ class identity_authentication:
             phonenumber = data['phone_number']
         else:
             phonenumber = None
-        email = data['email']
+        email = data['email'].lower()
         name = data['name']
         names = name.split(" ")
         if (len(names) > 1):
@@ -423,7 +423,7 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Confirm Signup: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
-        username = data['username']
+        username = data['username'].lower()
         confirmationcode = data['confirmationcode']
         #print('confirm_signup username={} confirmationcode={}'.format(username, confirmationcode))
 
@@ -478,7 +478,7 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Resend Confirmation: Empty parameter found [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
-        username = data['username']
+        username = data['username'].lower()
         print('resend_confirmation_code username={}'.format(username))
 
         # check if a parameter is empty
@@ -536,7 +536,7 @@ class identity_authentication:
 
         email = None
         if data.get("email") is not None:
-            email = data['email']
+            email = data['email'].lower()
 
             # check if a parameter is empty
             if len(email) == 0:
@@ -1353,9 +1353,13 @@ class identity_authentication:
     ########################################################################################################
     def login_mfa(self):
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Login MFA: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("username") is None or data.get("confirmationcode") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Login MFA: Empty parameter found [{}]\r\n'.format(username))
+            print('\r\nERROR Login MFA: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
         username = data['username']
