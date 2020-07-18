@@ -1594,8 +1594,23 @@ class database_client_mongodb:
         #mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = DefaultMongoDB().conn
         self.client = DefaultMongoDB().db
-        self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index([('username', 1), ('devicename', 1)])
+        self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index('username')
         self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index('deviceid')
+        self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index([('username', 1), ('devicename', 1)])
+        self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS].create_index('username')
+        self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS].create_index([('username', 1), ('groupname', 1)])
+        self.client[config.CONFIG_MONGODB_TB_LDSUS].create_index('deviceid')
+        self.client[config.CONFIG_MONGODB_TB_LDSUS].create_index([('deviceid', 1), ('PORT', 1)])
+        self.client[config.CONFIG_MONGODB_TB_LDSUS].create_index([('deviceid', 1), ('UID', 1)])
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index('deviceid')
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('type', 1)])
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('port', 1)])
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
+        self.client[config.CONFIG_MONGODB_TB_CONFIGURATIONS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
+        self.client[config.CONFIG_MONGODB_TB_NOTIFICATIONS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
+        self.client[config.CONFIG_MONGODB_TB_OTAUPDATES].create_index('username')
+        self.client[config.CONFIG_MONGODB_TB_OTAUPDATES].create_index('deviceid')
+        self.client[config.CONFIG_MONGODB_TB_LASTLOGIN].create_index('username')
         self.patch()
 
         # different database for sensor dashboarding
