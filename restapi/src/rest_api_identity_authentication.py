@@ -287,11 +287,28 @@ class identity_authentication:
         #print('signup username={}'.format(username))
 
         data = flask.request.get_json()
-        email = data['email']
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Signup: Parameters not included\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("email") is None or data.get("name") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Signup: Parameters not included\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if len(data["name"]) > 32 or len(data["name"]) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Name length is invalid'})
+            print('\r\nERROR Signup: Name length is invalid\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if len(password) > 32 or len(password) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Password length is invalid'})
+            print('\r\nERROR Signup: Password length is invalid\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
         if data.get("phone_number") is not None:
             phonenumber = data['phone_number']
         else:
             phonenumber = None
+        email = data['email']
         name = data['name']
         names = name.split(" ")
         if (len(names) > 1):
@@ -398,6 +415,14 @@ class identity_authentication:
     ########################################################################################################
     def confirm_signup(self):
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Confirm Signup: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("username") is None or data.get("confirmationcode") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Confirm Signup: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         username = data['username']
         confirmationcode = data['confirmationcode']
         #print('confirm_signup username={} confirmationcode={}'.format(username, confirmationcode))
@@ -606,6 +631,10 @@ class identity_authentication:
             return response, status.HTTP_400_BAD_REQUEST
 
         # check length of password
+        if len(password) > 32:
+            response = json.dumps({'status': 'NG', 'message': 'Password length is invalid'})
+            print('\r\nERROR Reset Password: Password length is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
         if len(password) < 8:
             response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 8 characters'})
             print('\r\nERROR Reset Password: Password length should at least be 8 characters [{}]\r\n'.format(username))
@@ -1162,7 +1191,7 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Change password: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('refresh_user_token username={}'.format(username))
+        print('change_password username={}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -1189,6 +1218,10 @@ class identity_authentication:
             return response, status.HTTP_400_BAD_REQUEST
 
         # check length of newpassword
+        if len(newpassword) > 32:
+            response = json.dumps({'status': 'NG', 'message': 'Password length is invalid'})
+            print('\r\nERROR Change password: Password length is invalid\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if len(newpassword) < 8:
             response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 8 characters'})
             print('\r\nERROR Change password: Password length should at least be 8 characters [{}]\r\n'.format(username))
@@ -1433,9 +1466,17 @@ class identity_authentication:
 
         # get the input parameters
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Update user: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get('name') is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Update user: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if len(data["name"]) > 32 or len(data["name"]) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Name length is invalid'})
+            print('\r\nERROR Update user: Name length is invalid\r\n')
             return response, status.HTTP_400_BAD_REQUEST
         if data.get('phone_number') is not None:
             phonenumber = data['phone_number']
