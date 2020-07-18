@@ -636,7 +636,7 @@ def on_message(subtopic, subpayload):
             if username is None:
                 send_notification_status(g_messaging_client, deviceid, "NG. deviceid is invalid.")
                 return
-            print(username)
+            #print(username)
 
             # recipient or message is not provided, get notification info from database
             if not payload.get("recipient") or not payload.get("message"):

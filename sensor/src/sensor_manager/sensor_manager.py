@@ -235,8 +235,8 @@ def menos_publish(menos, deviceid, recipient=None, message=None, peripheral="uar
     # publish the payload on the topic
     payload = json.dumps(payload)
     g_messaging_client.publish(topic, payload, debug=False)
-    if CONFIG_THRESHOLDING_NOTIFICATIONS_DEBUG:
-        print("{} {}".format(deviceid, condition))
+    #if CONFIG_THRESHOLDING_NOTIFICATIONS_DEBUG:
+    #    print("{} {}".format(deviceid, condition))
 
 
 # for notification triggering used in thresholding modes
