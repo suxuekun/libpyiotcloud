@@ -35,9 +35,10 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 
 # generate and store cached sensor values to cloud
+# To hit free plan, use 33875 (33875*18*82=49999500~50MB) 150ms
 CONFIG_TEST_CACHED_SENSOR_VALUES = False
 CONFIG_TEST_CACHED_FIRST_LDSU_ONLY = True
-CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR = 60
+CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR = 60 
 
 # query backend to compute device password
 CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD = True
