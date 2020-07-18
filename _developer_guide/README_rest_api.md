@@ -382,6 +382,7 @@ DETAILED:
 		   // password length must be atleast 8 characters minimum and 32 characters maximum
 		   // pasword must contain uppercase character, lowercase character, special character and a number
 		   // OTP will be sent in the registered email
+		   // OTP for signup is valid for 24 hours
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -449,6 +450,7 @@ DETAILED:
 		   // password must conform to the password requirements. refer to SIGNUP api
 		   // password can be same as OLD password for the Forgot Password scenario because backend cannot retrieve existing password from Cognito
 		   data: { 'confirmationcode': string }
+		   // OTP for forgot password is valid for 1 hour
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -617,6 +619,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'confirmationcode': string}
 		   // confirmationcode refers to the OTP code sent via SMS triggered by VERIFY PHONE NUMBER
+		   // OTP for verify phone number is valid for 24 hours
 		   // after this step, GET USER INFO will return phone_number_verified as true 
 		-  Response:
 		   {'status': 'OK', 'message': string}
