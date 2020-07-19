@@ -370,9 +370,10 @@ July 17, 2020
 
     FYI: for email sending, there is already a docker container for sending emails. emails are sent for various cases:
 
-    - OK: account creation/deletion, device registration/unregistration, download sensor data, organization invitation
+    - OK: account creation/deletion, device registration/unregistration, download sensor data, usage threshold, organization invitation
 
     - TODO: subscription related - payment acknowledgement, subscription upgrade/cancel
+
 
 75. please check behavior of braintree in terms of multiple device subscriptions for recurring payments
 
