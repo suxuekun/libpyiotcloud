@@ -37,8 +37,8 @@ CONFIG_USE_AMQP = False
 # generate and store cached sensor values to cloud
 # To hit free plan, use 33875 (33875*18*82=49999500~50MB) 150ms
 CONFIG_TEST_CACHED_SENSOR_VALUES = False
-CONFIG_TEST_CACHED_FIRST_LDSU_ONLY = True
-CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR = 60 
+CONFIG_TEST_CACHED_FIRST_LDSU_ONLY = False
+CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR = 33875
 
 # query backend to compute device password
 CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD = True
@@ -2519,6 +2519,7 @@ UART_ATCOMMAND_UPDATE              = "ATU"
 UART_ATCOMMAND_STATUS              = "AT"
 
 UART_ATCOMMAND_LDSTEST             = "ATT"
+UART_ATCOMMAND_DATATEST            = "ATD"
 
 
 UART_ATCOMMAND_DESC_MOBILE         = "Send message as SMS to verified mobile number"
@@ -2538,6 +2539,7 @@ UART_ATCOMMAND_DESC_UPDATE         = "Enter firmware update (UART entry point in
 UART_ATCOMMAND_DESC_STATUS         = "Display device status"
 
 UART_ATCOMMAND_DESC_LDSTEST        = "Simulate tests for moving/adding/removing LDSU in LDS BUS"
+UART_ATCOMMAND_DESC_DATATEST       = "Add data to cloud for all"
 
 
 MENOS_MOBILE                       = "mobile"
@@ -2754,6 +2756,9 @@ def uart_cmdhdl_ldstest(idx, cmd):
         printf("invalid command")
         return
 
+def uart_cmdhdl_datatest(idx, cmd):
+    gen_and_store_cached_ldsu_sensor_data()
+
 
 UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_MOBILE,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_MOBILE  },
@@ -2764,7 +2769,9 @@ UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_DEFAULT,  "fxn": uart_cmdhdl_default,      "help": UART_ATCOMMAND_DESC_DEFAULT },
 
     { "command": UART_ATCOMMAND_HELP,     "fxn": uart_cmdhdl_help,         "help": UART_ATCOMMAND_DESC_HELP     },
+
     { "command": UART_ATCOMMAND_LDSTEST,  "fxn": uart_cmdhdl_ldstest,      "help": UART_ATCOMMAND_DESC_LDSTEST  },
+    { "command": UART_ATCOMMAND_DATATEST, "fxn": uart_cmdhdl_datatest,     "help": UART_ATCOMMAND_DESC_DATATEST },
     #{ "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
     #{ "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
     #{ "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
