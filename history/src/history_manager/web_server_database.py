@@ -186,6 +186,9 @@ class database_client:
     def add_device_heartbeat(self, deviceid):
         return self._devices.add_device_heartbeat(deviceid)
 
+    def get_devicename(self, deviceid):
+        return self._devices.get_devicename(deviceid)
+
 
 class database_utils:
 
@@ -658,6 +661,13 @@ class database_client_mongodb:
                 new_device['heartbeat'] = int(time.time())
                 devices.replace_one(device, new_device)
                 return new_device['heartbeat']
+        return None
+
+    def get_devicename(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid},{'devicename': 1}):
+                return device['devicename']
         return None
 
 

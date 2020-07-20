@@ -70,6 +70,15 @@ CONFIG_SENSOR_READING_TOPIC = "sensor_reading"
 
 def add_history_publish(history_client, deviceid, topic, payload, direction="From"):
 
+    # find if deviceid exists
+    devicename = history_client.get_devicename(deviceid)
+    if devicename is None:
+        return
+
+    # ignore some topics
+    if topic.startswith("email"):
+        return
+
     # Write publish/subscribe message to database
     # TODO: temporarily disable
     history_client.add_device_history(deviceid, topic, payload, direction)
