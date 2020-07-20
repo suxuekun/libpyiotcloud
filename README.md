@@ -2011,17 +2011,20 @@ Querying datasets for sensor data visualization has been optimized significantly
 Performance of Sensor Dashboard API for querying a device with 1GB data (5min timerange) is now 300-1000 times faster.
 
 Issue:
+
 	- As the total number of sensor data collected by backend from device increases,
 	  the performance of querying sensor data becomes significantly slow...
 	  ...even when just querying for 5-minute timerange. 
 
 Solution:
+
 	- Instead of using MongoDB aggregate() framework,
 	  use MongoDB's find() with combo indexing on 'sid' and 'timestamp' parameters.
 	  Aggregation is supposed to be faster in theory than find() because MongoDB performs the optimization itself.
 	  However, it will be only so if usage is proper and correct.
 
 Benchmarking:
+
 	- Environment: 
 	  local setup, Windows 7, MongoDB 4.2.8 (latest), PyMongo 3.10.1 (latest)
 
@@ -2043,6 +2046,7 @@ Benchmarking:
 	  1GB   -  50ms   // 12 sensors (3 gateways have 1GB each, sensor chart has sensors for 3 devices)
 
 Other factors to consider and test:
+
 	1. 80 max LDSUs for 1 gateway => 80x4=320 sensors (OMG!)
 	2. Other timeranges
 	3. 3GB, 10GB
@@ -2050,6 +2054,7 @@ Other factors to consider and test:
 	5. Live EC2 instance (T2.SMALL)
 
 Tradeoff:
+
 	- The tradeoff for adding indexing is that memory increases.
 	  For 1GB of data, an additional 100MB-300MB was needed by MongoDB for indexing.
 	- Currently only the actual size of data is billed to customer 
