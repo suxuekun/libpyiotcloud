@@ -163,15 +163,14 @@ def send_notification_storage(messaging_client, deviceid, recipient, message, so
                         source_new = "{}{}".format(source, sensorname)
                     notification = g_database_client.get_device_notification_by_deviceid(deviceid, source_new, None)
                     if notification:
-                        if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
-                            notification["endpoints"][MENOS_STORAGE]["recipients"] = result
-                            g_database_client.update_device_notification_by_deviceid(deviceid, source_new, None, notification)
+                        notification["endpoints"][MENOS_STORAGE]["recipients"] = result
+                        g_database_client.update_device_notification_by_deviceid(deviceid, source_new, None, notification)
                 else:
+                    #print("{} {}".format(source[:-1], source[-1:]))
                     notification = g_database_client.get_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]))
                     if notification:
-                        if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
-                            notification["endpoints"][MENOS_STORAGE]["recipients"] = result
-                            g_database_client.update_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]), notification)
+                        notification["endpoints"][MENOS_STORAGE]["recipients"] = result
+                        g_database_client.update_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]), notification)
             except:
                 print("exception")
                 pass
