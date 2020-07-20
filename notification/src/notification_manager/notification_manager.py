@@ -392,40 +392,48 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
         #
         # Notification (push notification)
         #
-        if recipient.get("devicetoken") is None or recipient.get("service") is None:
+        if len(recipient) == 0:
+            print("{} empty recipients.".format(deviceid))
+            send_notification_status(messaging_client, deviceid, "NG. empty recipients.")
             return
-        devicetokens = recipient["devicetoken"]
-        services = recipient["service"]
 
-        for x in range(len(devicetokens)):
-
-            # check push notification balance
-            allow, new_usage = check_balance(username, deviceid, type, check_cost(type))
-            if not allow:
-                print("sending push notification not permitted, no more available balance.")
-                send_notification_status(messaging_client, deviceid, "NG. no more available push notification balance.")
+        for recipient_user in recipient:
+            devicetokens = recipient_user["devicetoken"]
+            services = recipient_user["service"]
+            if len(devicetokens)==0 or len(services)==0:
+                print("{} no registered device token for push notification.".format(deviceid))
+                send_notification_status(messaging_client, deviceid, "NG. no registered device token for push notification.")
                 return
 
-            rec = {"devicetoken": devicetokens[x], "service": services[x]}
-            try:
-                response = g_notification_client.send_message(rec, message_updated, subject=subject, type=type)
-            except:
-                response = ""
+            for x in range(len(devicetokens)):
 
-            if response != "":
-                result = response["ResponseMetadata"]["HTTPStatusCode"]==200
-                send_notification_status(messaging_client, deviceid, "NG" if result == False else "OK. message sent to mobile phone/s.".format(rec))
-            else:
-                result = False
-                send_notification_status(messaging_client, deviceid, "NG")
+                # check push notification balance
+                allow, new_usage = check_balance(username, deviceid, type, check_cost(type))
+                if not allow:
+                    print("sending push notification not permitted, no more available balance.")
+                    send_notification_status(messaging_client, deviceid, "NG. no more available push notification balance.")
+                    return
 
-            recipient_label = "Android" if rec["service"] == "GCM" else "iOS"
-            g_database_client.add_menos_transaction(username, deviceid, recipient_label, message, type_str, source, number, timestamp, condition, result)
-            print("{} {} {}".format(deviceid, recipient_label, result))
+                rec = {"devicetoken": devicetokens[x], "service": services[x]}
+                try:
+                    response = g_notification_client.send_message(rec, message_updated, subject=subject, type=type)
+                except:
+                    response = ""
 
-            # update push notification balance
-            if result:
-                update_balance(deviceid, type, new_usage)
+                if response != "":
+                    result = response["ResponseMetadata"]["HTTPStatusCode"]==200
+                    send_notification_status(messaging_client, deviceid, "NG" if result == False else "OK. message sent to mobile phone/s.".format(rec))
+                else:
+                    result = False
+                    send_notification_status(messaging_client, deviceid, "NG")
+
+                recipient_label = "Android" if rec["service"] == "GCM" else "iOS"
+                g_database_client.add_menos_transaction(username, deviceid, recipient_label, message, type_str, source, number, timestamp, condition, result)
+                print("{} {} {}".format(deviceid, recipient_label, result))
+
+                # update push notification balance
+                if result:
+                    update_balance(deviceid, type, new_usage)
 
     elif type == notification_types.EMAIL:
         #
@@ -682,9 +690,23 @@ def on_message(subtopic, subpayload):
                     #        return
                     if menos == "notification":
                         if notification["endpoints"][menos]["enable"] == True:
-                            # read from database
-                            payload["recipient"] = g_database_client.get_mobile_device_token_by_deviceid(deviceid)
-                            #print(payload["recipient"])
+                            payload["recipient"] = []
+                            try:
+                                if notification["endpoints"][menos].get("recipients_ex") is not None:
+                                    for recipient_ex in notification["endpoints"][menos]["recipients_ex"]:
+                                        notification_recipient = g_database_client.get_mobile_device_token(recipient_ex)
+                                        if notification_recipient:
+                                            payload["recipient"].append(notification_recipient)
+                                else:
+                                    notification_recipient = g_database_client.get_mobile_device_token_by_deviceid(deviceid)
+                                    if notification_recipient:
+                                        payload["recipient"].append(notification_recipient)
+                            except:
+                                notification_recipient = g_database_client.get_mobile_device_token_by_deviceid(deviceid)
+                                if notification_recipient:
+                                    payload["recipient"].append(notification_recipient)
+                            print("PUSH_NOTIFICATION")
+                            print(payload["recipient"])
                         else:
                             send_notification_status(g_messaging_client, deviceid, "NG. {} recipient is not enabled.".format(menos))
                             return

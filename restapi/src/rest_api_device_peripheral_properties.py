@@ -126,7 +126,49 @@ class device_peripheral_properties:
                                 found = True
                                 break
             if not found:
-                print("email {} not found".format(recipient))
+                print("sms {} not found".format(recipient))
+                return False
+        return True
+
+    def is_pushnotif_list_valid(self, notification, users):
+        mobile = notification["endpoints"]["notification"]
+        if mobile["enable"] == False:
+            return True
+
+        # mobile is enabled, so check the recipients
+        recipients = mobile["recipients"]
+        recipients = recipients.split(",")
+        for x in range(len(recipients)):
+            recipients[x] = recipients[x].strip()
+
+        # check for duplicates
+        if len(recipients) != len(set(recipients)):
+            print("some duplicates in the list {}".format(recipients))
+            return False
+
+        # empty recipient will use own
+        if len(recipients) == 1:
+            if recipients[0] == "":
+                return True
+
+        notification["endpoints"]["notification"]["recipients_ex"] = []
+
+        # check if the numbers are valid
+        for recipient in recipients:
+            found = False
+            for user in users:
+                if user.get("phone_number"):
+                    if recipient == user["phone_number"]:
+                        if user.get("phone_number_verified"):
+                            if user["phone_number_verified"] == True:
+                                found = True
+                                if user.get("email"):
+                                    if user.get("email_verified"):
+                                        if user["email_verified"] == True:
+                                            notification["endpoints"]["notification"]["recipients_ex"].append(user["email"])
+                                break
+            if not found:
+                print("pushsms {} not found".format(recipient))
                 return False
         return True
 
@@ -329,6 +371,11 @@ class device_peripheral_properties:
         source = "uart"
         notification = self.database_client.get_device_notification(entityname, devicename, source)
         if notification is not None:
+            if notification.get("endpoints"):
+                if notification["endpoints"].get("notification"):
+                    if notification["endpoints"]["notification"].get("recipients_ex") is not None:
+                        print(notification["endpoints"]["notification"]["recipients_ex"])
+                        notification["endpoints"]["notification"].pop("recipients_ex")
             value['notification'] = notification
         else:
             value['notification'] = rest_api_utils.utils().build_default_notifications("uart", token, self.database_client)
@@ -412,11 +459,15 @@ class device_peripheral_properties:
         # check list of email and sms and devices are valid
         users = self.database_client.get_registered_users()
         if not self.is_email_list_valid(notification, users):
-            response = json.dumps({'status': 'NG', 'message': 'At least one of the emails do not belong to a verified user account. All email recipients should belong to a valid user account.'})
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the emails do not belong to a verified user account. All Email recipients should belong to a valid user account.'})
             print('\r\nERROR Set Uart: Email list is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
         if not self.is_sms_list_valid(notification, users):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the mobile numbers do not belong to a verified user account. All SMS recipients should belong to a valid user account.'})
+            print('\r\nERROR Set Uart: Mobile number list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        if not self.is_pushnotif_list_valid(notification, users):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the mobile numbers do not belong to a verified user account. All Push Notification recipients should belong to a valid user account.'})
             print('\r\nERROR Set Uart: Mobile number list is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
         if not self.is_device_list_valid(notification, entityname):
@@ -662,6 +713,10 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'At least one of the mobile numbers do not belong to a verified user account. All SMS recipients should belong to a valid user account.'})
             print('\r\nERROR Set Peripheral Sensor: Mobile number list is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
+        if not self.is_pushnotif_list_valid(notification, users):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the mobile numbers do not belong to a verified user account. All Push Notification recipients should belong to a valid user account.'})
+            print('\r\nERROR Set  Peripheral Sensor: Mobile number list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
         if not self.is_device_list_valid(notification, entityname):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the device/devicegroup is not valid. All device/devicegroup recipients should be valid.'})
             print('\r\nERROR Set Peripheral Sensor: Device/device group list is not valid [{}]\r\n'.format(username))
@@ -789,6 +844,11 @@ class device_peripheral_properties:
         # get sensor notification
         (notification, subattributes_notification) = self.database_client.get_device_notification_with_notification_subclass(entityname, devicename, xxx, int(number))
         if notification is not None:
+            if notification.get("endpoints"):
+                if notification["endpoints"].get("notification"):
+                    if notification["endpoints"]["notification"].get("recipients_ex") is not None:
+                        print(notification["endpoints"]["notification"]["recipients_ex"])
+                        notification["endpoints"]["notification"].pop("recipients_ex")
             value['notification'] = notification
         else:
             value['notification'] = rest_api_utils.utils().build_default_notifications(xxx, token, self.database_client)
