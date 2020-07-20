@@ -512,6 +512,7 @@ DETAILED:
 		   //   The web/mobile app should check message parameter.
 		   //   If message is "MFARequiredException", the web/mobile app should redirect user to the CONFIRM MFA page.
 		   //   where user should input the OTP code sent in SMS.
+		   //   Frontend should then call LOGIN MFA api and use the "username" parameter returned in LOGIN api. This is necessary when user logins with mobile number instead of email.
 		-  Details:
 		   How to compute the JWT token using Javascript
 		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
