@@ -219,6 +219,7 @@ Below are tools and utilities being used:
 - <b>Github Desktop</b> Git application - https://desktop.github.com/
 - <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
 - <b>RabbitMQ</b> Management web interface - https://www.rabbitmq.com/management.html
+- <b>Beyond Compare</b> Code comparison - https://www.scootersoftware.com/
 - <b>Putty</b> SSH application to access AWS EC2 - https://www.putty.org/
 - <b>WinSCP</b> SSH gui application to access AWS EC2 - https://winscp.net/eng/index.php
 - <b>Docker Toolbox</b> Docker installation on Windows - https://docs.docker.com/toolbox/toolbox_install_windows/
