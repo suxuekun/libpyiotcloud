@@ -470,6 +470,8 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
         recipients = recipient.split(",")
         for x in range(len(recipients)):
             recipients[x] = recipients[x].strip()
+            if recipients[x][0] != '+':
+                recipients[x] = "+{}".format(recipients[x])
 
         for recipient in recipients:
             country, isocode, networkcarrier = get_sms_details(recipient)
@@ -507,8 +509,6 @@ def notification_thread(username, messaging_client, deviceid, recipient, message
 
 def send_notification_mobile_threaded(username, messaging_client, deviceid, recipient, message, source, sensor, payload, notification):
     #print("mobile")
-    if recipient[0] != '+':
-        recipient = "+{}".format(recipient)
     #print("recipient={} message={}".format(recipient, message))
     thr = threading.Thread(target = notification_thread, args = (username, messaging_client, deviceid, recipient, message, None, notification_types.SMS, -1, source, sensor, payload, notification, ))
     thr.start()
