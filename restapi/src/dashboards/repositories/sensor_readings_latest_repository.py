@@ -31,7 +31,7 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             filterSensors = list(filter(lambda s: s["deviceid"] == gatewayUUID, sensors))
 
             if USE_OPTIMIZED_QUERY:
-                # using find() with combo indexing on 'sid' and 'timestamp' - faster by ~300 times
+                # using find() with combo indexing on 'sid' and 'timestamp' - faster by 300-1000 times for 1GB above
                 reports = self.gets_dataset_with_same_gateway_ex(gatewayUUID, filterSensors, timestampBegin, timestampEnd)
             else:
                 # using aggregate() with indexing on 'sid'
