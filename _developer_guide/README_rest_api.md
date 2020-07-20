@@ -378,10 +378,11 @@ DETAILED:
 		   // phone_number is optional
 		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
 		   // phone number must be unique for all users (since LOGIN via phone number is now supported)
-		   // name can be 1 or multiple words
-		   // password length must be atleast 8 characters minimum 
+		   // name can be 1 or multiple words; must be 32 characters maximum
+		   // password length must be atleast 8 characters minimum and 32 characters maximum
 		   // pasword must contain uppercase character, lowercase character, special character and a number
 		   // OTP will be sent in the registered email
+		   // OTP for signup is valid for 24 hours
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -449,6 +450,7 @@ DETAILED:
 		   // password must conform to the password requirements. refer to SIGNUP api
 		   // password can be same as OLD password for the Forgot Password scenario because backend cannot retrieve existing password from Cognito
 		   data: { 'confirmationcode': string }
+		   // OTP for forgot password is valid for 1 hour
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -510,6 +512,7 @@ DETAILED:
 		   //   The web/mobile app should check message parameter.
 		   //   If message is "MFARequiredException", the web/mobile app should redirect user to the CONFIRM MFA page.
 		   //   where user should input the OTP code sent in SMS.
+		   //   Frontend should then call LOGIN MFA api and use the "username" parameter returned in LOGIN api. This is necessary when user logins with mobile number instead of email.
 		-  Details:
 		   How to compute the JWT token using Javascript
 		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
@@ -575,6 +578,7 @@ DETAILED:
 		   POST /user
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'name': string, 'phone_number': string}
+		   // name must be 32 characters maximum
 		   // phone_number is optional
 		   // phone_number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
 		   // phone number must be unique for all users (since LOGIN via phone number is now supported)
@@ -616,6 +620,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'confirmationcode': string}
 		   // confirmationcode refers to the OTP code sent via SMS triggered by VERIFY PHONE NUMBER
+		   // OTP for verify phone number is valid for 24 hours
 		   // after this step, GET USER INFO will return phone_number_verified as true 
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1147,6 +1152,7 @@ DETAILED:
 		   POST /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'deviceid': string, 'serialnumber': string, 'poemacaddress': string}
+		   // DEVICENAME must be 32 characters maximum
 		   // deviceid refers to UUID and must be unique
 		   // serialnumber is some derivative of UUID
 		   // poemacaddress is a unique mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
@@ -1177,10 +1183,11 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/name
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'new_devicename': string}
+		   // new_devicename must be 32 characters maximum
+		   // new_devicename refers to the new name of the device
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
-		   // new_devicename refers to the new name of the device
 
 		F. GET DEVICE
 		-  Request:
@@ -1453,6 +1460,7 @@ DETAILED:
 		   POST /devicegroups/group/DEVICEGROUPNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   data: {'devices': ["devicename", ...]}
+		   // DEVICEGROUPNAME must be 32 characters maximum
 		   // devices is optional; if provided then the list of devices will be included in the group to be created
 		-  Response:
 		   { 'status': 'OK', 'message': string}
@@ -1499,6 +1507,7 @@ DETAILED:
 		   POST /devicegroups/group/DEVICEGROUPNAME/name
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'new_groupname': string}
+		   // new_groupname must be 32 characters maximum
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -1841,6 +1850,7 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   data: {'name': string}
+		   // name must be 32 characters maximum
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
@@ -1928,7 +1938,7 @@ DETAILED:
 		                },
 		                'storage': {
 		                    'enable': boolean,
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string, // this will contain the URL of the log file containing the alerts triggered, read-only not to be modified by frontend
 		                },
 		            }
 		        }
@@ -2052,6 +2062,7 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   data: { 'name': string }
+		   // name must be 32 characters maximum
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }

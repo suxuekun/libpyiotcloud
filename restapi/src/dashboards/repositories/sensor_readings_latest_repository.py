@@ -2,6 +2,9 @@
 from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
 from shared.core.exceptions import QueriedManyException
+from shared.client.db.mongo.default import SensorDataMongoDb
+
+USE_OPTIMIZED_QUERY = True
 
 
 class ISensorReadingsLatestRepository(IMongoBaseRepository):
@@ -10,7 +13,7 @@ class ISensorReadingsLatestRepository(IMongoBaseRepository):
 
     def gets_dataset(self, sensors, timestampBegin, timestampEnd):
         pass
-      
+
 class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestRepository):
 
     def gets_dataset(self, sensors, timestampBegin, timestampEnd):
@@ -26,7 +29,14 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
         totalReports = []
         for gatewayUUID in setsSensorsDeviceid:
             filterSensors = list(filter(lambda s: s["deviceid"] == gatewayUUID, sensors))
-            reports = self.gets_dataset_with_same_gateway(gatewayUUID, filterSensors, timestampBegin, timestampEnd)
+
+            if USE_OPTIMIZED_QUERY:
+                # using find() with combo indexing on 'sid' and 'timestamp' - faster by 300-1000 times for 1GB above
+                reports = self.gets_dataset_with_same_gateway_ex(gatewayUUID, filterSensors, timestampBegin, timestampEnd)
+            else:
+                # using aggregate() with indexing on 'sid'
+                reports = self.gets_dataset_with_same_gateway(gatewayUUID, filterSensors, timestampBegin, timestampEnd)
+
             totalReports.extend(reports)
         
         return totalReports
@@ -106,7 +116,44 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
                 newReport["sensor_readings"] = None
             
             reports.append(newReport)
+        return reports
 
+    def gets_dataset_with_same_gateway_ex(self, gatewayUUID, sensors, timestampBegin, timestampEnd):
+
+        collectionName = "sensors_readings_dataset_" + gatewayUUID
+        client_sensor = SensorDataMongoDb().conn["iotcloud-sensordata-database"]
+        reports = []
+        for s in sensors:
+            newReport = {}
+            newReport["sensorId"] = str(s["_id"])
+            newReport["enabled"] = s["enabled"]
+            newReport["sensorname"] = s["sensorname"]
+            newReport["port"] = s["port"]
+            newReport["name"] = s["name"]
+            newReport["class"] = s["class"]
+            newReport["source"] = s["source"]
+            newReport["number"] = int(s["number"])
+            newReport["gatewayUUID"] = s["deviceid"]
+            newReport["unit"] = s["unit"]
+            newReport["format"] = s["format"]
+            newReport["accuracy"] = s["accuracy"]
+            newReport["minmax"] = s["minmax"]
+            newReport["enabled"] = s["enabled"]
+
+            sid = "{}.{}".format(s["source"], s["number"])
+            newReport["dataset"] = list(client_sensor[collectionName].find(
+                { 'sid': sid, 'timestamp': { '$gte': timestampBegin, '$lte': timestampEnd } },
+                { '_id': 0, 'sid': 0 }
+            ))
+            if len(newReport["dataset"]):
+                sensor_readings = list(client_sensor["sensors_readings_latest"].find(
+                    { 'deviceid': s["deviceid"], 'sid': sid },
+                    { '_id': 0, 'sensor_readings': 1 }
+                ))
+                newReport["sensor_readings"] = sensor_readings[0]["sensor_readings"]
+            else:
+                newReport["sensor_readings"] = {"value": 0, "lowest": 0, "highest": 0}
+            reports.append(newReport)
         return reports
 
     def _get_sensor_report_detail(self, source: str, number: int, reports):

@@ -757,6 +757,11 @@ class device_ldsbus:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Change LDSU name: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
+        # check ldsu name
+        if len(data["name"]) > 32 or len(data["name"]) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'LDSUname length is invalid'})
+            print('\r\nERROR Change LDSU name: LDSUname length is invalid [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
         self.database_client.change_ldsu_name(entityname, devicename, ldsuuuid, data["name"])
 

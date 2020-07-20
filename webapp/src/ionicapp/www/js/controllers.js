@@ -1524,9 +1524,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $ionicPopup.alert({title: 'Save Changes Error', template: 'Phone Number is empty!'});
             return;
         }
-        else if ($scope.data.phonenumber === "Unknown") {
-            return;
-        }
+        //else if ($scope.data.phonenumber === "Unknown") {
+        //    return;
+        //}
         
         /*
         else if ($scope.data.phonenumber.length === 0) {
@@ -1536,10 +1536,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         */
         
         var param = { 'name': $scope.data.fullname };
-        //if ($scope.data.phonenumber.length > 0) {
-        param.phone_number = $scope.data.phonenumber.split(" ")[0];
-        console.log(param.phone_number);
-        //}
+        if ($scope.data.phonenumber !== "Unknown") {
+            param.phone_number = $scope.data.phonenumber.split(" ")[0];
+            console.log(param.phone_number);
+        }
         
         // 
         // UPDATE USER INFO
