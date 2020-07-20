@@ -884,7 +884,7 @@ class database_client_mongodb:
                 if device.get('location') is None:
                     new_device['location'] = {'latitude': 0, 'longitude': 0}
                 devices.replace_one(device, new_device)
-                return device['heartbeat']
+                return new_device['heartbeat']
         return None
 
     def get_devicename(self, deviceid):

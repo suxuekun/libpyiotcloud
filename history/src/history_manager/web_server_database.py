@@ -657,7 +657,7 @@ class database_client_mongodb:
                 new_device = copy.deepcopy(device)
                 new_device['heartbeat'] = int(time.time())
                 devices.replace_one(device, new_device)
-                return device['heartbeat']
+                return new_device['heartbeat']
         return None
 
 
