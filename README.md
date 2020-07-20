@@ -2030,6 +2030,9 @@ Solution:
 	  Aggregation is supposed to be faster than find() because MongoDB performs the optimization itself.
 	  However, it will be only so if usage is proper and correct.
 
+	- https://www.stackchief.com/blog/%24lookup%20in%20MongoDB
+	- https://www.stackchief.com/tutorials/$lookup%20Examples%20%7C%20MongoDB
+
 Benchmarking:
 
 	- Environment: 
@@ -2068,6 +2071,14 @@ Tradeoff:
 	  But because the size of indexes affects size significantly, we should pass this to customer.
 	  That is for 1GB Basic Plan, user will only be able to use about 700-900MB 
 	  as 100-300MB will be used for indexes optmization.
+
+
+### Collection metrics
+
+	- https://docs.mongodb.com/manual/reference/command/collStats/#dbcmd.collStats
+	- collStats.count
+	- collStats.size
+	- collStats.totalIndexSize
 
 
 ### Device communication
