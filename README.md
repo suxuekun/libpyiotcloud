@@ -2020,7 +2020,7 @@ Solution:
 
 	- Instead of using MongoDB aggregate() framework,
 	  use MongoDB's find() with combo indexing on 'sid' and 'timestamp' parameters.
-	  Aggregation is supposed to be faster in theory than find() because MongoDB performs the optimization itself.
+	  Aggregation is supposed to be faster than find() because MongoDB performs the optimization itself.
 	  However, it will be only so if usage is proper and correct.
 
 Benchmarking:
@@ -2059,7 +2059,8 @@ Tradeoff:
 	  For 1GB of data, an additional 100MB-300MB was needed by MongoDB for indexing.
 	- Currently only the actual size of data is billed to customer 
 	  But because the size of indexes affects size significantly, we should pass this to customer.
-	  That is for 1GB Basic Plan, user will only be able to use about 700-900MB as 100-300MB will be used for indexes optmization.
+	  That is for 1GB Basic Plan, user will only be able to use about 700-900MB 
+	  as 100-300MB will be used for indexes optmization.
 
 
 ### Device communication
