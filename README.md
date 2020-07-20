@@ -235,7 +235,7 @@ Below are tools and utilities being used:
 ### High-level architecture diagram:
 <img src="./_images/architecture.png" width="1000"/>
 
-14 docker containerized microservices
+15 docker containerized microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
@@ -248,9 +248,10 @@ Below are tools and utilities being used:
 9. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
 10. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
 11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
-12. <b>Invoicing</b> - handles sending of payment receipts via email
+12. <b>Email</b> - handles sending of email notices
 13. <b>Registration</b> - handles processing of sensor registration by device on bootup
 14. <b>Heartbeat</b> - handles processing of heartbeat packets
+15. <b>Download</b> - handles processing of downloading sensor data
 
 
 
@@ -272,17 +273,18 @@ Below are tools and utilities being used:
 1. <b>Programming Languages:</b> Python
 2. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
 3. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, BrainTree, RabbitMQ
-4. <b>MongoDB</b>: accessed by restapi, history, notification, sensor, configuration, otaupdate
-5. <b>Redis</b>: accessed by restapi
-6. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
-7. <b>History service</b> -> RabbitMQ, MongoDB
-8. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
-9. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
+4. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
+5. <b>MongoDB</b>: accessed by restapi, history, notification, sensor, configuration, otaupdate
+6. <b>Redis</b>: accessed by restapi
+7. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint
+8. <b>History service</b> -> RabbitMQ, MongoDB
+9. <b>Sensor service</b> -> RabbitMQ, MongoDB
 10. <b>Configuration service</b> -> RabbitMQ, MongoDB
-11. <b>Sensor service</b> -> RabbitMQ, MongoDB
-12. <b>Invoice service</b> -> RabbitMQ, MongoDB
+11. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
+12. <b>Email service</b> -> RabbitMQ, MongoDB
 13. <b>Registration service</b> -> RabbitMQ, MongoDB
 14. <b>Heartbeat</b> - RabbitMQ, MongoDB
+15. <b>Download</b> - RabbitMQ, MongoDB
 
 
 
@@ -392,6 +394,11 @@ Paypal payment buyer account
 Paypal payment merchant account
 <img src="./_images/paypal_payment_6.png" width="800"/>
 
+MongoDB sensor data optimization -  GB datasets
+<img src="./_images/benchmarking.png" width="800"/>
+
+MongoDB sensor data optimization - indexing
+<img src="./_images/benchmarking2.png" width="800"/>
 
 
 ### REST APIs
