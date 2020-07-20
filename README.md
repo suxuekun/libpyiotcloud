@@ -2004,7 +2004,62 @@ Notes:
 
 # Performance
 
-### Windows 
+
+### Sensor Data Visualization
+
+Querying datasets for sensor data visualization has been optimized significantly.
+Performance of Sensor Dashboard API for querying a device with 1GB data (5min timerange) is now 300-1000 times faster.
+
+Issue:
+- As the total number of sensor data collected by backend from device increases,
+  the performance of querying sensor data becomes significantly slow...
+  ...even when just querying for 5-minute timerange. 
+
+Solution:
+- Instead of using MongoDB aggregate() framework,
+  use MongoDB's find() with combo indexing on 'sid' and 'timestamp' parameters.
+  Aggregation is supposed to be faster in theory than find() because MongoDB performs the optimization itself.
+  However, it will be only so if usage is proper and correct.
+
+Benchmarking:
+- Environment: 
+  local setup, Windows 7, MongoDB 4.2.8 (latest), PyMongo 3.10.1 (latest)
+
+- using MongoDB aggregate() - even with 'sid' indexing
+  1 enabled sensor only, 5 minute timerange
+  50MB  -   150ms
+  100MB -   250ms
+  200MB -   470ms
+  500MB -  1200ms
+  1GB   -  2300ms // 1 sensor
+  1GB   -  9700ms // 4 sensors (1 gateway)
+  1GB   - 42000ms // 8 sensors (2 gateways have 1GB each, sensor chart has sensors for 2 devices)
+  1GB   - 65000ms // 12 sensors (3 gateways have 1GB each, sensor chart has sensors for 3 devices)
+
+- using MongoDB find() with 'sid' & 'timestamp' combo indexing
+  1GB   -   7ms   // 1 sensor
+  1GB   -  28ms   // 4 sensors (1 gateway)
+  1GB   -  43ms   // 8 sensors (2 gateways have 1GB each, sensor chart has sensors for 2 devices)
+  1GB   -  50ms   // 12 sensors (3 gateways have 1GB each, sensor chart has sensors for 3 devices)
+
+Other factors to consider and test:
+1. 80 max LDSUs for 1 gateway => 80x4=320 sensors (OMG!)
+2. Other timeranges
+3. 3GB, 10GB
+4. Multiple devices with 3GB/10GB (where sensor dashboard chart has sensors for all devices)
+5. Live EC2 instance (T2.SMALL)
+
+Tradeoff:
+- The tradeoff for adding indexing is that memory increases.
+  For 1GB of data, an additional 100MB-300MB was needed by MongoDB for indexing.
+- Currently only the actual size of data is billed to customer 
+  But because the size of indexes affects size significantly, we should pass this to customer.
+  That is for 1GB Basic Plan, user will only be able to use about 700-900MB as 100-300MB will be used for indexes optmization.
+
+
+### Device communication
+
+#### Windows 
 
 The total round trip time for setting or getting the MCU GPIO is 2.01 seconds from the client application. But round trip time for the web server for sending MQTT publish and receiving MQTT response to/from MCU is only 1 second.
 
@@ -2014,7 +2069,7 @@ The total round trip time for setting or getting the MCU GPIO is 2.01 seconds fr
 
 The client call to HTTP getresponse() is causing the additional 1 second delay. https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection.getresponse For mobile client application, this 1 second delay maybe less or more. This will depend on the equivalent function HTTP client getresponse() in Java for Android or Swift for iOS..
 
-### Linux
+#### Linux
 
 In Linux, the total round trip time is only 1 second.
 
