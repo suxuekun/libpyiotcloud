@@ -56,7 +56,7 @@ class cognito_client:
 		res = {}
 		for key in response:
 			item = response[key]
-			if isinstance(item,list):
+			if key == "UserAttributes":
 				res[key] = self.__cognito_to_dict(item)
 			else:
 				res[key] = item
