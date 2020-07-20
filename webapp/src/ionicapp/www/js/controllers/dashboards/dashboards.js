@@ -51,10 +51,6 @@ angular.module('app.dashboardsCtrl', [])
         const foundDashboards = cachedDashboards.filter((d) => d.name.includes(searchKey));
         renderDashdoards(foundDashboards);
       }
-      $scope.isRealTime = true;
-
-
-
 
       $scope.delete = (id) => {
         $ionicPopup.alert({
@@ -109,7 +105,7 @@ angular.module('app.dashboardsCtrl', [])
             getChartGateways();
             return;
           case 1:
-            getChartSensors($scope.isRealTime);
+            getChartSensors();
             return;
         }
       }
@@ -178,7 +174,7 @@ angular.module('app.dashboardsCtrl', [])
       $scope.changeActiveTab = (index) => {
         $scope.activeTab = index
         if ($scope.activeTab === 1) { // Sensors tab
-          getChartSensors($scope.isRealTime);
+          getChartSensors();
           startTimeChartSensor();
           return;
         }
@@ -186,7 +182,7 @@ angular.module('app.dashboardsCtrl', [])
       }
       const startTimeChartSensor = () => {
         timerChartSensor = setInterval(() => {
-          getChartSensors(true);
+          getChartSensors();
         }, 5000);
       }
 
@@ -465,21 +461,17 @@ angular.module('app.dashboardsCtrl', [])
         }
         return selectedTimes[0];
       }
-      mapLabelsOfDatasets = (datasets) => {
-        const labels = datasets.labels.map((timestamp) => {
-          const date = new Date(timestamp * 1000);
-          return ('0' + date.getHours()).slice(-2) +
-            ":" + ('0' + date.getMinutes()).slice(-2) + ":" +
-            ('0' + date.getSeconds()).slice(-2);
-        });
-        return labels;
-      }
 
       mapDataToSensorViews = (sensors) => {
         console.log("Charts: ", sensors);
         const result = sensors.map(c => {
           const datasets = c.datasets;
-          const labels = mapLabelsOfDatasets(datasets);
+          labels = datasets.labels.map((timestamp) => {
+            const date = new Date(timestamp * 1000);
+            return ('0' + date.getHours()).slice(-2) +
+              ":" + ('0' + date.getMinutes()).slice(-2) + ":" +
+              ('0' + date.getSeconds()).slice(-2);
+          });
           const lowAndHighs = [];
           for (let index = 0; index < datasets.high.length; index++) {
             const item = {
@@ -493,15 +485,12 @@ angular.module('app.dashboardsCtrl', [])
           return {
             selectedTimes: selectedTimes,
             currentSelectTime: getSelectedTime(c.selectedMinutes),
-            oldDatasets: c.oldDatasets,
-            datasets: c.datasets,
             data: [datasets.data],
             labels: labels,
             device: c.device,
             id: c.id,
             chartType: c.chartTypeId,
             colors: getSensorColor(c.device.sensorClass),
-            currentTimespan: 0,
             datasetOverride: [{
               label: c.device.sensorClass
             }],
@@ -522,20 +511,12 @@ angular.module('app.dashboardsCtrl', [])
                   }
                 }]
               },
-              tooltips: {
-                enabled: true,
-                callbacks: {
-                  title: function (tooltipItem, data) {
-                    // console.log("Dasd adas dassadaa :", c.device);
-                    return c.device.sensorName;
-                  },
-                  label: function (tooltipItem, data) {
-                    return ' ' + data.datasets[tooltipItem.datasetIndex].label + ' ' + tooltipItem.yLabel;
-                  }
-                }
-              },
-            },
-
+              legendCallback: function (chart) {
+                // Return the HTML string here.
+                console.log("Get LengendCallback: ,", chart);
+                return "test";
+              }
+            }
           }
         });
         return result;
@@ -548,9 +529,6 @@ angular.module('app.dashboardsCtrl', [])
             minutes: minutes,
             chartId: chartId
           });
-          stopTimeChartSensor();
-          getChartSensors($scope.isRealTime);
-          startTimeChartSensor();
           return;
         } else {
           for (let index = 0; index < chartIdsQueryParams.length; index++) {
@@ -558,9 +536,6 @@ angular.module('app.dashboardsCtrl', [])
             if (item.chartId === chartId) {
               chartIdsQueryParams[index].minutes = minutes;
               chartIdsQueryParams[index].chartId = chartId;
-              stopTimeChartSensor();
-              getChartSensors($scope.isRealTime);
-              startTimeChartSensor();
               return;
             }
           }
@@ -570,8 +545,9 @@ angular.module('app.dashboardsCtrl', [])
           chartId: chartId
         });
         stopTimeChartSensor();
-        getChartSensors($scope.isRealTime);
+        getChartSensors();
         startTimeChartSensor();
+
       };
 
       buildChartsIdQueryParams = () => {
@@ -592,82 +568,8 @@ angular.module('app.dashboardsCtrl', [])
         return `${minutesParams}${chartIdsParams}`;
       }
 
-      $scope.backToHistorical = (chart, currentTimespan) => {
-        if ($scope.isRealTime) {
-          $ionicPopup.alert({
-            title: 'Dashboard',
-            template: "Sorry you have to disable realtime",
-          });
-          return;
-        }
-        if (!chart.oldDatasets) {
-          console.log("OldDatasets is undefined");
-          return;
-        }
-
-        if (currentTimespan == chart.oldDatasets.length) {
-          $ionicPopup.alert({
-            title: 'Dashboard',
-            template: "Sorry we just support 3 times historicals",
-          });
-          return;
-        }
-        const datasets = chart.oldDatasets[currentTimespan];
-        chart.currentTimespan = currentTimespan + 1;
-        chart.data = [datasets.data];
-        const labels = mapLabelsOfDatasets(datasets);
-        chart.labels = labels;
-      };
-
-      $scope.opacityOfHistoricalButton = 0.5;
-      $scope.nextToHistorical = (chart, currentTimespan) => {
-        if ($scope.isRealTime) {
-          $ionicPopup.alert({
-            title: 'Dashboard',
-            template: "Sorry you have to disable realtime",
-          });
-          return;
-        }
-
-        if (!chart.oldDatasets) {
-          console.log("OldDatasets is undefined");
-          return;
-        }
-
-        if (currentTimespan == 0) {
-          // Update datasets is current time
-          const datasets = chart.datasets;
-          chart.data = [datasets.data];
-          chart.labels = mapLabelsOfDatasets(datasets);
-          chart.currentTimespan = 0;
-
-          return;
-        }
-        const timespan = currentTimespan - 1;
-        chart.currentTimespan = timespan;
-        const datasets = chart.oldDatasets[timespan];
-        chart.data = [datasets.data];
-        chart.labels = mapLabelsOfDatasets(datasets);
-      };
-
-      $scope.toggelRealTime = () => {
-        $scope.isRealTime = !$scope.isRealTime;
-        if ($scope.isRealTime) {
-          $scope.opacityOfHistoricalButton = 0.5;
-          startTimeChartSensor();
-          return;
-        }
-        $scope.opacityOfHistoricalButton = 1;
-        stopTimeChartSensor();
-        getChartSensors(false);
-        // Start get api again
-      }
-
-      getChartSensors = (realTime = true) => {
-        let url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors`;
-        if (!realTime)
-          url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors?realtime=false&timespan=3`;
-
+      getChartSensors = () => {
+        let url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/sensors?minutes=5&points=30`
         if (chartIdsQueryParams.length != 0)
           url += buildChartsIdQueryParams();
 
@@ -685,7 +587,6 @@ angular.module('app.dashboardsCtrl', [])
           })
           .catch(function (error) {
             console.log(error);
-            stopTimeChartSensor();
             $ionicPopup.alert({
               title: 'Dashboard',
               template: `${error.data.message}`,
