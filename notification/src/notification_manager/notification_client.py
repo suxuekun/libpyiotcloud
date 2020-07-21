@@ -146,7 +146,7 @@ class notification_client_pinpoint:
         return response
 
     def send_push_notification(self, recipient, message, title):
-        print("\r\nPUSH NOTIFICATION {} {}".format(recipient, message))
+        #print("\r\nPUSH NOTIFICATION {} {}".format(recipient, message))
         response = ""
         action = "URL"
         url = "https://www.richmondu.com"
@@ -157,7 +157,7 @@ class notification_client_pinpoint:
         token = recipient["devicetoken"]
         service = recipient["service"]
 
-        print('PUSH_NOTIFICATION {} {}'.format(token, service))
+        #print('PUSH_NOTIFICATION {} {}'.format(token, service))
         if service == "GCM":
             response = self.client.send_messages(
                 ApplicationId = self.pinpoint_project_id,
@@ -176,7 +176,7 @@ class notification_client_pinpoint:
                     }
                 }
             )
-            print('PUSH_NOTIFICATION GCM ok')
+            #print('PUSH_NOTIFICATION GCM ok')
         elif service == "APNS":
             response = self.client.send_messages(
                 ApplicationId = self.pinpoint_project_id,
@@ -195,8 +195,8 @@ class notification_client_pinpoint:
                     }
                 }
             )
-            print('PUSH_NOTIFICATION APNS ok')
-        print(response)
+            #print('PUSH_NOTIFICATION APNS ok')
+        #print(response)
         return response
 
 

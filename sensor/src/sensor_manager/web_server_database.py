@@ -680,37 +680,40 @@ class database_client_mongodb:
 
     def get_sensorreadings_document(self):
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
-        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+        collection = self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+        collection.create_index([('deviceid', 1), ('sid', 1)])
+        return collection
 
     def update_sensor_reading(self, username, deviceid, source, number, sensor_readings):
-        sensorreadings = self.get_sensorreadings_document();
+        sensorreadings = self.get_sensorreadings_document()
         item = {}
         # add username in order to optimize querying of all sensors of a user
-        item['username'] = username
+        #item['username'] = username
         item['deviceid'] = deviceid
-        item['source'] = source
-        item['number'] = number
+        item['sid'] = "{}.{}".format(source, number)
+        #item['source'] = source
+        #item['number'] = number
         item['sensor_readings'] = sensor_readings
 
-        found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+        found = sensorreadings.find_one({'deviceid': deviceid, 'sid': "{}.{}".format(source, number) })
         if found is None:
             sensorreadings.insert_one(item)
         else:
-            sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, item)
+            sensorreadings.replace_one({'deviceid': deviceid, 'sid': "{}.{}".format(source, number) }, item)
 
     def delete_sensor_reading(self, deviceid, source, number):
-        sensorreadings = self.get_sensorreadings_document();
+        sensorreadings = self.get_sensorreadings_document()
         try:
             if number is None:
                 sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
             else:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
+                sensorreadings.delete_many({'deviceid': deviceid, 'sid': "{}.{}".format(source, number) })
         except:
             print("delete_sensor_reading: Exception occurred")
             pass
 
     def delete_sensors_readings(self, deviceid, source):
-        sensorreadings = self.get_sensorreadings_document();
+        sensorreadings = self.get_sensorreadings_document()
         try:
             sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
         except:
@@ -718,7 +721,7 @@ class database_client_mongodb:
             pass
 
     def get_sensor_reading_by_deviceid(self, deviceid, source, number):
-        sensorreadings = self.get_sensorreadings_document();
+        sensorreadings = self.get_sensorreadings_document()
         if sensorreadings:
             if number is None:
                 for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
@@ -726,7 +729,7 @@ class database_client_mongodb:
                     #print(sensorreading['sensor_readings'])
                     return sensorreading['sensor_readings']
             else:
-                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'sid': "{}.{}".format(source, number) }):
                     sensorreading.pop('_id')
                     #print(sensorreading['sensor_readings'])
                     return sensorreading['sensor_readings']
@@ -734,7 +737,7 @@ class database_client_mongodb:
 
     def get_sensors_readings_by_deviceid(self, deviceid, source):
         sensorreadings_list = []
-        sensorreadings = self.get_sensorreadings_document();
+        sensorreadings = self.get_sensorreadings_document()
         if sensorreadings:
             for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
                 sensorreading.pop('_id')
@@ -747,10 +750,12 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_dataset_document(self, deviceid):
-        # separate collection per device
-        return self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
         # one collection for all devices
         #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        # separate collection per device
+        collection = self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
+        collection.create_index([('sid', 1), ('timestamp', 1)])
+        return collection
 
     def get_sensor_reading_dataset_usage(self, deviceid):
         collectioname = "{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)
@@ -781,8 +786,9 @@ class database_client_mongodb:
                         # add username in order to optimize querying of all sensors of a user
                         #item['username'] = username
                         #item['deviceid'] = deviceid
-                        item['source'] = ldsu["UID"]
-                        item['number'] = x
+                        item['sid'] = "{}.{}".format(ldsu["UID"], x)
+                        #item['source'] = ldsu["UID"]
+                        #item['number'] = x
                         item['timestamp'] = ldsu["TS"][y]
                         item['value'] = float(ldsu["SNS"][y][x])
                         items.append(item)
@@ -800,8 +806,9 @@ class database_client_mongodb:
                     # add username in order to optimize querying of all sensors of a user
                     #item['username'] = username
                     #item['deviceid'] = deviceid
-                    item['source'] = source
-                    item['number'] = x
+                    item['sid'] = "{}.{}".format(source, x)
+                    #item['source'] = source
+                    #item['number'] = x
                     item['timestamp'] = timestamp_set[y]
                     item['value'] = float(values_set[y][x])
                     items.append(item)
@@ -818,8 +825,9 @@ class database_client_mongodb:
                 # add username in order to optimize querying of all sensors of a user
                 #item['username'] = username
                 #item['deviceid'] = deviceid
-                item['source'] = source
-                item['number'] = x
+                item['sid'] = "{}.{}".format(source, x)
+                #item['source'] = source
+                #item['number'] = x
                 item['timestamp'] = timestamp
                 item['value'] = float(values[x])
                 items.append(item)
@@ -835,14 +843,15 @@ class database_client_mongodb:
         # add username in order to optimize querying of all sensors of a user
         #item['username'] = username
         #item['deviceid'] = deviceid
-        item['source'] = source
-        item['number'] = number
+        item['sid'] = "{}.{}".format(source, number)
+        #item['source'] = source
+        #item['number'] = number
         item['timestamp'] = timestamp
         item['value'] = value
 
-        readings = sensorreadings.find({'source': source, 'number': number})
-        if readings.count() >= config.CONFIG_MAX_DATASET:
-            sensorreadings.delete_one(readings[0])
+        #readings = sensorreadings.find({'source': source, 'number': number})
+        #if readings.count() >= config.CONFIG_MAX_DATASET:
+        #    sensorreadings.delete_one(readings[0])
         sensorreadings.insert_one(item)
         #print("add_sensor_reading_dataset")
 
@@ -850,7 +859,7 @@ class database_client_mongodb:
         dataset = []
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
-            readings = sensorreadings.find({'source': source, 'number': number})
+            readings = sensorreadings.find({'sid': "{}.{}".format(source, number) })
             for sensorreading in readings:
                 sensorreading.pop('_id')
                 dataset.append(sensorreading)
@@ -859,7 +868,7 @@ class database_client_mongodb:
     def delete_sensor_reading_dataset(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
-            sensorreadings.delete_many({'source': source, 'number': number})
+            sensorreadings.delete_many({'sid': "{}.{}".format(source, number) })
         except:
             print("delete_sensor_reading_dataset: Exception occurred")
             pass

@@ -928,6 +928,9 @@ class database_client:
     def get_sensor_reading_dataset_timebound(self, username, devicename, source, number, datebegin, dateend, period, maxpoints):
         return self._devices.get_sensor_reading_dataset_by_deviceid_timebound(self._devices.get_deviceid(username, devicename), source, number, datebegin, dateend, period, maxpoints)
 
+    def get_sensor_reading_dataset_timebound_by_deviceid(self, deviceid, source, number, datebegin, dateend, period, maxpoints):
+        return self._devices.get_sensor_reading_dataset_by_deviceid_timebound(deviceid, source, number, datebegin, dateend, period, maxpoints)
+
 
     ##########################################################
     # mobile
@@ -1591,6 +1594,23 @@ class database_client_mongodb:
         #mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = DefaultMongoDB().conn
         self.client = DefaultMongoDB().db
+        self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index('username')
+        self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index('deviceid')
+        self.client[config.CONFIG_MONGODB_TB_DEVICES].create_index([('username', 1), ('devicename', 1)])
+        self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS].create_index('username')
+        self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS].create_index([('username', 1), ('groupname', 1)])
+        self.client[config.CONFIG_MONGODB_TB_LDSUS].create_index('deviceid')
+        self.client[config.CONFIG_MONGODB_TB_LDSUS].create_index([('deviceid', 1), ('PORT', 1)])
+        self.client[config.CONFIG_MONGODB_TB_LDSUS].create_index([('deviceid', 1), ('UID', 1)])
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index('deviceid')
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('type', 1)])
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('port', 1)])
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
+        self.client[config.CONFIG_MONGODB_TB_CONFIGURATIONS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
+        self.client[config.CONFIG_MONGODB_TB_NOTIFICATIONS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
+        self.client[config.CONFIG_MONGODB_TB_OTAUPDATES].create_index('username')
+        self.client[config.CONFIG_MONGODB_TB_OTAUPDATES].create_index('deviceid')
+        self.client[config.CONFIG_MONGODB_TB_LASTLOGIN].create_index('username')
         self.patch()
 
         # different database for sensor dashboarding
@@ -3524,17 +3544,18 @@ class database_client_mongodb:
     def update_sensor_reading(self, username, deviceid, source, number, sensor_readings):
         sensorreadings = self.get_sensorreadings_document();
         item = {}
-        item['username'] = username
+        #item['username'] = username
         item['deviceid'] = deviceid
-        item['source'] = source
-        item['number'] = number
+        item['sid'] = "{}.{}".format(source, number)
+        #item['source'] = source
+        #item['number'] = number
         item['sensor_readings'] = sensor_readings
 
-        found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+        found = sensorreadings.find_one({'deviceid': deviceid, 'sid': "{}.{}".format(source, number) })
         if found is None:
             sensorreadings.insert_one(item)
         else:
-            sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, item)
+            sensorreadings.replace_one({'deviceid': deviceid, 'sid': "{}.{}".format(source, number) }, item)
 
     def delete_sensor_reading(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_document();
@@ -3542,7 +3563,7 @@ class database_client_mongodb:
             if number is None:
                 sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
             else:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
+                sensorreadings.delete_many({'deviceid': deviceid, 'sid': "{}.{}".format(source, number) })
         except:
             print("delete_sensor_reading: Exception occurred")
             pass
@@ -3574,9 +3595,9 @@ class database_client_mongodb:
     def get_sensor_reading_by_deviceid(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_document();
         if sensorreadings:
-            for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'number': number}):
+            for sensorreading in sensorreadings.find({'deviceid': deviceid, 'sid': "{}.{}".format(source, number) }):
                 sensorreading.pop('_id')
-                sensorreading.pop('username')
+                #sensorreading.pop('username')
                 #print(sensorreading['sensor_readings'])
                 return sensorreading['sensor_readings']
         return None
@@ -3587,7 +3608,7 @@ class database_client_mongodb:
         if sensorreadings:
             for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
                 sensorreading.pop('_id')
-                sensorreading.pop('username')
+                #sensorreading.pop('username')
                 sensorreadings_list.append(sensorreading['sensor_readings'])
         return sensorreadings_list
 
@@ -3597,7 +3618,7 @@ class database_client_mongodb:
         if sensorreadings:
             for sensorreading in sensorreadings.find({'deviceid': deviceid}):
                 sensorreading.pop('_id')
-                sensorreading.pop('username')
+                #sensorreading.pop('username')
                 sensorreadings_list.append(sensorreading)
         return sensorreadings_list
 
@@ -3607,7 +3628,7 @@ class database_client_mongodb:
         if sensorreadings:
             for sensorreading in sensorreadings.find({'username': username}):
                 sensorreading.pop('_id')
-                sensorreading.pop('username')
+                #sensorreading.pop('username')
                 sensorreadings_list.append(sensorreading)
         return sensorreadings_list
 
@@ -3617,75 +3638,25 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_dataset_document(self, deviceid):
-        # separate collection per device
-        return self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
         # one collection for all devices
         #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        # separate collection per device
+        collection = self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
+        collection.create_index('sid')
+        return collection
 
-    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
+    def add_sensor_reading_dataset(self, username, deviceid, source, number, value, subclass_value):
         timestamp = int(time.time())
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         item = {}
         #item['username'] = username
         #item['deviceid'] = deviceid
-        item['source'] = source
-        if address is not None:
-            item['address'] = address
+        item['sid'] = "{}.{}".format(source, number)
+        #item['source'] = source
+        #item['number'] = number
         item['timestamp'] = timestamp
         item['value'] = value
-        if subclass_value is not None:
-            item['subclass_value'] = subclass_value
-
-        if address is not None:
-            readings = sensorreadings.find({'source': source, 'address': address})
-        else:
-            readings = sensorreadings.find({'source': source})
-        if readings.count() >= config.CONFIG_MAX_DATASET:
-            sensorreadings.delete_one(readings[0])
         sensorreadings.insert_one(item)
-        #print("add_sensor_reading_dataset")
-
-    def get_sensor_reading_dataset_by_deviceid(self, deviceid, source, address):
-        # if sensor has a subclass data becomes  [[], [], ...]
-        # if sensor has no subclass data becomes [[]]
-        dataset  = {"labels": [], "data": []}
-        sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
-        if sensorreadings:
-            if address is None:
-                readings = sensorreadings.find({'source': source})
-                for sensorreading in readings:
-                    #print(sensorreading)
-                    if sensorreading.get("value"):
-                        if sensorreading.get("subclass_value"):
-                            dataset["labels"].append(sensorreading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                                dataset["data"].append([])
-                            dataset["data"][0].append(sensorreading["value"])
-                            dataset["data"][1].append(sensorreading["subclass_value"])
-                        else:
-                            dataset["labels"].append(sensorreading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                            dataset["data"][0].append(sensorreading["value"])
-            else:
-                readings = sensorreadings.find({'source': source, 'address': address})
-                for sensorreading in readings:
-                    if sensorreading.get("value"):
-                        if sensorreading.get("subclass_value"):
-                            dataset["labels"].append(sensorreading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                                dataset["data"].append([])
-                            dataset["data"][0].append(sensorreading["value"])
-                            dataset["data"][1].append(sensorreading["subclass_value"])
-                        else:
-                            dataset["labels"].append(sensorreading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                            dataset["data"][0].append(sensorreading["value"])
-        #print(dataset)
-        return dataset
 
     def get_sensor_reading_dataset_by_deviceid_timebound(self, deviceid, source, number, datebegin, dateend, period, maxpoints):
         # if sensor has a subclass data becomes  [[], [], ...]
@@ -3694,9 +3665,8 @@ class database_client_mongodb:
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         if sensorreadings:
             #print("begin:{} end:{}".format(datebegin, dateend))
-            filter = {'source': source}
+            filter = {'sid': "{}.{}".format(source, number) }
             filter['timestamp'] = {'$gte': datebegin, '$lt': dateend}
-            filter['number'] = number
             readings = sensorreadings.find(filter)
             #print(readings.count())
 
@@ -3710,46 +3680,24 @@ class database_client_mongodb:
                             if reading["timestamp"] < end:
                                 break
                             dataset["labels"].append(begin)
-                            if reading.get("subclass_value"):
-                                if len(dataset["data"]) == 0:
-                                    dataset["data"].append([])
-                                    dataset["data"].append([])
-                                dataset["data"][0].append(None)
-                                dataset["data"][1].append(None)
-                            else:
-                                if len(dataset["data"]) == 0:
-                                    dataset["data"].append([])
-                                dataset["data"][0].append(None)
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(None)
                             begin = end
                             end += period
                         if reading.get("value"):
-                            if reading.get("subclass_value"):
-                                dataset["labels"].append(reading["timestamp"])
-                                if len(dataset["data"]) == 0:
-                                    dataset["data"].append([])
-                                    dataset["data"].append([])
-                                dataset["data"][0].append(reading["value"])
-                                dataset["data"][1].append(reading["subclass_value"])
-                            else:
-                                dataset["labels"].append(reading["timestamp"])
-                                if len(dataset["data"]) == 0:
-                                    dataset["data"].append([])
-                                dataset["data"][0].append(reading["value"])
+                            dataset["labels"].append(reading["timestamp"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(reading["value"])
                             begin = end
                             end += period
                     # handle case that device got disconnected, no more data
                     while end < dateend:
                         dataset["labels"].append(begin)
-                        if len(dataset["data"]) == 2:
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                                dataset["data"].append([])
-                            dataset["data"][0].append(None)
-                            dataset["data"][1].append(None)
-                        else:
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                            dataset["data"][0].append(None)
+                        if len(dataset["data"]) == 0:
+                            dataset["data"].append([])
+                        dataset["data"][0].append(None)
                         begin = end
                         end += period
                 else:
@@ -3758,124 +3706,55 @@ class database_client_mongodb:
                     dataset["low"] = []
                     dataset["high"] = []
                     points = []
-                    points2 = []
                     for reading in readings:
                         if reading.get("value"):
-                            if reading.get("subclass_value"):
-                                #dataset["labels_actual"].append(reading["timestamp"])
-                                #if len(dataset["data_actual"]) == 0:
-                                #    dataset["data_actual"].append([])
-                                #    dataset["data_actual"].append([])
-                                #dataset["data_actual"][0].append(reading["value"])
-                                #dataset["data_actual"][1].append(reading["subclass_value"])
+                            #dataset["labels_actual"].append(reading["timestamp"])
+                            #if len(dataset["data_actual"]) == 0:
+                            #    dataset["data_actual"].append([])
+                            #dataset["data_actual"][0].append(reading["value"])
 
-                                if reading["timestamp"] < end:
-                                    # add data to temporary array for averaging
-                                    points.append(reading["value"])
-                                    points2.append(reading["subclass_value"])
-                                else:
-                                    if len(dataset["data"]) == 0:
-                                        dataset["data"].append([])
-                                        dataset["low"].append([])
-                                        dataset["high"].append([])
-                                        dataset["data"].append([])
-                                        dataset["low"].append([])
-                                        dataset["high"].append([])
-
-                                    # add label timestamp
-                                    dataset["labels"].append(begin)
-
-                                    # add data
-                                    if len(points):
-                                        # process data in temporary array for averaging, minum and maximum
-                                        dataset["data"][0].append(round(statistics.mean(points), 1))
-                                        dataset["low"][0].append(min(points))
-                                        dataset["high"][0].append(max(points))
-                                        points.clear()
-                                        if len(points2):
-                                            dataset["data"][1].append(round(statistics.mean(points2), 1))
-                                            dataset["low"][1].append(min(points2))
-                                            dataset["high"][1].append(max(points2))
-                                            points2.clear()
-                                    else:
-                                        # handle no data
-                                        dataset["data"][0].append(None)
-                                        dataset["low"][0].append(None)
-                                        dataset["high"][0].append(None)
-                                        dataset["data"][1].append(None)
-                                        dataset["low"][1].append(None)
-                                        dataset["high"][1].append(None)
-
-                                    begin = end
-                                    end += period
-                                    while end < dateend:
-                                        if reading["timestamp"] < end:
-                                            # add data to temporary array for averaging
-                                            points.append(reading["value"])
-                                            points2.append(reading["subclass_value"])
-                                            break
-                                        else:
-                                            # add label timestamp
-                                            dataset["labels"].append(begin)
-                                            # handle no data
-                                            dataset["data"][0].append(None)
-                                            dataset["low"][0].append(None)
-                                            dataset["high"][0].append(None)
-                                            dataset["data"][1].append(None)
-                                            dataset["low"][1].append(None)
-                                            dataset["high"][1].append(None)
-                                            # get the next period
-                                            begin = end
-                                            end += period
-
+                            if reading["timestamp"] < end:
+                                # add data to array for averaging
+                                points.append(reading["value"])
                             else:
-                                #dataset["labels_actual"].append(reading["timestamp"])
-                                #if len(dataset["data_actual"]) == 0:
-                                #    dataset["data_actual"].append([])
-                                #dataset["data_actual"][0].append(reading["value"])
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                    dataset["low"].append([])
+                                    dataset["high"].append([])
 
-                                if reading["timestamp"] < end:
-                                    # add data to array for averaging
-                                    points.append(reading["value"])
+                                # add label timestamp
+                                dataset["labels"].append(begin)
+
+                                # add data
+                                if len(points):
+                                    # process data in temporary array for averaging, minum and maximum
+                                    dataset["data"][0].append(round(statistics.mean(points), 1))
+                                    dataset["low"][0].append(min(points))
+                                    dataset["high"][0].append(max(points))
+                                    points.clear()
                                 else:
-                                    if len(dataset["data"]) == 0:
-                                        dataset["data"].append([])
-                                        dataset["low"].append([])
-                                        dataset["high"].append([])
+                                    # handle no data
+                                    dataset["data"][0].append(None)
+                                    dataset["low"][0].append(None)
+                                    dataset["high"][0].append(None)
 
-                                    # add label timestamp
-                                    dataset["labels"].append(begin)
-
-                                    # add data
-                                    if len(points):
-                                        # process data in temporary array for averaging, minum and maximum
-                                        dataset["data"][0].append(round(statistics.mean(points), 1))
-                                        dataset["low"][0].append(min(points))
-                                        dataset["high"][0].append(max(points))
-                                        points.clear()
+                                begin = end
+                                end += period
+                                while end < dateend:
+                                    if reading["timestamp"] < end:
+                                        # add data to temporary array for averaging
+                                        points.append(reading["value"])
+                                        break
                                     else:
+                                        # add label timestamp
+                                        dataset["labels"].append(begin)
                                         # handle no data
                                         dataset["data"][0].append(None)
                                         dataset["low"][0].append(None)
                                         dataset["high"][0].append(None)
-
-                                    begin = end
-                                    end += period
-                                    while end < dateend:
-                                        if reading["timestamp"] < end:
-                                            # add data to temporary array for averaging
-                                            points.append(reading["value"])
-                                            break
-                                        else:
-                                            # add label timestamp
-                                            dataset["labels"].append(begin)
-                                            # handle no data
-                                            dataset["data"][0].append(None)
-                                            dataset["low"][0].append(None)
-                                            dataset["high"][0].append(None)
-                                            # get the next period
-                                            begin = end
-                                            end += period
+                                        # get the next period
+                                        begin = end
+                                        end += period
 
                     # handle last element
                     if len(points):
@@ -3889,24 +3768,12 @@ class database_client_mongodb:
                         dataset["high"][0].append(max(points))
                         begin = end
                         end += period
-                    if len(points2):
-                        if len(dataset["data"]) == 1:
-                            dataset["data"].append([])
-                            dataset["low"].append([])
-                            dataset["high"].append([])
-                        dataset["data"][1].append(round(statistics.mean(points2), 1))
-                        dataset["low"][1].append(min(points2))
-                        dataset["high"][1].append(max(points2))
                     # handle case that device got disconnected, no more data
                     while end < dateend:
                         dataset["labels"].append(begin)
                         dataset["data"][0].append(None)
                         dataset["low"][0].append(None)
                         dataset["high"][0].append(None)
-                        if len(dataset["data"]) == 2:
-                            dataset["data"][1].append(None)
-                            dataset["low"][1].append(None)
-                            dataset["high"][1].append(None)
                         begin = end
                         end += period
 
@@ -3937,7 +3804,7 @@ class database_client_mongodb:
             if number is None:
                 sensorreadings.delete_many({'source': source})
             else:
-                sensorreadings.delete_many({'source': source, 'number': number})
+                sensorreadings.delete_many({'sid': "{}.{}".format(source, number) })
         except:
             print("delete_sensor_reading_dataset: Exception occurred")
             pass
@@ -5265,7 +5132,7 @@ class database_client_mongodb:
                 new_device = copy.deepcopy(device)
                 new_device['heartbeat'] = int(time.time())
                 devices.replace_one(device, new_device)
-                return device['heartbeat']
+                return new_device['heartbeat']
         return None
 
     def save_device_version(self, username, devicename, version):

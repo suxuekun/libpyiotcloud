@@ -70,6 +70,15 @@ CONFIG_SENSOR_READING_TOPIC = "sensor_reading"
 
 def add_history_publish(history_client, deviceid, topic, payload, direction="From"):
 
+    # find if deviceid exists
+    devicename = history_client.get_devicename(deviceid)
+    if devicename is None:
+        return
+
+    # ignore some topics
+    if topic.startswith("email"):
+        return
+
     # Write publish/subscribe message to database
     # TODO: temporarily disable
     history_client.add_device_history(deviceid, topic, payload, direction)
@@ -77,9 +86,10 @@ def add_history_publish(history_client, deviceid, topic, payload, direction="Fro
     # Write publish heartbeat to database
     try:
         heartbeat = history_client.add_device_heartbeat(deviceid)
-    except:
+    except Exception as e:
         print("exception add_device_heartbeat")
-    
+        print(e)
+
     # Display database
     if config.CONFIG_DEBUG_HISTORY:
         histories = history_client.get_device_history(deviceid)
@@ -128,11 +138,11 @@ def on_message(subtopic, subpayload):
             #add_history_publish(g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
             thr = threading.Thread(target = add_history_publish, args = (g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), ))
             thr.start()
-        else:
-            arr_subtopic = subtopic.split("/", 1)
-            #add_history_receive(g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To")
-            thr = threading.Thread(target = add_history_receive, args = (g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), ))
-            thr.start()
+        #else:
+        #    arr_subtopic = subtopic.split("/", 1)
+        #    #add_history_receive(g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To")
+        #    thr = threading.Thread(target = add_history_receive, args = (g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), ))
+        #    thr.start()
     except:
         print("exception")
         return

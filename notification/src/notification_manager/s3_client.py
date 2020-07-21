@@ -115,7 +115,7 @@ class s3_client:
 		if not result:
 			return None
 
-		return urllib.parse.quote(file)
+		return "https://{}.s3.amazonaws.com/{}".format(self.bucket, urllib.parse.quote(file))
 
 
 	def __read_file_csv_to_json(self, filename):

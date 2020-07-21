@@ -1,3 +1,6 @@
+from aws_config import config as aws_config
+
+
 class email_templates:
 
 	def add_header(self, name):
@@ -32,10 +35,10 @@ class email_templates:
 		message += "You have been invited to join the {} organization by {}.\r\n".format(orgname, orgowner)
 		message += "This allows you to manage, operate, monitor or view IoT gateway devices of your organization based on assigned roles and permissions.\r\n\r\n"
 
-		message += "Please download the Bridgetek IoT Portal mobile app or visit the website:\r\n".format(CONFIG_USE_APIURL)
+		message += "Please download the Bridgetek IoT Portal mobile app or visit the website:\r\n".format(aws_config.CONFIG_USE_APIURL)
 		message += "- Android app at Google Play\r\n"
 		message += "- iOS app at Apple App Store\r\n"
-		message += "- Website at https://{}\r\n".format(CONFIG_USE_APIURL)
+		message += "- Website at https://{}\r\n".format(aws_config.CONFIG_USE_APIURL)
 		message += "If you don't have an account yet, sign up for an account then go to the Organization page to accept the invitation.\r\n\r\n"
 
 		message += self.add_footer()
@@ -52,6 +55,7 @@ class email_templates:
 		message += "- email: {}/{}\r\n".format(subscription["current"]["email"], subscription["current"]["plan"]["email"])
 		message += "- notification: {}/{}\r\n".format(subscription["current"]["notification"], subscription["current"]["plan"]["notification"])
 		message += "- storage: {}/{} GB\r\n".format(subscription["current"]["storage"], subscription["current"]["plan"]["storage"])
+		message += "\r\n"
 
 		message += self.add_footer()
 		return message
@@ -96,3 +100,30 @@ class email_templates:
 
 		message += self.add_footer()
 		return message
+
+	def construct_account_creation_message(self, name=None):
+
+		message = self.add_header(name)
+
+		message += "You have successfully created an account in IoT Portal.\r\n"
+		message += "\r\n"
+
+		message += "Please download the Bridgetek IoT Portal mobile app or visit the website:\r\n".format(aws_config.CONFIG_USE_APIURL)
+		message += "- Android app at Google Play\r\n"
+		message += "- iOS app at Apple App Store\r\n"
+		message += "- Website at https://{}\r\n".format(aws_config.CONFIG_USE_APIURL)
+		message += "\r\n"
+
+		message += self.add_footer()
+		return message
+
+	def construct_account_deletion_message(self, name=None):
+
+		message = self.add_header(name)
+
+		message += "You have successfully deleted your account in IoT Portal.\r\n"
+		message += "\r\n"
+
+		message += self.add_footer()
+		return message
+

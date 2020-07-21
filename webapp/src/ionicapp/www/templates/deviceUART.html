@@ -62,7 +62,7 @@
       </label>
       <ion-checkbox id="deviceUART-checkbox3" ng-model="data.uart.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input67">
-        <input type="text" placeholder="****************" ng-model="data.uart.notification.endpoints.notification.recipients" readonly="">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.notification.recipients">
       </label>
       <ion-checkbox id="deviceUART-checkbox4" ng-model="data.uart.notification.endpoints.modem.enable">Send to IoT Modem </ion-checkbox>
       <ion-checkbox id="deviceUART-checkbox94" ng-model="data.uart.notification.endpoints.modem.isgroup">... check if recipients is device groups instead of devices</ion-checkbox>
@@ -78,7 +78,7 @@
         <div>
           <br>
           <p>
-            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.uart.notification.endpoints.storage.recipients }}">
+            <a href="{{ data.uart.notification.endpoints.storage.recipients }}">
               Storage URL
             </a>
           </p>

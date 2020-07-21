@@ -8,6 +8,7 @@ from shared.utils.query_param_util import get_boolean_value
 from dashboards.ioc import init_chart_gateway_service
 from dashboards.dtos.chart_gateway_dto import ChartGatewayDto
 from dashboards.dtos.chart_gateway_query import ChartGatewayQuery
+
 # Init Gateway service
 chartGatewayService = init_chart_gateway_service()
 
@@ -27,7 +28,6 @@ def create(dashboardId: str):
     response = chartGatewayService.create(dashboardId, user["username"],dto)
     return response
 
-
 @charts_gateway_blueprint.route("/<chartId>", methods=['DELETE'])
 @default_middleware
 @login_required()
@@ -35,39 +35,20 @@ def delete(dashboardId: str, chartId: str):
     response = chartGatewayService.delete(dashboardId, chartId)
     return response
 
-
 @charts_gateway_blueprint.route("", methods=['GET'])
 @default_middleware
 @login_required()
 def gets(dashboardId: str):
     user = request.environ.get('user')
     queryParams = request.args
-
     query = ChartGatewayQuery()
     query.attributeId = queryParams.get("attributeId", "")
     query.filterId = queryParams.get("filterId", "")
     query.isMobile = get_boolean_value(queryParams.get("mobile", "false"))
 
-    response = chartGatewayService.gets(dashboardId, user["username"], query)
-    return response
-
-
-@charts_gateway_blueprint.route("/ex", methods=['GET'])
-@default_middleware
-@login_required()
-def gets_ex(dashboardId: str):
-    print("Dsadasd dasdaas")
-    user = request.environ.get('user')
-    queryParams = request.args
-    query = ChartGatewayQuery()
-    query.attributeId = queryParams.get("attributeId", "")
-    query.filterId = queryParams.get("filterId", "")
-    query.isMobile = get_boolean_value(queryParams.get("mobile", "false"))
-
-    response = chartGatewayService.gets_ex(
+    response = chartGatewayService.gets(
         dashboardId, user["username"], query)
     return response
-
 
 @charts_gateway_blueprint.route("/<chartId>", methods=['GET'])
 @default_middleware
@@ -75,29 +56,12 @@ def gets_ex(dashboardId: str):
 def get(dashboardId: str, chartId: str):
     user = request.environ.get('user')
     queryParams = request.args
-    
+
     query = ChartGatewayQuery()
     query.attributeId = queryParams.get("attributeId", "")
     query.filterId = queryParams.get("filterId", "")
     query.isMobile = get_boolean_value(queryParams.get("mobile", "false"))
 
     response = chartGatewayService.get(
-        dashboardId, user["username"], chartId, query)
-    return response
-
-
-@charts_gateway_blueprint.route("/<chartId>/ex", methods=['GET'])
-@default_middleware
-@login_required()
-def get_ex_detail(dashboardId: str, chartId: str):
-    user = request.environ.get('user')
-    queryParams = request.args
-
-    query = ChartGatewayQuery()
-    query.attributeId = queryParams.get("attributeId", "")
-    query.filterId = queryParams.get("filterId", "")
-    query.isMobile = get_boolean_value(queryParams.get("mobile", "false"))
-
-    response = chartGatewayService.get_ex_detail(
         dashboardId, user["username"], chartId, query)
     return response

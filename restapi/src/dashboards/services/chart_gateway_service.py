@@ -8,11 +8,16 @@ from shared.services.logger_service import LoggerService
 from dashboards.models.chart import ChartGateway
 from shared.core.response import Response
 from schematics.exceptions import ValidationError, ModelValidationError
-from dashboards.utils.mapper_chart_gateway_response import map_chart_gateway_to_response, map_chart_gateway_to_ex_response
+from dashboards.utils.mapper_chart_gateway_response import *
 from dashboards.repositories.gateway_attribute_repository import IGatewayAttributeRepository
 from dashboards.repositories.device_repository import IDeviceRepostory
 from dashboards.services.dashboard_service import DashboardService
 from dashboards.dtos.chart_gateway_query import ChartGatewayQuery
+from dashboards.repositories.heart_beat_repository import IHeartBeatRepository
+from dashboards.repositories.storage_usage_repository import IStorageUsageRepositoy
+from dashboards.repositories.menos_alert_repository import IMenosAlertRepository
+from dashboards.models.gateway_attribute import *
+import time
 
 
 class ChartGatewayService:
@@ -21,6 +26,9 @@ class ChartGatewayService:
                  chartRepository: IChartGatewayRepository,
                  attributeRepository: IGatewayAttributeRepository,
                  deviceRepository: IDeviceRepostory,
+                 heartBeatRepository: IHeartBeatRepository,
+                 menosAlertRepository: IMenosAlertRepository,
+                 storageUsageRepository: IStorageUsageRepositoy,
                  dashboardService: DashboardService):
 
         self.deviceRepository = deviceRepository
@@ -28,6 +36,9 @@ class ChartGatewayService:
         self.chartRepository = chartRepository
         self.attributeRepository = attributeRepository
         self.dashboardService = dashboardService
+        self.heartBeatRepository = heartBeatRepository
+        self.storageUsageRepository = storageUsageRepository
+        self.menosAlertRepository = menosAlertRepository
         self.tag = type(self).__name__
 
     def create(self, dashboardId: str, userId: str, dto: ChartGatewayDto):
@@ -109,26 +120,77 @@ class ChartGatewayService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
 
-    def gets(self, dashboardId: str, userId: str, query: ChartGatewayQuery):
+    def delete_by_dashboard(self, dashboardId: str):
         try:
-            attributes = self.attributeRepository.gets()
-            chartEntites = self.chartRepository.get_charts(dashboardId, userId)
+            self.chartRepository.delete_many_by_dashboard(dashboardId)
+            return True
 
-            responses = list(map(lambda c: map_chart_gateway_to_response(
-                c, attributes, query), chartEntites))
-            return Response.success(data=responses, message="Get chart responses successfully")
+        except DeletedException as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return False
 
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
 
-    def gets_ex(self, dashboardId: str, userId: str, query: ChartGatewayQuery):
+    def _check_deviceId_in_list(self, deviceId: str, deviceIds: []):
+        for item in deviceIds:
+            if item == deviceId:
+                return True
+
+        return False
+
+    def _gets_reports_by_attribute(self, attributeId: int, gatewaysUUID: []):
+        if attributeId == ON_OFF_LINE_ID:
+            timestamp = int(time.time())
+            print(timestamp)
+            reports = self.heartBeatRepository.gets_by_gatewaysId(
+                gatewaysUUID, timestamp)
+            return reports
+
+        if attributeId == COUNT_OF_ALERTS_ID:
+            reports = self.menosAlertRepository.gets_by_gatewaysId(
+                gatewaysUUID)
+            return reports
+
+        if attributeId == STORAGE_USAGE_ID:
+            reports = self.storageUsageRepository.gets_by_gatewaysId(
+                gatewaysUUID)
+            return reports
+
+        return []
+
+    def gets(self, dashboardId: str, userId: str, query: ChartGatewayQuery):
         try:
             attributes = self.attributeRepository.gets()
             chartEntites = self.chartRepository.get_charts(dashboardId, userId)
 
-            responses = list(map(lambda c: map_chart_gateway_to_ex_response(
-                c, attributes, query), chartEntites))
+            # Group gateways by attribute => List gateways with attribute
+            dictGateways = {}
+            for chart in chartEntites:
+                if chart["attributeId"] in dictGateways:
+                    if self._check_deviceId_in_list(chart["deviceId"], dictGateways[chart["attributeId"]]) is False:
+                        dictGateways[chart["attributeId"]].append(
+                            chart["deviceId"])
+                else:
+                    dictGateways[chart["attributeId"]] = []
+                    dictGateways[chart["attributeId"]].append(
+                        chart["deviceId"])
+
+            # Get data from attribute
+            dictReports = {}
+            for keyAttributeId in dictGateways:
+                gatewaysUUID = dictGateways[keyAttributeId]
+
+                report = self._gets_reports_by_attribute(
+                    keyAttributeId, gatewaysUUID)
+
+                dictReports[keyAttributeId] = report
+
+            # Map data to every charts
+            responses = list(map(lambda c: map_to_chart_gateway_to_response(
+                c, dictReports, attributes, query), chartEntites))
+
             return Response.success(data=responses, message="Get chart responses successfully")
 
         except Exception as e:
@@ -141,22 +203,16 @@ class ChartGatewayService:
             chartEntity = self.chartRepository.get_detail(
                 dashboardId, userId, chartId)
 
-            response = map_chart_gateway_to_response(
-                chartEntity, attributes, query)
-            return Response.success(data=response, message="Get chart responses successfully")
+            report = self._gets_reports_by_attribute(
+                chartEntity["attributeId"], [chartEntity["deviceId"]])
 
-        except Exception as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return Response.fail("Sorry, there is something wrong")
+            dictReports = {
+                chartEntity["attributeId"]: report
+            }
 
-    def get_ex_detail(self, dashboardId: str, userId: str, chartId: str, query: ChartGatewayQuery):
-        try:
-            attributes = self.attributeRepository.gets()
-            chartEntity = self.chartRepository.get_detail(
-                dashboardId, userId, chartId)
+            response = map_to_chart_gateway_to_response(
+                chartEntity, dictReports, attributes, query)
 
-            response = map_chart_gateway_to_ex_response(
-                chartEntity, attributes, query)
             return Response.success(data=response, message="Get chart responses successfully")
 
         except Exception as e:

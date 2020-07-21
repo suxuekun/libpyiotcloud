@@ -138,11 +138,11 @@ class utils:
             reason = "No Bearer header"
             print(reason)
             return None, None, reason
-        return self.get_jwtencode_user_pass(token[1])
+        return self.get_jwtencode_user_pass(token[1], to_lower=True)
 
 
     # Authorization header: Bearer JWT
-    def get_jwtencode_user_pass(self, token):
+    def get_jwtencode_user_pass(self, token, to_lower=False):
         payload = None
         try:
             payload = jwt.decode(token, config.CONFIG_JWT_SECRET_KEY, algorithms=['HS256'])
@@ -192,8 +192,9 @@ class utils:
             print("exp: {}".format(payload["exp"]))
             reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload["exp"])
             return None, None, reason
+        if to_lower:
+            return payload["username"].lower(), payload["password"], ""
         return payload["username"], payload["password"], ""
-
 
     # Authorization header for username and password
     def get_auth_header_user_pass_ota(self):

@@ -126,16 +126,16 @@ class device_dashboard_old:
                     break
 
         # add the dataset parameter
-        dataset = self.database_client.get_sensor_reading_dataset_timebound(entityname, sensor["devicename"], sensor["source"], int(sensor["number"]), datebegin, dateend, period, maxpoints)
+        dataset = self.database_client.get_sensor_reading_dataset_timebound_by_deviceid(sensor["deviceid"], sensor["source"], int(sensor["number"]), datebegin, dateend, period, maxpoints)
         if dataset is not None:
             sensor['dataset'] = dataset
 
         # add the readings parameter
+        sid = "{}.{}".format(sensor["source"], sensor["number"])
         for reading in readings:
-            if sensor["source"] == reading["source"]:
-                if int(sensor["number"]) == reading["number"]:
-                    sensor['readings'] = reading['sensor_readings']
-                    break
+            if sid == reading["sid"]:
+                sensor['readings'] = reading['sensor_readings']
+                break
 
     def get_sensor_comparisons(self, devices, sensors_list):
         classes = []
@@ -217,7 +217,7 @@ class device_dashboard_old:
         return comparisons
 
     def get_device_stats(self, entityname, devices, sensordevicename):
-        print("\nget_device_stats\n")
+        #print("\nget_device_stats\n")
         stats = {}
 
         if sensordevicename is not None: # All devices
@@ -716,8 +716,6 @@ class device_dashboard_old:
     ########################################################################################################
     def get_all_device_sensors_enabled_input_readings_dataset_filtered(self):
 
-        #start_time = time.time()
-
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -855,6 +853,8 @@ class device_dashboard_old:
                 datebegin = dateend - timerange - period 
             #print("datebegin={} dateend={} period={} maxpoints={}".format(datebegin, dateend, period, maxpoints))
 
+            #start_time = time.time()
+
             # add sensor properties to the result filtered sensors
             thread_list = []
             if filter["devicename"] != "All devices":
@@ -865,14 +865,16 @@ class device_dashboard_old:
                     thread_list.append(thr) 
                     thr.start()
             else:
-                readings = self.database_client.get_user_sensors_readings(entityname)
-                for sensor in sensors_list:
-                    thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, None, devices, ))
-                    thread_list.append(thr) 
-                    thr.start()
+                for device in devices:
+                    readings = self.database_client.get_device_sensors_readings(entityname, device["devicename"])
+                    for sensor in sensors_list:
+                        thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, None, devices, ))
+                        thread_list.append(thr) 
+                        thr.start()
             for thr in thread_list:
                 thr.join()
 
+            #print("{}".format(time.time() - start_time))
             if len(sensors_list):
                 sensors_list.sort(key=self.sort_by_devicename)
 

@@ -15,8 +15,9 @@
               <div class="dashboard-item-main-column">
                 <h4>Name :{{chart.name}}</h4>
                 <p>Number :{{chart.number}}</p>
+                <p>Sensor class :<strong>{{chart.sensorClass}}</strong></p>
                 <p>Source :{{chart.source}}</p>
-                <p>Sensor class :{{chart.sensorClass}}</p>
+                <p> GATWAY UUID: {{chart.gatewayUUID}}</p>
               </div>
               <input type="checkbox" ng-model="chart.selected"
                     style="height: 20px;width: 20px;float: right; margin-top: 30px;">
@@ -37,8 +38,8 @@
               </select>
               <select style="float: left; margin: 30px;"
                       class="col"
-                      ng-model="currentSelectedPoints"
-                      ng-change="updatePointUrl(currentSelectedPoints.value)"
+                      ng-model="comapareCharts.currentSelectedPoints"
+                      ng-change="updatePointUrl(comapareCharts.currentSelectedPoints.value)"
                       ng-options="filter.name for filter in comapareCharts.selectedPoints">
                       <option value="{{filter.value}}">{{filter.name}}</option>
               </select>
