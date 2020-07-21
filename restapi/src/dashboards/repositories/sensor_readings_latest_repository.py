@@ -14,18 +14,18 @@ class ISensorReadingsLatestRepository(IMongoBaseRepository):
     def gets_dataset(self, sensors, timestampBegin, timestampEnd):
         pass
 
+
 class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestRepository):
 
     def gets_dataset(self, sensors, timestampBegin, timestampEnd):
         if len(sensors) == 0:
             raise QueriedManyException("Cannot query sensors")
 
-
         setsSensorsDeviceid = set()
         for sensor in sensors:
             if sensor["deviceid"] not in setsSensorsDeviceid:
                 setsSensorsDeviceid.add(sensor["deviceid"])
-        
+
         totalReports = []
         for gatewayUUID in setsSensorsDeviceid:
             filterSensors = list(filter(lambda s: s["deviceid"] == gatewayUUID, sensors))
@@ -84,14 +84,13 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
                 },
             },
         ]
+
         cursors = self.collection.aggregate(pipeline)
         sensorsReports = list(cursors)
-
         reports = []
         for s in sensors:
             newReport = {}
             newReport["sensorId"] = str(s["_id"])
-            newReport["enabled"] = s["enabled"]
             newReport["sensorname"] = s["sensorname"]
             newReport["port"] = s["port"]
             newReport["name"] = s["name"]
@@ -99,6 +98,7 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             newReport["source"] = s["source"]
             newReport["number"] = int(s["number"])
             newReport["gatewayUUID"] = s["deviceid"]
+            newReport["gatewayName"] = s["gateway"]["devicename"]
             newReport["unit"] = s["unit"]
             newReport["format"] = s["format"]
             newReport["accuracy"] = s["accuracy"]
@@ -126,7 +126,6 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
         for s in sensors:
             newReport = {}
             newReport["sensorId"] = str(s["_id"])
-            newReport["enabled"] = s["enabled"]
             newReport["sensorname"] = s["sensorname"]
             newReport["port"] = s["port"]
             newReport["name"] = s["name"]
@@ -134,6 +133,7 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             newReport["source"] = s["source"]
             newReport["number"] = int(s["number"])
             newReport["gatewayUUID"] = s["deviceid"]
+            newReport["gatewayName"] = s["gateway"]["devicename"]
             newReport["unit"] = s["unit"]
             newReport["format"] = s["format"]
             newReport["accuracy"] = s["accuracy"]
@@ -152,7 +152,7 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
                 ))
                 newReport["sensor_readings"] = sensor_readings[0]["sensor_readings"]
             else:
-                newReport["sensor_readings"] = {"value": 0, "lowest": 0, "highest": 0}
+                newReport["sensor_readings"] = None
             reports.append(newReport)
         return reports
 

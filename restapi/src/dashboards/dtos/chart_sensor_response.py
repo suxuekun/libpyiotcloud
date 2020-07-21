@@ -64,11 +64,13 @@ class SensorResponse(Model):
     name = StringType()
     sensorClass = StringType()
     gatewayUUID = StringType()
+    gatewayName = StringType()
     minmax = ListType(StringType)
     accuracy = FloatType()
     unit = StringType()
     format = StringType()
-
+    enabled = IntType()
+    
 class ChartSensorReponse(Model):
     id = StringType()
     chartTypeId = IntType()

@@ -1,5 +1,4 @@
 
-import time
 from datetime import datetime, timezone, timedelta
 from dashboards.repositories.dashboard_repository import IDashboardRepository
 from dashboards.repositories.chart_sensor_repository import IChartSensorRepository
@@ -19,6 +18,7 @@ from dashboards.services.dashboard_service import DashboardService
 from dashboards.exceptions.chart_sensor_query_exception import ChartSensorQueryException
 from dashboards.repositories.sensor_repository import ISensorRepository
 from dashboards.repositories.sensor_readings_latest_repository import ISensorReadingsLatestRepository
+import time
 
 
 class ChartSensorService:
@@ -96,8 +96,9 @@ class ChartSensorService:
             return Response.fail("Sorry, there is something wrong")
 
     def gets(self, dashboardId: str, userId: str, query: ChartSensorQuery):
-        timestart = time.time()
         try:
+
+            timestart = time.time()
             query.validate()
 
             chartEntites = self.chartRepository.gets_charts(
@@ -111,7 +112,8 @@ class ChartSensorService:
             # Not have query.chartsId
             if len(query.chartsId) == 0:
                 sensorIds = list(map(lambda c: c["deviceId"], chartEntites))
-                sensors = self.sensorRepository.gets_with_ids(ids=sensorIds)
+                sensors = self.sensorRepository.gets_sensors(ids=sensorIds)
+
                 if len(sensors) == 0:
                     return Response.success([], message="Get chart responses successfully")
                 
@@ -148,7 +150,7 @@ class ChartSensorService:
             sensors = []
             # Try to get charts with default minutes
             if len(sensorIds) != 0:
-                sensors = self.sensorRepository.gets_with_ids(ids=sensorIds)
+                sensors = self.sensorRepository.gets_sensors(ids=sensorIds)
                 lastMinutes = datetime.fromtimestamp(
                     query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
                     
@@ -165,7 +167,7 @@ class ChartSensorService:
                 LoggerService().error("Selected Charts does not have the same size", tag=self.tag)
                 return Response.fail("Sorry, there is something wrong")
 
-            selectedSensors = self.sensorRepository.gets_with_ids(
+            selectedSensors = self.sensorRepository.gets_sensors(
                 ids=selectedSensorIds)
 
             maxMinutes = max(query.selectedMinutes)
@@ -212,7 +214,7 @@ class ChartSensorService:
             sensorIds = list(map(lambda c: c["deviceId"], chartEntites))
 
             # Check sensors has the same sensor class
-            sensors = self.sensorRepository.gets_with_ids(sensorIds)
+            sensors = self.sensorRepository.gets_sensors(sensorIds)
             if len(sensors) == 0:
                 return Response.fail("These sensors device are not existed")
 

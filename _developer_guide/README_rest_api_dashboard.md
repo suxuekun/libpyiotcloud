@@ -337,12 +337,14 @@ DETAIL:
                         'name': string,
                         'sensorClass': string,
                         'gatewayUUID': string,
+                        'gatewayName': string,
                         'minmax': [
                             string
                         ],
                         'accuracy': float,
                         'unit': string,
-                        'format': string
+                        'format': string,
+                        'enabled': int
                     },
                     'datasets': [
                         {
@@ -432,12 +434,14 @@ DETAIL:
                         'name': string,
                         'sensorClass': string,
                         'gatewayUUID': string,
+                        'gatewayName': string,
                         'minmax': [
                             string
                         ],
                         'accuracy': float,
                         'unit': string,
-                        'format': string
+                        'format': string,
+                        'enabled': int
                     },
                     'datasets': [
                         {
@@ -542,12 +546,14 @@ DETAIL:
                         'name': string,
                         'sensorClass': string,
                         'gatewayUUID': string,
+                        'gatewayName': string,
                         'minmax': [
                             string
                         ],
                         'accuracy': float,
                         'unit': string,
-                        'format': string
+                        'format': string,
+                        'enabled': int
                     },
                     'datasets': [
                         {
