@@ -911,6 +911,9 @@ class database_client:
     def get_device_sensors_readings(self, username, devicename):
         return self._devices.get_device_sensors_readings_by_deviceid(self._devices.get_deviceid(username, devicename))
 
+    def get_device_sensors_readings_by_deviceid(self, deviceid):
+        return self._devices.get_device_sensors_readings_by_deviceid(deviceid)
+
     def get_user_sensors_readings(self, username):
         return self._devices.get_user_sensors_readings(username)
 
@@ -1603,9 +1606,9 @@ class database_client_mongodb:
         self.client[config.CONFIG_MONGODB_TB_LDSUS].create_index([('deviceid', 1), ('PORT', 1)])
         self.client[config.CONFIG_MONGODB_TB_LDSUS].create_index([('deviceid', 1), ('UID', 1)])
         self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index('deviceid')
-        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('type', 1)])
         self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('port', 1)])
         self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
+        self.client[config.CONFIG_MONGODB_TB_I2CSENSORS].create_index([('username', 1), ('type', 1)])
         self.client[config.CONFIG_MONGODB_TB_CONFIGURATIONS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
         self.client[config.CONFIG_MONGODB_TB_NOTIFICATIONS].create_index([('deviceid', 1), ('source', 1), ('number', 1)])
         self.client[config.CONFIG_MONGODB_TB_OTAUPDATES].create_index('username')

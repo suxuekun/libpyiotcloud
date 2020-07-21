@@ -866,11 +866,12 @@ class device_dashboard_old:
                     thr.start()
             else:
                 for device in devices:
-                    readings = self.database_client.get_device_sensors_readings(entityname, device["devicename"])
+                    readings = self.database_client.get_device_sensors_readings_by_deviceid(device["deviceid"])
                     for sensor in sensors_list:
-                        thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, None, devices, ))
-                        thread_list.append(thr) 
-                        thr.start()
+                        if sensor["deviceid"] == device["deviceid"]:
+                            thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, None, devices, ))
+                            thread_list.append(thr) 
+                            thr.start()
             for thr in thread_list:
                 thr.join()
 
