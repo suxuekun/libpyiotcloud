@@ -65,16 +65,20 @@ CONFIG_AMQP_TLS_PORT            = 5671
 
 CONFIG_PREPEND_REPLY_TOPIC      = "server"
 CONFIG_SEPARATOR                = '/'
+CONFIG_WILDCARD                 = '#'
+CONFIG_EMAIL                    = "email"
 
 CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
 
-CONFIG_MODEL_EMAIL                = int(email_config.CONFIG_USE_EMAIL_MODEL)
-CONFIG_EMAIL_SUBJECT_RECEIPT      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT
-CONFIG_EMAIL_SUBJECT_ORGANIZATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
-CONFIG_EMAIL_SUBJECT_USAGENOTICE  = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE
-CONFIG_EMAIL_SUBJECT_SENSORDATADL = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL
+CONFIG_MODEL_EMAIL                        = int(email_config.CONFIG_USE_EMAIL_MODEL)
+CONFIG_EMAIL_SUBJECT_RECEIPT              = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT
+CONFIG_EMAIL_SUBJECT_ORGANIZATION         = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
+CONFIG_EMAIL_SUBJECT_USAGENOTICE          = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_USAGENOTICE
+CONFIG_EMAIL_SUBJECT_SENSORDATADL         = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_SENSORDATADL
 CONFIG_EMAIL_SUBJECT_DEVICEREGISTRATION   = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEREGISTRATION
 CONFIG_EMAIL_SUBJECT_DEVICEUNREGISTRATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_DEVICEUNREGISTRATION
+CONFIG_EMAIL_SUBJECT_ACCOUNTCREATION      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ACCOUNTCREATION
+CONFIG_EMAIL_SUBJECT_ACCOUNTDELETION      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ACCOUNTDELETION
 
 API_SEND_RECEIPT                  = "send_invoice"
 API_SEND_INVITATION_ORGANIZATION  = "send_invitation_organization"
@@ -82,6 +86,8 @@ API_SEND_USAGE_NOTICE             = "send_usage_notice"
 API_SEND_SENSORDATA_DOWNLOAD_LINK = "send_sensordata_download_link"
 API_SEND_DEVICE_REGISTRATION      = "send_device_registration"
 API_SEND_DEVICE_UNREGISTRATION    = "send_device_unregistration"
+API_SEND_ACCOUNT_CREATION         = "send_account_creation"
+API_SEND_ACCOUNT_DELETION         = "send_account_deletion"
 
 
 
@@ -214,7 +220,6 @@ def send_device_registration(database_client, deviceid, topic, payload):
         except Exception as e:
             print(e)
 
-
 ###################################################################################
 # Device unregistration
 ###################################################################################
@@ -237,6 +242,47 @@ def send_device_unregistration(database_client, deviceid, topic, payload):
             print(e)
 
 
+###################################################################################
+# Account creation
+###################################################################################
+
+def send_account_creation(database_client, name, topic, payload):
+
+    payload = json.loads(payload)
+    message = g_email_templates.construct_account_creation_message()
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_ACCOUNTCREATION)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("ACCOUNTCREATION {}: {} [{}]".format(name, recipient, result))
+        except Exception as e:
+            print(e)
+
+###################################################################################
+# Account deletion
+###################################################################################
+
+def send_account_deletion(database_client, name, topic, payload):
+
+    payload = json.loads(payload)
+    message = g_email_templates.construct_account_deletion_message()
+    for recipient in payload["recipients"]:
+        try:
+            response = g_email_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_ACCOUNTDELETION)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("ACCOUNTDELETION {}: {} [{}]".format(name, recipient, result))
+        except Exception as e:
+            print(e)
 
 
 
@@ -250,7 +296,9 @@ email_types = [
     API_SEND_USAGE_NOTICE, 
     API_SEND_SENSORDATA_DOWNLOAD_LINK, 
     API_SEND_DEVICE_REGISTRATION, 
-    API_SEND_DEVICE_UNREGISTRATION
+    API_SEND_DEVICE_UNREGISTRATION,
+    API_SEND_ACCOUNT_CREATION,
+    API_SEND_ACCOUNT_DELETION,
 ]
 
 email_handler = [
@@ -259,7 +307,9 @@ email_handler = [
     send_usage_notice,
     send_sensordata_download_link,
     send_device_registration,
-    send_device_unregistration
+    send_device_unregistration,
+    send_account_creation,
+    send_account_deletion,
 ]
 
 def on_message(subtopic, subpayload):
@@ -267,27 +317,30 @@ def on_message(subtopic, subpayload):
     #print(subtopic)
     #print(subpayload)
 
-    arr_subtopic = subtopic.split(CONFIG_SEPARATOR, 2)
-    if len(arr_subtopic) != 3:
+    params = 4
+    arr_subtopic = subtopic.split(CONFIG_SEPARATOR, params-1)
+    if len(arr_subtopic) != params:
         return
 
     payload = subpayload.decode("utf-8")
     topic = arr_subtopic[2]
+    subtopic = arr_subtopic[3]
 
 
     if len(email_handler) != len(email_types):
         print("email_handler != email_types")
         return 
 
-    for x in range(len(email_types)):
-        if topic == email_types[x]:
-            try:
-                thr = threading.Thread(target = email_handler[x], args = (g_database_client, arr_subtopic[1], topic, payload ))
-                thr.start()
-            except Exception as e:
-                print("exception {}".format(email_types[x]))
-                print(e)
-                return
+    if topic == CONFIG_EMAIL:
+        for x in range(len(email_types)):
+            if subtopic == email_types[x]:
+                try:
+                    thr = threading.Thread(target = email_handler[x], args = (g_database_client, arr_subtopic[1], subtopic, payload ))
+                    thr.start()
+                except Exception as e:
+                    print("exception {}".format(email_types[x]))
+                    print(e)
+                    return
 
 
 def on_mqtt_message(client, userdata, msg):
@@ -396,9 +449,8 @@ if __name__ == '__main__':
 
 
     # Subscribe to messages sent for this device
-    for email_type in email_types:
-        subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, email_type)
-        g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    subtopic  = "{}{}+{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, CONFIG_EMAIL, CONFIG_SEPARATOR, CONFIG_WILDCARD)
+    g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

@@ -112,7 +112,7 @@
       </label>
       <ion-checkbox id="vOCGas-checkbox85" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
       <label class="item item-input" id="vOCGas-input240">
-        <input type="text" placeholder="****************" ng-model="data.attributes.notification.endpoints.notification.recipients" readonly="">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.notification.recipients">
       </label>
       <ion-checkbox id="vOCGas-checkbox86" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
       <ion-checkbox id="vOCGas-checkbox100" ng-model="data.attributes.notification.endpoints.modem.isgroup">... check if recipients is device groups instead of devices</ion-checkbox>
@@ -128,7 +128,7 @@
         <div>
           <br>
           <p>
-            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.attributes.notification.endpoints.storage.recipients }}">
+            <a href="{{ data.attributes.notification.endpoints.storage.recipients }}">
               Storage URL
             </a>
           </p>

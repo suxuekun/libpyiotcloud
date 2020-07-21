@@ -335,3 +335,70 @@ July 13, 2020
     specially useful since aggregrating data takes time.
 
     refer to my old dashboard on how to use threads.
+
+
+===============================================
+
+July 14, 2020
+
+57. issue in gateway charts.
+
+    when I added the 1st gateway chart, it appears. no problem.
+
+    when i added the 2nd chart, it does not appear. only the first one appears.
+
+    if i refresh or move to another page and go back, no more charts appear.
+
+    some error logs appear in the rest api - "float division by zero"
+
+
+===============================================
+
+July 15, 2020 
+
+58. can you include sensor["enabled"] parameter as well so webapp/mobile can use it to mark if sensor is enabled or disabled
+
+59. rest api error "ChartSensorService Total size of documents in sensors_readings_dataset_PH80XXRR071420C4 matching pipeline's $lookup stage exceeds 16793600 bytes"
+
+    some logic problem here on how data is aggregated.
+
+    you should not be collecting all data before aggregation
+    - if you use this, this would be CRAZY SLOW when user has 1GB/3GB/10GB sensor data (BASIC/PRO/ENTERPRISE PLAN)
+    - this would be super INEFFICIENT because you only need 5 minute time range, not every data
+    - this is a CRITICAL PERFORMANCE issue
+
+    you should only collect the data for the specific time range before you aggregate
+
+60. another issue related to charts not appearing
+
+    - dashboard id is "undefined" (See screenshot of the REST API logs)
+
+
+===============================================
+
+July 21, 2020 
+
+For Alpha 3 release, fix/implement the following
+
+61. Individual sensor page, just like in mobile apps
+
+62. Refresh token issue - important so can stress test more than 1 hour
+
+63. Historical data - limit is the device creation datetime
+
+64. Time ranges - 1 day, 1 week, 1 month; ensure datasets are correct (average, low, high)
+
+65. Implicit stopping of polling - list down all scenarios and test them
+
+66. Tooltip - display date, low, high
+
+67. Configurable polling time in web app
+
+68. Grid view - low priority
+
+69. Mobile friendly - low priority
+
+70. All pending review comments above
+
+
+

@@ -441,7 +441,7 @@ DETAIL:
                         'accuracy': float,
                         'unit': string,
                         'format': string,
-                        'enabled': int,
+                        'enabled': int
                     },
                     'datasets': [
                         {
@@ -553,7 +553,7 @@ DETAIL:
                         'accuracy': float,
                         'unit': string,
                         'format': string,
-                        'enabled': int,
+                        'enabled': int
                     },
                     'datasets': [
                         {

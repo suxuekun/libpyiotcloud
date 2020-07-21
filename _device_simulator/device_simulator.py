@@ -35,9 +35,10 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 
 # generate and store cached sensor values to cloud
+# To hit free plan, use 33875 (33875*18*82=49999500~50MB) 150ms
 CONFIG_TEST_CACHED_SENSOR_VALUES = False
-CONFIG_TEST_CACHED_FIRST_LDSU_ONLY = True
-CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR = 60
+CONFIG_TEST_CACHED_FIRST_LDSU_ONLY = False
+CONFIG_TEST_CACHED_NUM_POINTS_PER_SENSOR = 33875
 
 # query backend to compute device password
 CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD = True
@@ -276,6 +277,7 @@ API_STATUS_NOTIFICATION          = "status_notification"
 API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING       = "req_sensor_reading"
 API_PUBLISH_SENSOR_READING       = "pub_sensor_reading"
+API_PUBLISH_SENSOR_READING_SINGLE= "pub_sensor_reading_single"
 API_STORE_SENSOR_READING         = "str_sensor_reading"
 
 # heartbeat
@@ -1464,10 +1466,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_RECEIVE_NOTIFICATION:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        # Notification from another device
-        printf("Notification received from device {}:".format(subpayload["sender"]))
-        printf(subpayload["message"])
-        printf("")
+        process_notification_command(subpayload["message"])
 
     elif api == API_STATUS_NOTIFICATION:
         printf("")
@@ -1853,6 +1852,22 @@ def unplugLDSU(uid):
     printf("")
 
 
+###################################################################################
+# Notification commands
+###################################################################################
+
+def process_notification_command(message):
+
+    if not message.startswith("CMD"):
+        return False
+    command_param = message.split(":")
+    action = command_param[1].split("-")[0].strip()
+    if action == "P":
+        g_timer_thread.set_pause(True)
+    elif action == "R":
+        g_timer_thread.set_pause(False)
+    return True
+
 
 ###################################################################################
 # MQTT/AMQP callback functions
@@ -1980,23 +1995,20 @@ def set_configuration(filename = None):
 
 def save_configuration(json_config):
     try:
-        now = datetime.datetime.now()
-        filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d_%H%M%S"))
-        f = open(filename, "w")
         json_formatted_str = json.dumps(json_config, indent=2)
-        if (json_formatted_str != "{}"):
+        if json_formatted_str != "{}":
+            now = datetime.datetime.now()
+            filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d_%H%M%S"))
+            f = open(filename, "w")
             f.write(json_formatted_str)
-        f.close()
-
-        printf("")
-        if (json_formatted_str != "{}"):
+            f.close()
             printf("Device configuration saved to {}".format(filename))
         else:
             printf("Device configuration is empty; not saving to file")
         printf("")
-    except:
+    except Exception as e:
         printf("exception")
-        pass
+        printf(e)
 
 def req_otastatus(ver):
     printf("")
@@ -2070,47 +2082,38 @@ class TimerThread(threading.Thread):
         self.exit = True
 
     def process_ldsu_input_devices(self):
-        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
-
-#        sensors = { 
-#            "UID": string,          # LDSU UUID
-#            "TS": string,           # TIMESTAMP
-#            "SNS": ["", "", "", ""] # VALUES
-#        }
+        topic  = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
+        topic2 = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING_SINGLE)
+        send_as_ldsu = True
 
         ldsu_keys = list(g_ldsu_properties.keys())
         for ldsu_key in ldsu_keys:
             has_enabled = False
             values = []
             # generate random value for enabled sensors of the LDSU
+            said = 0
             for ldsu_device in g_ldsu_properties[ldsu_key]:
                 if ldsu_device.get("attributes"):
                     attributes = ldsu_device["attributes"]
                     # generate random value if sensor is enabled
                     if ldsu_device["enabled"] and attributes["type"] == "input":
-                        #print(ldsu_device)
-                        #print(attributes)
-                        #printf("{} {}".format(attributes["class"], attributes["format"] ))
-                        #printf("{}".format(int(attributes["accuracy"]) ))
-                        #printf("{} {}".format(int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
-                        value = get_random_data_ex(attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]))
-                        value = str(value)
-                        printf("{} {} {} {} {} {}".format(value, attributes["class"], attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
-                        has_enabled = True
+                        value = str( get_random_data_ex(attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1])) )
+                        printf("{} {} {} {} [{}-{}]".format(value, attributes["class"], attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
+
+                        if send_as_ldsu:
+                            has_enabled = True
+                        else:
+                            publish(topic2, {"UID": ldsu_key, "TS": str(int(time.time())), "SAID": str(said), "VAL": value})
                     else:
                         value = "NaN"
                 else:
                     value = "NaN"
                 values.append(value)
+                said += 1
 
             # if one of the LDSU device is enabled, then publish
             if has_enabled:
-                payload = {}
-                payload["UID"] = ldsu_key
-                payload["TS"] = str(int(time.time()))
-                payload["SNS"] = values
-                printf_json(payload)
-                publish(topic, payload)
+                publish(topic, {"UID": ldsu_key, "TS": str(int(time.time())), "SNS": values})
 
     def process_input_devices(self):
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
@@ -2516,6 +2519,7 @@ UART_ATCOMMAND_UPDATE              = "ATU"
 UART_ATCOMMAND_STATUS              = "AT"
 
 UART_ATCOMMAND_LDSTEST             = "ATT"
+UART_ATCOMMAND_DATATEST            = "ATD"
 
 
 UART_ATCOMMAND_DESC_MOBILE         = "Send message as SMS to verified mobile number"
@@ -2535,6 +2539,7 @@ UART_ATCOMMAND_DESC_UPDATE         = "Enter firmware update (UART entry point in
 UART_ATCOMMAND_DESC_STATUS         = "Display device status"
 
 UART_ATCOMMAND_DESC_LDSTEST        = "Simulate tests for moving/adding/removing LDSU in LDS BUS"
+UART_ATCOMMAND_DESC_DATATEST       = "Add data to cloud for all"
 
 
 MENOS_MOBILE                       = "mobile"
@@ -2751,6 +2756,9 @@ def uart_cmdhdl_ldstest(idx, cmd):
         printf("invalid command")
         return
 
+def uart_cmdhdl_datatest(idx, cmd):
+    gen_and_store_cached_ldsu_sensor_data()
+
 
 UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_MOBILE,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_MOBILE  },
@@ -2761,7 +2769,9 @@ UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_DEFAULT,  "fxn": uart_cmdhdl_default,      "help": UART_ATCOMMAND_DESC_DEFAULT },
 
     { "command": UART_ATCOMMAND_HELP,     "fxn": uart_cmdhdl_help,         "help": UART_ATCOMMAND_DESC_HELP     },
+
     { "command": UART_ATCOMMAND_LDSTEST,  "fxn": uart_cmdhdl_ldstest,      "help": UART_ATCOMMAND_DESC_LDSTEST  },
+    { "command": UART_ATCOMMAND_DATATEST, "fxn": uart_cmdhdl_datatest,     "help": UART_ATCOMMAND_DESC_DATATEST },
     #{ "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
     #{ "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
     #{ "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
@@ -2871,6 +2881,7 @@ def http_get_firmware_binary(filename, filesize):
     global CONFIG_DEVICE_ID
     global CONFIG_USERNAME
     global CONFIG_PASSWORD
+    global CONFIG_HTTP_HOST
 
     # in order for the device secret key to not be compromise easily,
     # we now retrieve the authcode via an HTTPS API
@@ -2882,7 +2893,7 @@ def http_get_firmware_binary(filename, filesize):
         return False
 
 
-    conn = http_initialize_connection()
+    conn = http_initialize_connection(CONFIG_HTTP_HOST)
     #headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
     #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
     headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
@@ -3068,8 +3079,9 @@ def reg_ldsu_descriptors(port=None, as_response=False):
             total_chunks = math.ceil(len(g_ldsu_descriptors)/5)
 
             for x in range(len(g_ldsu_descriptors)):
-                estimated_len = len(json.dumps(ldsu_descriptors)) + len(json.dumps(g_ldsu_descriptors[x])) + len("{value:[]}")
-                if estimated_len < maxchunksize:
+                #estimated_len = len(json.dumps(ldsu_descriptors)) + len(json.dumps(g_ldsu_descriptors[x])) + len("{value:[]}")
+                #if estimated_len < maxchunksize:
+                if len(ldsu_descriptors) < 5:
                     # adding the descriptor will still fit the maxchunksize
                     ldsu_descriptors.append(g_ldsu_descriptors[x])
                     size = len(json.dumps(ldsu_descriptors))
@@ -3080,7 +3092,7 @@ def reg_ldsu_descriptors(port=None, as_response=False):
                         "value": ldsu_descriptors, 
                         "chunk": { "SEQN": str(chunks), "TSEQ": str(total_chunks), "TOT": str(len(g_ldsu_descriptors)) } 
                     }
-                    printf(estimated_len)
+                    #printf(estimated_len)
                     printf(len(json.dumps(payload)))
                     publish(topic, payload)
                     # reset size counter

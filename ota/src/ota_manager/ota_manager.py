@@ -160,16 +160,19 @@ def request_otastatus(database_client, deviceid, topic, payload):
         return
 
 
+    print("REQUEST {} {} [status:{} version:{}]".format(deviceid, devicename, ota_status["status"], ota_status["version"]))
+    start_time = time.time()
+
     # make sure we have the latest firmware details synching with AWS S3
     # get the details of the requested firmware
     download_firmwares()
     firmware = get_firmware_object(ota_status["version"])
     if firmware is None:
+        print("Error: get_firmware_object is None")
         new_payload = {}
         new_payload = json.dumps(new_payload)
         g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
         return
-    #print_json(firmware)
 
     new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE)
     new_payload = {
@@ -179,13 +182,17 @@ def request_otastatus(database_client, deviceid, topic, payload):
         "checksum" : firmware["checksum"],
     }
 
-
     # publish packet response to device
-    #print_json(new_payload)
     new_payload = json.dumps(new_payload)
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
 
+    # set status to ongoing
     database_client.set_ota_status_ongoing_by_deviceid(deviceid, firmware["version"])
+
+
+    # print elapsed time
+    print(time.time() - start_time) 
+    print("")
 
 
 def upgrade_firmware_completion(database_client, deviceid, topic, payload):
@@ -195,9 +202,17 @@ def upgrade_firmware_completion(database_client, deviceid, topic, payload):
     if devicename is None:
         return
 
+    # parse parameter
     payload = json.loads(payload)
+    if payload.get("value") is None:
+        return
+    if payload["value"].get("result") is None:
+        return
     result = payload["value"]["result"]
 
+    print("COMPLETE {} {} [{}]".format(deviceid, devicename, result))
+
+    # set the status
     ota_status = database_client.get_ota_status_by_deviceid(deviceid)
     #print_json(ota_status)
     if ota_status["status"] != "completed":
@@ -334,7 +349,7 @@ def download_firmwares():
             #result = download_firmware(firmware["location"], firmware["checksum"])
             #if result:
             #    print("Downloaded {} {} {} {} {} [{}]".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], firmware["checksum"], result))
-    print("")
+    #print("")
     return result
 
 #def get_filename(filename):

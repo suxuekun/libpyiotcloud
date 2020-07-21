@@ -36,14 +36,17 @@ from phonenumbers.phonenumberutil import (
 CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER = True
 CONFIG_USE_REDIS_FOR_IDP            = True
 CONFIG_SUPPORT_MFA                  = True
+CONFIG_SEPARATOR            = '/'
+CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
 
 
 class identity_authentication:
 
-    def __init__(self, database_client, redis_client):
+    def __init__(self, database_client, messaging_client, redis_client):
         self.database_client = database_client
         self.redis_client = redis_client
+        self.messaging_client = messaging_client
 
 
     ########################################################################################################
@@ -64,7 +67,7 @@ class identity_authentication:
         data = flask.request.get_json()
         if data.get("code") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Login IDP STORE CODE: Empty parameter found [{}]\r\n'.format(username))
+            print('\r\nERROR Login IDP STORE CODE: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
         if CONFIG_USE_REDIS_FOR_IDP:
@@ -284,11 +287,28 @@ class identity_authentication:
         #print('signup username={}'.format(username))
 
         data = flask.request.get_json()
-        email = data['email']
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Signup: Parameters not included\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("email") is None or data.get("name") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Signup: Parameters not included\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if len(data["name"]) > 32 or len(data["name"]) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Name length is invalid'})
+            print('\r\nERROR Signup: Name length is invalid\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if len(password) > 32 or len(password) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Password length is invalid'})
+            print('\r\nERROR Signup: Password length is invalid\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
         if data.get("phone_number") is not None:
             phonenumber = data['phone_number']
         else:
             phonenumber = None
+        email = data['email'].lower()
         name = data['name']
         names = name.split(" ")
         if (len(names) > 1):
@@ -395,7 +415,15 @@ class identity_authentication:
     ########################################################################################################
     def confirm_signup(self):
         data = flask.request.get_json()
-        username = data['username']
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Confirm Signup: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("username") is None or data.get("confirmationcode") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Confirm Signup: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        username = data['username'].lower()
         confirmationcode = data['confirmationcode']
         #print('confirm_signup username={} confirmationcode={}'.format(username, confirmationcode))
 
@@ -411,6 +439,15 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
             print('\r\nERROR Confirm Signup: Invalid code [{},{}]\r\n'.format(username, confirmationcode))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+        # send email confirmation
+        try:
+            pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + "" + CONFIG_SEPARATOR + "email" + CONFIG_SEPARATOR + "send_account_creation"
+            payload  = json.dumps({"recipients": [username]})
+            self.messaging_client.publish(pubtopic, payload)
+        except Exception as e:
+            print("Exception encountered {} publish".format(e))
 
         response = json.dumps({'status': 'OK', 'message': 'User registration confirmed successfully'})
         print('\r\nConfirm Signup successful: {}\r\n{}\r\n'.format(username, response))
@@ -441,7 +478,7 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Resend Confirmation: Empty parameter found [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
-        username = data['username']
+        username = data['username'].lower()
         print('resend_confirmation_code username={}'.format(username))
 
         # check if a parameter is empty
@@ -499,7 +536,7 @@ class identity_authentication:
 
         email = None
         if data.get("email") is not None:
-            email = data['email']
+            email = data['email'].lower()
 
             # check if a parameter is empty
             if len(email) == 0:
@@ -594,6 +631,10 @@ class identity_authentication:
             return response, status.HTTP_400_BAD_REQUEST
 
         # check length of password
+        if len(password) > 32:
+            response = json.dumps({'status': 'NG', 'message': 'Password length is invalid'})
+            print('\r\nERROR Reset Password: Password length is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
         if len(password) < 8:
             response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 8 characters'})
             print('\r\nERROR Reset Password: Password length should at least be 8 characters [{}]\r\n'.format(username))
@@ -861,7 +902,18 @@ class identity_authentication:
             print('\r\nERROR Delete user: Internal error [{}]\r\n'.format(username))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
+
         # TODO: delete user devices
+
+
+        # send email confirmation
+        try:
+            pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + "" + CONFIG_SEPARATOR + "email" + CONFIG_SEPARATOR + "send_account_deletion"
+            payload  = json.dumps({"recipients": [username]})
+            self.messaging_client.publish(pubtopic, payload)
+        except Exception as e:
+            print("Exception encountered {} publish".format(e))
+
 
         msg = {'status': 'OK', 'message': 'Delete user successful.'}
         if new_token:
@@ -1139,7 +1191,7 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Change password: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('refresh_user_token username={}'.format(username))
+        print('change_password username={}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -1166,6 +1218,10 @@ class identity_authentication:
             return response, status.HTTP_400_BAD_REQUEST
 
         # check length of newpassword
+        if len(newpassword) > 32:
+            response = json.dumps({'status': 'NG', 'message': 'Password length is invalid'})
+            print('\r\nERROR Change password: Password length is invalid\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if len(newpassword) < 8:
             response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 8 characters'})
             print('\r\nERROR Change password: Password length should at least be 8 characters [{}]\r\n'.format(username))
@@ -1297,9 +1353,13 @@ class identity_authentication:
     ########################################################################################################
     def login_mfa(self):
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Login MFA: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("username") is None or data.get("confirmationcode") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Login MFA: Empty parameter found [{}]\r\n'.format(username))
+            print('\r\nERROR Login MFA: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
         username = data['username']
@@ -1410,9 +1470,17 @@ class identity_authentication:
 
         # get the input parameters
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Update user: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get('name') is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Update user: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if len(data["name"]) > 32 or len(data["name"]) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Name length is invalid'})
+            print('\r\nERROR Update user: Name length is invalid\r\n')
             return response, status.HTTP_400_BAD_REQUEST
         if data.get('phone_number') is not None:
             phonenumber = data['phone_number']

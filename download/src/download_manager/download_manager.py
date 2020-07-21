@@ -157,16 +157,19 @@ def generate_file(database_client, deviceid, uid, said, format, accuracy):
         write_file(deviceid, "{}-{}_{}".format(uid, said, fileno), contents)
     else:
         write_file(deviceid, "{}-{}".format(uid, said), contents)
+    fileno += 1
 
+    return fileno
 
 def generate_files(database_client, deviceid, ldsus):
     threaded = True
-    max_threads = 4
+    max_threads = 5
     create_folder(deviceid)
+    num_files = 0
 
     if not threaded or len(ldsus) > max_threads:
         for ldsu in ldsus:
-            generate_file(database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]))
+            num_files += generate_file(database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]))
     else:
         try:
             thr_list = []
@@ -179,7 +182,9 @@ def generate_files(database_client, deviceid, ldsus):
         except Exception as e:
             print(e)
             for ldsu in ldsus:
-                generate_file(database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]))
+                num_files += generate_file(database_client, deviceid, ldsu["UID"], ldsu["SAID"], ldsu["FORMAT"], int(ldsu["ACCURACY"]))
+
+    return num_files
 
 def zipdir(path, ziph):
     for root, dirs, files in os.walk(path):
@@ -188,13 +193,16 @@ def zipdir(path, ziph):
 
 def create_zipfile(deviceid):
     filename = deviceid + '.zip'
+    filesize = 0
     try:
         zipf = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
         zipdir(deviceid + '/', zipf)
+        filesize = sum([zinfo.file_size for zinfo in zipf.filelist])
         zipf.close()
     except:
-        return None
-    return filename
+        return None, 0, 0
+    st = os.stat(filename)
+    return filename, filesize, st.st_size
 
 def delete_zipfile(deviceid):
     filename = deviceid + '.zip'
@@ -224,34 +232,39 @@ def upload_zipfile(zip_file, contents):
     return None
 
 def send_sensordata_download_link(messaging_client, name, email, url, devicename, deviceid):
-    topic = "{}{}{}{}send_sensordata_download_link".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR)
+    topic = "{}{}{}{}email{}send_sensordata_download_link".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, deviceid, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
     payload = { 
         "name": name, 
         "url": url, 
         "devicename": devicename,
         "recipients": [email]
     }
-    messaging_client.publish(topic, json.dumps(payload), False)
+    messaging_client.publish(topic, json.dumps(payload), True)
 
 def download_device_sensor_data(database_client, deviceid, topic, payload):
     start_time = time.time()
-    print(deviceid)
 
-    payload = json.loads(payload)
-    if payload.get("name") is None or payload.get("email") is None or payload.get("devicename") is None or payload.get("ldsus") is None:
-        return
-    #print_json(payload)
-
+    # check if device is valid
     username, devicename = database_client.get_username_devicename(deviceid)
     if username is None or devicename is None:
+        print("Invalid device {}".format(deviceid))
         return
+
+    # check parameters
+    payload = json.loads(payload)
+    if payload.get("name") is None or payload.get("email") is None or payload.get("devicename") is None or payload.get("ldsus") is None:
+        print("Invalid parameters {}".format(deviceid))
+        return
+    #print_json(payload)
 
 
     delete_folder(deviceid)
     delete_zipfile(deviceid)
 
-    generate_files(database_client, deviceid, payload["ldsus"])
-    zip_file = create_zipfile(deviceid)
+    num_files = generate_files(database_client, deviceid, payload["ldsus"])
+    zip_file, filesize, filesize_compressed = create_zipfile(deviceid)
+    print("{} {} [ldsu:{} files:{} size:{} csize:{}]".format(deviceid, devicename, len(payload["ldsus"]), num_files, filesize, filesize_compressed))
+
     if zip_file:
         contents = read_zipfile(zip_file)
         if contents:

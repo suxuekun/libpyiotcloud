@@ -361,7 +361,7 @@ class payment_accounting:
 
                 # send email receipt/invoice
                 try:
-                    pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "send_invoice"
+                    pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "email" + CONFIG_SEPARATOR + "send_invoice"
                     payload  = json.dumps({})
                     self.messaging_client.publish(pubtopic, payload)
                     #print("publish xxxxxxxxxxxxx")

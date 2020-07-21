@@ -1050,7 +1050,7 @@ def initialize():
 
     # Classes
     g_messaging_requests           = messaging_requests(g_database_client, g_messaging_client, g_redis_client, g_event_dict, g_queue_dict)
-    g_identity_authentication      = identity_authentication(g_database_client, g_redis_client)
+    g_identity_authentication      = identity_authentication(g_database_client, g_messaging_client, g_redis_client)
     g_access_control               = access_control(g_database_client, g_messaging_client)
     g_device_locations             = device_locations(g_database_client)
     g_device_groups                = device_groups(g_database_client)

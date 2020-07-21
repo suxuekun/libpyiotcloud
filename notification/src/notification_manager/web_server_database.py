@@ -568,7 +568,7 @@ class database_client_mongodb:
         return self.client[config.CONFIG_MONGODB_TB_NOTIFICATIONS]
 
     def add_device_notification(self, username, devicename, deviceid, source, notification):
-        notifications = self.get_notifications_document();
+        notifications = self.get_notifications_document()
         item = {}
         item['username'] = username
         item['devicename'] = devicename
@@ -578,7 +578,7 @@ class database_client_mongodb:
         notifications.insert_one(item)
 
     def update_device_notification(self, username, devicename, deviceid, source, notification):
-        notifications = self.get_notifications_document();
+        notifications = self.get_notifications_document()
         item = {}
         item['username'] = username
         item['devicename'] = devicename
@@ -610,7 +610,7 @@ class database_client_mongodb:
                     notifications.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, found)
 
     def delete_device_notification(self, username, devicename):
-        notifications = self.get_notifications_document();
+        notifications = self.get_notifications_document()
         try:
             notifications.delete_many({'username': username, 'devicename': devicename})
         except:
@@ -618,7 +618,7 @@ class database_client_mongodb:
             pass
 
     def get_device_notification(self, username, devicename, source):
-        notifications = self.get_notifications_document();
+        notifications = self.get_notifications_document()
         if notifications:
             for notification in notifications.find({'username': username, 'devicename': devicename, 'source': source}):
                 notification.pop('_id')
@@ -627,7 +627,7 @@ class database_client_mongodb:
         return None
 
     def get_device_notification_by_deviceid(self, deviceid, source, number):
-        notifications = self.get_notifications_document();
+        notifications = self.get_notifications_document()
         if notifications:
             if number is None:
                 for notification in notifications.find({'deviceid': deviceid, 'source': source}):

@@ -105,53 +105,58 @@ Below are the features of this secure, scalable and reliable IoT platform:
        C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
        D. Other gateway: sending alerts to another gateway device
        E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
+       F. Alert multiple registered recipients (for various combinations of sMs, Email, push Notification, Other gateway, Storage)
        *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
        *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
 
     7. Subscription and payment services
-       Conveniently pay for subscription upgrade for each device every month to avail all services for all purchased IoT devices.
-       A. Use Paypal/BrainTree to pay for recurring subscription plan (and/or add-ons) and receive an email confirmation receipt
-       B. View payment histories for all purchased IoT devices
-       C. Use free subscription for all purchased devices
-       D. Upgrade free subscription to Basic/Pro/Enterprise subscription plans to avail bigger allotment of all services
-       E. Buy SMS add-ons on top of non-free subscription plans to avail SMS-based alerts
-       F. Monitor usage for SMS, email, push notifications
-       G. Monitor usage for sensor data storage
+       Conveniently pay for subscription upgrade for each device to avail all services for all purchased IoT devices.
+       A. Use free subscription for all purchased devices
+       B. Upgrade free subscription to Basic/Pro/Enterprise subscription plans in prorated amount 
+       C. Buy SMS add-ons on top of subscription plans to avail more SMS alerts
+       D. Use promo codes to avail of price discounts or additional services
+       E. Cancel paid subscription plan anytime and avail of the services until end of the month
+       F. Use Paypal to pay for recurring subscription plan
+       G. Receive email acknowledgement for payment including link to download the receipt
+       H. View payment transaction histories and receipts for all purchased subscriptions and add-ons
+       I. Monitor usage for SMS, email, push notifications and sensor data storage
+       J. Receive email notices when alert usage or sensor data storage usage exceeded subscription plan allocation
 
     8. Device fleet management services
        Provision, manage and monitor devices or fleets of devices
        A. Register device manually or via QR code (QR code registration via mobile apps only)
-       B. Manager device status remotely (restart, stop, start) and view device properties including last active time
-       C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
-       D. Seamlessly update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with secure checksum validation
-       E. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
-       F. View device-sensor hierarchy tree and devices configurations summary 
+       B. Receive email acknowledgement upon device registration and unregistration
+       C. Manage device status remotely (restart, stop, start) and view device properties including last active time
+       D. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
+       E. Seamlessly update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with secure checksum validation
+       F. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
+       G. Scan devices to detect connected sensors/actuators (and sensors/actuators that were unplugged but were previously plugged)
+       H. View device-sensor hierarchy tree and sensor configurations 
        *  Configure and manage organization-owned devices
 
     9. Sensor/actuator management services
        Configure sensors/actuators for customizable alerts/alarms or trigger/action
-       A. Configure UART parameters and GPIO pins
-       B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
-          INPUT  [sensors]   : potentiometer, temperature, humidity, anemometer, battery, fluid, 
+       A. Configure UART parameters
+       B. Configure GPIO parameters - OBSOLETED
+       C. Connect sensors/actuators via LDS Bus ports
+       D. Connect sensors/actuators via I2C, ADC, TProbe, Onewire - OBSOLETED
+       E. Connect up to 80 LDS units with 1-4 sensors/actuators per LDSU: 
+          INPUT  [sensors]   : temperature, humidity, co2/voc gas, pressure, motion detection, ambient light
           OUTPUT [actuators] : speaker, display, light
-          User MANUALLY registers sensors connected
-          Device AUTOMATICALLY registers sensors connected on bootup
-       C. Configure sensors for data thresholding (to trigger MENOS alerts)
-       D. Configure sensors for data thresholding (to set actuators)
-       E. Configure sensors for data forwarding
-       F. Configure actuators to receive data from sensors (data forwarding)
-       G. Configure actuators to receive commands from sensors (data thresholding - item D)
-       H. View device-sensor hierarchy tree and summary of sensor configurations
+       F. Configure sensors for data thresholding to trigger alerts
+       G. Configure sensors for data thresholding to set actuators (from similar or other devices)
+       H. Configure actuators to receive commands from sensors
+       I. Configure sensors for data forwarding to pass values to actuators (from similar or other devices)
+       J. Configure actuators to receive data from sensors
 
     10.Sensor data visualization and analytics services
-       Understand device and sensor behaviour via the dashboard charts/graphs/infographics for complete holistic insight
+       Understand device and sensor behaviour via the dashboard charts/graphs/infographics to derive new holistic insights for data driven decisions
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter)
        D. Visualize device and sensor related metrics via pie, doughnut and bar charts
-       E. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-       F. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
-       G. Download sensor data for data analysis, data backup, data recovery or data privacy
+       E. Download sensor data for data analysis, data backup, data recovery or data privacy
+       F. Clear sensor data for once storage allocation is fully consumed
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
 
@@ -219,6 +224,7 @@ Below are tools and utilities being used:
 - <b>Github Desktop</b> Git application - https://desktop.github.com/
 - <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
 - <b>RabbitMQ</b> Management web interface - https://www.rabbitmq.com/management.html
+- <b>Beyond Compare</b> Code comparison - https://www.scootersoftware.com/
 - <b>Putty</b> SSH application to access AWS EC2 - https://www.putty.org/
 - <b>WinSCP</b> SSH gui application to access AWS EC2 - https://winscp.net/eng/index.php
 - <b>Docker Toolbox</b> Docker installation on Windows - https://docs.docker.com/toolbox/toolbox_install_windows/
@@ -235,7 +241,7 @@ Below are tools and utilities being used:
 ### High-level architecture diagram:
 <img src="./_images/architecture.png" width="1000"/>
 
-14 docker containerized microservices
+15 docker containerized microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
@@ -248,9 +254,10 @@ Below are tools and utilities being used:
 9. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
 10. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
 11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
-12. <b>Invoicing</b> - handles sending of payment receipts via email
+12. <b>Email</b> - handles sending of email notices
 13. <b>Registration</b> - handles processing of sensor registration by device on bootup
 14. <b>Heartbeat</b> - handles processing of heartbeat packets
+15. <b>Download</b> - handles processing of downloading sensor data
 
 
 
@@ -272,17 +279,18 @@ Below are tools and utilities being used:
 1. <b>Programming Languages:</b> Python
 2. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
 3. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, BrainTree, RabbitMQ
-4. <b>MongoDB</b>: accessed by restapi, history, notification, sensor, configuration, otaupdate
-5. <b>Redis</b>: accessed by restapi
-6. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
-7. <b>History service</b> -> RabbitMQ, MongoDB
-8. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
-9. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
+4. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
+5. <b>MongoDB</b>: accessed by restapi, history, notification, sensor, configuration, otaupdate
+6. <b>Redis</b>: accessed by restapi
+7. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint
+8. <b>History service</b> -> RabbitMQ, MongoDB
+9. <b>Sensor service</b> -> RabbitMQ, MongoDB
 10. <b>Configuration service</b> -> RabbitMQ, MongoDB
-11. <b>Sensor service</b> -> RabbitMQ, MongoDB
-12. <b>Invoice service</b> -> RabbitMQ, MongoDB
+11. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
+12. <b>Email service</b> -> RabbitMQ, MongoDB
 13. <b>Registration service</b> -> RabbitMQ, MongoDB
 14. <b>Heartbeat</b> - RabbitMQ, MongoDB
+15. <b>Download</b> - RabbitMQ, MongoDB
 
 
 
@@ -392,6 +400,11 @@ Paypal payment buyer account
 Paypal payment merchant account
 <img src="./_images/paypal_payment_6.png" width="800"/>
 
+MongoDB sensor data optimization -  GB datasets
+<img src="./_images/benchmarking.png" width="800"/>
+
+MongoDB sensor data optimization - indexing
+<img src="./_images/benchmarking2.png" width="800"/>
 
 
 ### REST APIs
@@ -2004,7 +2017,79 @@ Notes:
 
 # Performance
 
-### Windows 
+
+### Sensor Data Visualization
+
+Querying datasets for sensor data visualization has been optimized significantly.
+Performance of Sensor Dashboard API for querying a device with 1GB data (5min timerange) is now 300-1000 times faster.
+
+Issue:
+
+	- As the total number of sensor data collected by backend from device increases,
+	  the performance of querying sensor data becomes significantly slow...
+	  ...even when just querying for 5-minute timerange. 
+
+Solution:
+
+	- Instead of using MongoDB aggregate() framework,
+	  use MongoDB's find() with combo indexing on 'sid' and 'timestamp' parameters.
+	  Aggregation is supposed to be faster than find() because MongoDB performs the optimization itself.
+	  However, it will be only so if usage is proper and correct.
+
+	- https://www.stackchief.com/blog/%24lookup%20in%20MongoDB
+	- https://www.stackchief.com/tutorials/$lookup%20Examples%20%7C%20MongoDB
+
+Benchmarking:
+
+	- Environment: 
+	  local setup, Windows 7, MongoDB 4.2.8 (latest), PyMongo 3.10.1 (latest)
+
+	- using MongoDB aggregate() - even with 'sid' indexing
+	  1 enabled sensor only, 5 minute timerange
+	  50MB  -   150ms
+	  100MB -   250ms
+	  200MB -   470ms
+	  500MB -  1200ms
+	  1GB   -  2300ms // 1 sensor
+	  1GB   -  9700ms // 4 sensors (1 gateway)
+	  1GB   - 42000ms // 8 sensors (2 gateways have 1GB each, sensor chart has sensors for 2 devices)
+	  1GB   - 65000ms // 12 sensors (3 gateways have 1GB each, sensor chart has sensors for 3 devices)
+
+	- using MongoDB find() with 'sid' & 'timestamp' combo indexing
+	  1GB   -   7ms   // 1 sensor
+	  1GB   -  28ms   // 4 sensors (1 gateway)
+	  1GB   -  43ms   // 8 sensors (2 gateways have 1GB each, sensor chart has sensors for 2 devices)
+	  1GB   -  50ms   // 12 sensors (3 gateways have 1GB each, sensor chart has sensors for 3 devices)
+
+Other factors to consider and test:
+
+	1. 80 max LDSUs for 1 gateway => 80x4=320 sensors (OMG!)
+	2. Other timeranges
+	3. 3GB, 10GB
+	4. Multiple devices with 3GB/10GB (where sensor dashboard chart has sensors for all devices)
+	5. Live EC2 instance (T2.SMALL)
+
+Tradeoff:
+
+	- The tradeoff for adding indexing is that memory increases.
+	  For 1GB of data, an additional 100MB-300MB was needed by MongoDB for indexing.
+	- Currently only the actual size of data is billed to customer 
+	  But because the size of indexes affects size significantly, we should pass this to customer.
+	  That is for 1GB Basic Plan, user will only be able to use about 700-900MB 
+	  as 100-300MB will be used for indexes optmization.
+
+
+### Collection metrics
+
+	- https://docs.mongodb.com/manual/reference/command/collStats/#dbcmd.collStats
+	- collStats.count
+	- collStats.size
+	- collStats.totalIndexSize
+
+
+### Device communication
+
+#### Windows 
 
 The total round trip time for setting or getting the MCU GPIO is 2.01 seconds from the client application. But round trip time for the web server for sending MQTT publish and receiving MQTT response to/from MCU is only 1 second.
 
@@ -2014,7 +2099,7 @@ The total round trip time for setting or getting the MCU GPIO is 2.01 seconds fr
 
 The client call to HTTP getresponse() is causing the additional 1 second delay. https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection.getresponse For mobile client application, this 1 second delay maybe less or more. This will depend on the equivalent function HTTP client getresponse() in Java for Android or Swift for iOS..
 
-### Linux
+#### Linux
 
 In Linux, the total round trip time is only 1 second.
 

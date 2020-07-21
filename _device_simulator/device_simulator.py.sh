@@ -23,12 +23,12 @@
 #
 ##########################################################
 
-DEVICE_ID=""
+DEVICE_ID="PH80XXRR07152048"
 DEVICE_SECRETKEY=""
 
 # For new devices
-DEVICE_SERIAL=""
-DEVICE_MACADD=""
+DEVICE_SERIAL="00072"
+DEVICE_MACADD="0A:56:0D:F8:D3:2B"
 
 # For existing devices (backward compatibility)
 USER=""

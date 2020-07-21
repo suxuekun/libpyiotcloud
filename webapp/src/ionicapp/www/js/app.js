@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('app', ['ionic', 'app.controllers', 'app.routes', 'app.directives','app.services','user','server','devices','histories','token','chart.js','notifications','uiGmapgoogle-maps','googlemaps.init','payments','devicegroups','organizations','dateTimeUtil', 'app.dashboardsCtrl', 'app.compareChartCtrl', 'app.addNewChartGatewayCtrl','app.addNewChartSensorCtrl','app.addDashboardCtrl'])
+angular.module('app', ['ionic', 'app.controllers', 'app.routes', 'app.directives','app.services','user','server','devices','histories','token','chart.js','notifications','uiGmapgoogle-maps','googlemaps.init','payments','devicegroups','organizations','dateTimeUtil', 'app.paymentCtrl','payments.service', 'app.dashboardsCtrl', 'app.compareChartCtrl', 'app.addNewChartGatewayCtrl','app.addNewChartSensorCtrl','app.addDashboardCtrl'])
 
 .config(function($ionicConfigProvider, $sceDelegateProvider){
     $ionicConfigProvider.backButton.text('').previousTitleText(false);
