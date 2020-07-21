@@ -343,8 +343,8 @@ DETAIL:
                         ],
                         'accuracy': float,
                         'unit': string,
-                        'format': string
-
+                        'format': string,
+                        'enabled': int,
                     },
                     'datasets': [
                         {
@@ -440,7 +440,8 @@ DETAIL:
                         ],
                         'accuracy': float,
                         'unit': string,
-                        'format': string
+                        'format': string,
+                        'enabled': int,
                     },
                     'datasets': [
                         {
@@ -551,7 +552,8 @@ DETAIL:
                         ],
                         'accuracy': float,
                         'unit': string,
-                        'format': string
+                        'format': string,
+                        'enabled': int,
                     },
                     'datasets': [
                         {
