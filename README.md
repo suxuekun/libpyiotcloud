@@ -155,9 +155,8 @@ Below are the features of this secure, scalable and reliable IoT platform:
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter)
        D. Visualize device and sensor related metrics via pie, doughnut and bar charts
-       E. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-       F. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
-       G. Download sensor data for data analysis, data backup, data recovery or data privacy
+       E. Download sensor data for data analysis, data backup, data recovery or data privacy
+       F. Clear sensor data for once storage allocation is fully consumed
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
 
