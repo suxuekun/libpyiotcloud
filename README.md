@@ -105,7 +105,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
        D. Other gateway: sending alerts to another gateway device
        E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
-       F. Alert multiple recipients (for various combinations of sMs, Email, push Notification, Other gateway, Storage)
+       F. Alert multiple registered recipients (for various combinations of sMs, Email, push Notification, Other gateway, Storage)
        *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
        *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
 
