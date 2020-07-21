@@ -16,7 +16,7 @@
               <div ng-repeat="dashboard in dashboards">
                  <div class="card row"
                       style="padding-right: 20px;"
-                      ng-style="dashboard.id == dashboardDetail.id && {'background-color':'#f7f7f7'} || {'background-color': 'white'}">
+                      ng-style="dashboard.id == dashboardDetail.id && {'background-color':'#EEEEEE'} || {'background-color': 'white'}">
                   <div class="col col-20">
                     <button style="font-weight:500; padding-right: 50px;"
                             ng-style="{'color': dashboard.color}"
@@ -90,7 +90,7 @@
                               ng-click="addChart(activeTab)"></button>
                         <button id="addGateway-button55"
                             ng-click="compare()"
-                            ng-show="activeTab == 1"
+                            ng-show="activeTab == 1 && sensorsView.length != 0"
                             class="col"
                             style="float:right; background-color: #3C5A99; color: white"
                             class="button button-positive button-block button-large">Compare</button>
@@ -187,85 +187,88 @@
                             </div>
                           </label>
                       </div>
-                      <div class="card"
+
+                      <div ng-repeat="(sensorClass, charts) in groupChartsSensorView">
+                         <div class="card"
                           style="padding: 20px;"
-                          ng-repeat="chart in sensorsView">
-                        <div class="column">
-                          <div class="row">
-                            <div class="col" style="width=80%">
-
-                              <!--Chart Information-->
-                              <div>
-                                <p> Sensor Name: <strong>{{chart.device.name}}</strong></p>
-                                <p> Number: #<strong>{{chart.device.number}}</strong></p>
-                                <p> Sensor class: <strong>{{chart.device.sensorClass}}</strong>
-                                <p> LDSU UUID: {{chart.device.source}}</p>
-                                <p> GATWAY UUID: {{chart.device.gatewayUUID}}</p>
-                              </div>
-
-                              <!--Chart Low high-->
-                              <div class="row" style="padding:5px;">
-                                <h3 class="col-50">{{chart.readings.value}} {{chart.device.unit}}</h3>
-                                <div class="col" style="float:right;">
-                                  <p>Low: {{chart.readings.lowest}}</p>
-                                  <p>High: {{chart.readings.highest}}</p>
-                                </div>
-                              </div>
-
-                            </div>
-                            <div class="col"  style="width=20%; float: right;">
-                                <button ng-click="deleteChartSensor(chart.id)"
-                                        style="font-weight:600; float: right;"
-                                        ng-style="{'color': dashboard.color}"
-                                        class="button button-positive button-large button-block button-clear icon-right ion-android-close">
-                                </button>
-                            </div>
-                          </div>
-
-                          <div class="chart-container">
-
-                            <!--Select Time-->
-                              <select style="float: right;"
-                                      class="col"
-                                      ng-model="chart.currentSelectTime"
-                                      ng-change="updateGetChartSensorsUrl(chart.currentSelectTime.value, chart.id)"
-                                      ng-options="filter.name for filter in chart.selectedTimes">
-                                      <option value="{{filter.value}}">{{filter.name}}</option>
-                              </select>
+                          ng-repeat="chart in charts">
+                          <div class="column">
                             <div class="row">
-                            <!--Select Back -->
-                                <button ng-click="backToHistorical(chart, chart.currentTimespan)"
-                                        ng-style="{'opacity': opacityOfHistoricalButton}"
-                                        class="button button-positive button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward col">
-                                </button>
+                              <div class="col" style="width=80%">
 
-                              <!--Select Next -->
+                                <!--Chart Information-->
+                                <div>
+                                  <h4><strong>{{chart.device.name}}</strong></h4>
+                                  <p style="color: grey"> LDSU UUID: {{chart.device.source}}</p>
+                                  <p style="color: grey"> Number: {{chart.device.number}}</p>
+                                  <p style="color: grey"> Gateway Name: {{chart.device.gatewayName}} </p>
+                                  <p style="color: grey"> Gateway UUID: {{chart.device.gatewayUUID}}</p>
+                                </div>
+
+                                <!--Chart Low high-->
+                                <div class="row" style="padding:5px;">
+                                  <h3 class="col-50">{{chart.readings.value}} {{chart.device.unit}}</h3>
+                                  <div class="col" style="float:right;">
+                                    <p>Low: {{chart.readings.lowest}}</p>
+                                    <p>High: {{chart.readings.highest}}</p>
+                                  </div>
+                                </div>
+
+                              </div>
+                              <div class="col"  style="width=20%; float: right;">
+                                  <button ng-click="deleteChartSensor(chart.id)"
+                                          style="font-weight:600; float: right;"
+                                          ng-style="{'color': dashboard.color}"
+                                          class="button button-positive button-large button-block button-clear icon-right ion-android-close">
+                                  </button>
+                              </div>
+                            </div>
+
+                            <div class="chart-container">
+
+                              <!--Select Time-->
+                                <select style="float: right;"
+                                        class="col"
+                                        ng-model="chart.currentSelectTime"
+                                        ng-change="updateGetChartSensorsUrl(chart.currentSelectTime.value, chart.id)"
+                                        ng-options="filter.name for filter in chart.selectedTimes">
+                                        <option value="{{filter.value}}">{{filter.name}}</option>
+                                </select>
+                              <div class="row">
+                                  <!--Select Back -->
+                                  <button ng-click="backToHistorical(chart, chart.currentTimespan)"
+                                          ng-style="{'opacity': opacityOfHistoricalButton}"
+                                          class="button button-positive button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward col">
+                                  </button>
+
+                                  <!--Select Next -->
                                   <button ng-click="nextToHistorical(chart, chart.currentTimespan)"
                                           ng-style="{'opacity': opacityOfHistoricalButton}"
                                           class="button button-positive button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward col">
                                   </button>
+                              </div>
+                              <canvas title="{{chart.device.name}}"
+                                    class="chart chart-line"
+                                    chart-colors="chart.colors"
+                                    chart-data="chart.data"
+                                    ng-show="chart.typeId==3"
+                                    chart-labels="chart.labels"
+                                    chart-options="chart.options"
+                                    chart-dataset-override="chart.datasetOverride">
+                              </canvas>
+
+                              <canvas title="{{chart.device.name}}"
+                                    class="chart chart-bar"
+                                    chart-colors="chart.colors"
+                                    chart-data="chart.data"
+                                    ng-show="chart.typeId==2"
+                                    chart-labels="chart.labels"
+                                    chart-options="chart.options"
+                                    chart-dataset-override="chart.datasetOverride">
+                              </canvas>
                             </div>
-                            <canvas title="{{chart.device.name}}"
-                                  class="chart chart-line"
-                                  chart-colors="chart.colors"
-                                  chart-data="chart.data"
-                                  ng-show="chart.typeId==3"
-                                  chart-labels="chart.labels"
-                                  chart-options="chart.options"
-                                  chart-dataset-override="chart.datasetOverride">
-                            </canvas>
 
-                            <canvas title="{{chart.device.name}}"
-                                  class="chart chart-bar"
-                                  chart-colors="chart.colors"
-                                  chart-data="chart.data"
-                                  ng-show="chart.typeId==2"
-                                  chart-labels="chart.labels"
-                                  chart-options="chart.options"
-                                  chart-dataset-override="chart.datasetOverride">
-                            </canvas>
                           </div>
-
                         </div>
                       </div>
                     </div>

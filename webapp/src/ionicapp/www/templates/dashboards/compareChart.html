@@ -10,24 +10,38 @@
                   style="width: 40%;margin: auto; margin-top: 20px"
                   ng-style="{'background-color': green}"
                   class="button button-positive button-block">Compare</button>
-          <div ng-repeat="chart in charts">
+          <br></br>
+          <div ng-repeat="(sensorClass, charts) in dictCharts">
+            <h3><strong>{{sensorClass}}</strong></h3>
+            <div ng-repeat="chart in charts">
             <div class="card" style="margin-top: 10px; padding: 20px;">
               <div class="dashboard-item-main-column">
-                <h4>Name :{{chart.name}}</h4>
-                <p>Number :{{chart.number}}</p>
-                <p>Sensor class :<strong>{{chart.sensorClass}}</strong></p>
-                <p>Source :{{chart.source}}</p>
-                <p> GATWAY UUID: {{chart.gatewayUUID}}</p>
+                <h4>Name: {{chart.name}}</h4>
+                <p>Source: {{chart.source}}</p>
+                <p>Number: {{chart.number}}</p>
+                <p>Gateway UUID: {{chart.gatewayUUID}}</p>
+                <p>Gateway name: {{chart.gatewayName}}</p>
               </div>
               <input type="checkbox" ng-model="chart.selected"
                     style="height: 20px;width: 20px;float: right; margin-top: 30px;">
-
+              </div>
             </div>
           </div>
-
         </div>
 
         <div ng-show="currentStep == 1">
+            <div class="row">
+              <h3 class="col">Realtime</h3>
+              <label class="toggle col-90">
+                <input type="checkbox" ng-model="isRealTime" ng-change="toggelRealTime()">
+                <div class="track">
+                  <div class="handle"></div>
+                </div>
+              </label>
+            </div>
+
+
+
             <div class="row">
               <select style="float: left; margin: 30px;"
                       class="col"
@@ -43,6 +57,20 @@
                       ng-options="filter.name for filter in comapareCharts.selectedPoints">
                       <option value="{{filter.value}}">{{filter.name}}</option>
               </select>
+            </div>
+
+            <div class="row">
+              <!--Select Back -->
+              <button ng-click="backToHistorical(chart, chart.currentTimespan)"
+                      ng-style="{'opacity': opacityOfHistoricalButton}"
+                      class="button button-positive button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward col">
+              </button>
+
+              <!--Select Next -->
+              <button ng-click="nextToHistorical(chart, chart.currentTimespan)"
+                      ng-style="{'opacity': opacityOfHistoricalButton}"
+                      class="button button-positive button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward col">
+              </button>
             </div>
 
             <canvas title="Compare"
