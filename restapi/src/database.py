@@ -3645,7 +3645,6 @@ class database_client_mongodb:
         #return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
         # separate collection per device
         collection = self.client_sensor["{}_{}".format(config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET, deviceid)]
-        collection.create_index('sid')
         return collection
 
     def add_sensor_reading_dataset(self, username, deviceid, source, number, value, subclass_value):
