@@ -140,7 +140,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        B. Configure GPIO parameters - OBSOLETED
        C. Connect sensors/actuators via LDS Bus ports
        D. Connect sensors/actuators via I2C, ADC, TProbe, Onewire - OBSOLETED
-       E. Connect sensors/actuators: 
+       E. Connect up to 80 LDS units with 1-4 sensors/actuators per LDSU: 
           INPUT  [sensors]   : temperature, humidity, co2/voc gas, pressure, motion detection, ambient light
           OUTPUT [actuators] : speaker, display, light
        F. Configure sensors for data thresholding to trigger alerts
