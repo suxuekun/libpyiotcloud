@@ -150,7 +150,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        J. Configure actuators to receive data from sensors
 
     10.Sensor data visualization and analytics services
-       Understand device and sensor behaviour via the dashboard charts/graphs/infographics for complete holistic insight
+       Understand device and sensor behaviour via the dashboard charts/graphs/infographics to derive new holistic insights for data driven decisions
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter)
