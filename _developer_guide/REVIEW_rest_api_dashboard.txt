@@ -373,3 +373,32 @@ July 15, 2020
 
     - dashboard id is "undefined" (See screenshot of the REST API logs)
 
+
+===============================================
+
+July 21, 2020 
+
+For Alpha 3 release, fix/implement the following
+
+61. Individual sensor page, just like in mobile apps
+
+62. Refresh token issue - important so can stress test more than 1 hour
+
+63. Historical data - limit is the device creation datetime
+
+64. Time ranges - 1 day, 1 week, 1 month; ensure datasets are correct (average, low, high)
+
+65. Implicit stopping of polling - list down all scenarios and test them
+
+66. Tooltip - display date, low, high
+
+67. Configurable polling time in web app
+
+68. Grid view - low priority
+
+69. Mobile friendly - low priority
+
+70. All pending review comments above
+
+
+
