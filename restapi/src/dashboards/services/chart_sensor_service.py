@@ -264,6 +264,8 @@ class ChartSensorService:
 
             chartEntity = self.chartRepository.getById(chartId)
             sensor = self.sensorRepository.getById(chartEntity["deviceId"])
+            gateway = self.deviceRepository.get_by_uuid(sensor["deviceid"]);
+            sensor["gateway"] = gateway
 
             calculateMultiTimeRange = 1
             if query.isRealtime == False:
