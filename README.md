@@ -105,43 +105,49 @@ Below are the features of this secure, scalable and reliable IoT platform:
        C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
        D. Other gateway: sending alerts to another gateway device
        E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
+       F. Alert multiple recipients (for various combinations of sMs, Email, push Notification, Other gateway, Storage)
        *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
        *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
 
     7. Subscription and payment services
-       Conveniently pay for subscription upgrade for each device every month to avail all services for all purchased IoT devices.
-       A. Use Paypal/BrainTree to pay for recurring subscription plan (and/or add-ons) and receive an email confirmation receipt
-       B. View payment histories for all purchased IoT devices
-       C. Use free subscription for all purchased devices
-       D. Upgrade free subscription to Basic/Pro/Enterprise subscription plans to avail bigger allotment of all services
-       E. Buy SMS add-ons on top of non-free subscription plans to avail SMS-based alerts
-       F. Monitor usage for SMS, email, push notifications
-       G. Monitor usage for sensor data storage
+       Conveniently pay for subscription upgrade for each device to avail all services for all purchased IoT devices.
+       A. Use free subscription for all purchased devices
+       B. Upgrade free subscription to Basic/Pro/Enterprise subscription plans in prorated amount 
+       C. Buy SMS add-ons on top of subscription plans to avail more SMS alerts
+       D. Use promo codes to avail of price discounts or additional services
+       E. Cancel paid subscription plan anytime and avail of the services until end of the month
+       F. Use Paypal to pay for recurring subscription plan
+       G. Receive email acknowledgement for payment including link to download the receipt
+       H. View payment transaction histories and receipts for all purchased subscriptions and add-ons
+       I. Monitor usage for SMS, email, push notifications and sensor data storage
+       J. Receive email notices when alert usage or sensor data storage usage exceeded subscription plan allocation
 
     8. Device fleet management services
        Provision, manage and monitor devices or fleets of devices
        A. Register device manually or via QR code (QR code registration via mobile apps only)
-       B. Manager device status remotely (restart, stop, start) and view device properties including last active time
-       C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
-       D. Seamlessly update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with secure checksum validation
-       E. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
-       F. View device-sensor hierarchy tree and devices configurations summary 
+       B. Receive email acknowledgement upon device registration and unregistration
+       C. Manage device status remotely (restart, stop, start) and view device properties including last active time
+       D. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
+       E. Seamlessly update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with secure checksum validation
+       F. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
+       G. Scan devices to detect connected sensors/actuators (and sensors/actuators that were unplugged but were previously plugged)
+       H. View device-sensor hierarchy tree and sensor configurations 
        *  Configure and manage organization-owned devices
 
     9. Sensor/actuator management services
        Configure sensors/actuators for customizable alerts/alarms or trigger/action
-       A. Configure UART parameters and GPIO pins
-       B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
-          INPUT  [sensors]   : potentiometer, temperature, humidity, anemometer, battery, fluid, 
+       A. Configure UART parameters
+       B. Configure GPIO parameters - OBSOLETED
+       C. Connect sensors/actuators via LDS Bus ports
+       D. Connect sensors/actuators via I2C, ADC, TProbe, Onewire - OBSOLETED
+       E. Connect sensors/actuators: 
+          INPUT  [sensors]   : temperature, humidity, co2/voc gas, pressure, motion detection, ambient light
           OUTPUT [actuators] : speaker, display, light
-          User MANUALLY registers sensors connected
-          Device AUTOMATICALLY registers sensors connected on bootup
-       C. Configure sensors for data thresholding (to trigger MENOS alerts)
-       D. Configure sensors for data thresholding (to set actuators)
-       E. Configure sensors for data forwarding
-       F. Configure actuators to receive data from sensors (data forwarding)
-       G. Configure actuators to receive commands from sensors (data thresholding - item D)
-       H. View device-sensor hierarchy tree and summary of sensor configurations
+       F. Configure sensors for data thresholding to trigger alerts
+       G. Configure sensors for data thresholding to set actuators (from similar or other devices)
+       H. Configure actuators to receive commands from sensors
+       I. Configure sensors for data forwarding to pass values to actuators (from similar or other devices)
+       J. Configure actuators to receive data from sensors
 
     10.Sensor data visualization and analytics services
        Understand device and sensor behaviour via the dashboard charts/graphs/infographics for complete holistic insight
