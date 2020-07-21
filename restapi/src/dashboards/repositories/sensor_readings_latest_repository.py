@@ -3,7 +3,6 @@ from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
 from shared.core.exceptions import QueriedManyException
 
-
 class ISensorReadingsLatestRepository(IMongoBaseRepository):
     def gets_dataset_with_same_gateway(self, sensors, timestampBegin, timestampEnd):
         pass
@@ -104,6 +103,7 @@ class SensorReadingsLatestRepository(MongoBaseRepository, ISensorReadingsLatestR
             newReport["source"] = s["source"]
             newReport["number"] = int(s["number"])
             newReport["gatewayUUID"] = s["deviceid"]
+            newReport["gatewayName"] = s["gateway"]["devicename"]
             newReport["unit"] = s["unit"]
             newReport["format"] = s["format"]
             newReport["accuracy"] = s["accuracy"]

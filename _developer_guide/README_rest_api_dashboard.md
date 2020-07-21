@@ -337,12 +337,14 @@ DETAIL:
                         'name': string,
                         'sensorClass': string,
                         'gatewayUUID': string,
+                        'gatewayName': string,
                         'minmax': [
                             string
                         ],
                         'accuracy': float,
                         'unit': string,
                         'format': string
+
                     },
                     'datasets': [
                         {
@@ -432,6 +434,7 @@ DETAIL:
                         'name': string,
                         'sensorClass': string,
                         'gatewayUUID': string,
+                        'gatewayName': string,
                         'minmax': [
                             string
                         ],
@@ -542,6 +545,7 @@ DETAIL:
                         'name': string,
                         'sensorClass': string,
                         'gatewayUUID': string,
+                        'gatewayName': string,
                         'minmax': [
                             string
                         ],

@@ -10,7 +10,6 @@ def setup_empty_int_arrays(size: int):
         arrays.append(None)
     return arrays
 
-
 def setup_empty_mobile_dataset_sensor_response(size: int):
     arrays = []
     for i in range(size):
@@ -21,7 +20,6 @@ def setup_empty_mobile_dataset_sensor_response(size: int):
         item.y = None
         arrays.append(item)
     return arrays
-
 
 def map_to_sensor_dataset_mobile(dataset, points: int, timestamp: int, minutes: int, customMinutes: int = 0):
 
@@ -146,7 +144,6 @@ def map_to_charts_sensor_response(charts, dictSensors: {}, query: ChartSensorQue
 
 
 def map_to_old__datasets_mobile_response(dataset, query: ChartSensorQuery, customMinutes: int = 0):
-    print("Start to map mobile response")
 
     calculateTimeRange = query.timeSpan + 1
     listTimestamp = []
@@ -173,7 +170,6 @@ def map_to_old__datasets_mobile_response(dataset, query: ChartSensorQuery, custo
         oldDatasets.append(oldDataset)
 
     return oldDatasets
-
 
 def map_to_old_datasets_web_response(dataset, query: ChartSensorQuery, customMinutes: int = 0):
 
@@ -203,7 +199,6 @@ def map_to_old_datasets_web_response(dataset, query: ChartSensorQuery, customMin
         oldDatasets.append(oldDataset)
     return oldDatasets
 
-
 def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customMinutes: int = 0) -> SensorResponse:
 
     device = SensorResponse()
@@ -215,6 +210,7 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
     device.name = sensor["name"]
     device.sensorClass = sensor["class"]
     device.gatewayUUID = sensor["gatewayUUID"]
+    device.gatewayName = sensor["gatewayName"]
     device.minmax = sensor["minmax"]
     device.accuracy = float(sensor["accuracy"])
     device.unit = sensor["unit"]
@@ -246,7 +242,6 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
         mobileResponse.device = device
         mobileResponse.readings = readingsResponse
         mobileResponse.datasetsEx = []
-        print(" OK la map ")
         if sensor["dataset"] is not None:
             mobileResponse.datasetsEx = map_to_sensor_dataset_mobile(
                 sensor["dataset"], query.points, query.timestamp, query.minutes, customMinutes=minutes)

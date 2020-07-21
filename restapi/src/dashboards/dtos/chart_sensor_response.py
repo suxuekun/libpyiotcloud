@@ -64,6 +64,7 @@ class SensorResponse(Model):
     name = StringType()
     sensorClass = StringType()
     gatewayUUID = StringType()
+    gatewayName = StringType()
     minmax = ListType(StringType)
     accuracy = FloatType()
     unit = StringType()
