@@ -431,6 +431,12 @@ DETAILED:
 		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
 		   //
+		   // OTP/MFA Validity
+		   //   24 hours : CONFIRM SIGN-UP code
+		   //   24 hours : VERIFY PHONE NUMBER code
+		   //   1 hour   : FORGOT PASSWORD / RESET PASSWORD code
+		   //   3 minutes: MFA code
+		   //
 		   // There is no lockout due to invalid OTP. Lockout is only for invalid password.
 		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
 
@@ -479,6 +485,12 @@ DETAILED:
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
 		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // OTP/MFA Validity
+		   //   24 hours : CONFIRM SIGN-UP code
+		   //   24 hours : VERIFY PHONE NUMBER code
+		   //   1 hour   : FORGOT PASSWORD / RESET PASSWORD code
+		   //   3 minutes: MFA code
 		   //
 		   // There is no lockout due to invalid OTP. Lockout is only for invalid password
 		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
@@ -632,6 +644,12 @@ DETAILED:
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
 		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // OTP/MFA Validity
+		   //   24 hours : CONFIRM SIGN-UP code
+		   //   24 hours : VERIFY PHONE NUMBER code
+		   //   1 hour   : FORGOT PASSWORD / RESET PASSWORD code
+		   //   3 minutes: MFA code
 		   //
 		   // There is no lockout due to invalid OTP. Lockout is only for invalid password.
 		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
@@ -795,6 +813,12 @@ DETAILED:
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
 		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // OTP/MFA Validity
+		   //   24 hours : CONFIRM SIGN-UP code
+		   //   24 hours : VERIFY PHONE NUMBER code
+		   //   1 hour   : FORGOT PASSWORD / RESET PASSWORD code
+		   //   3 minutes: MFA code
 		   //
 		   // There is no lockout due to invalid OTP. Lockout is only for invalid password
 		   // If we apply lockout policy for invalid OTP, this will cause a deadloop because it will require user to change password which require OTP.
