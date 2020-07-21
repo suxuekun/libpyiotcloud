@@ -4,7 +4,7 @@ from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRep
 from shared.core.exceptions import QueriedManyException
 from shared.client.db.mongo.default import SensorDataMongoDb
 
-USE_OPTIMIZED_QUERY = True
+USE_OPTIMIZED_QUERY = False
 
 
 class ISensorReadingsLatestRepository(IMongoBaseRepository):
