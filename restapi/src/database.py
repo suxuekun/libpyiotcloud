@@ -3815,9 +3815,10 @@ class database_client_mongodb:
         sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
         try:
             sensorreadings.delete_many({})
-        except:
+            sensorreadings.drop_indexes()
+        except Exception as e:
             print("delete_device_sensor_reading_dataset: Exception occurred")
-            pass
+            print(e)
 
     #def delete_user_sensor_reading_dataset(self, username):
     #    sensorreadings = self.get_sensorreadings_dataset_document(deviceid)
