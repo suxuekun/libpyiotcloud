@@ -190,17 +190,39 @@ class device_ldsbus:
                     print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            # cleanup sensors of the LDSUs in the specified port
-            device_client = device(self.database_client, self.messaging_requests, self.messaging_client, self.device_client)
-            sensors = self.database_client.get_all_device_sensors_by_port_by_deviceid(deviceinfo["deviceid"], portnumber)
-            if sensors is not None:
-                for sensor in sensors:
-                    if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
-                        device_client.sensor_cleanup(None, None, deviceinfo["deviceid"], sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+            if portnumber == "0":
 
-            # cleanup LDSUs in the specified port
-            self.database_client.delete_ldsus_by_port_by_deviceid(deviceinfo["deviceid"], portnumber)
-            msg = {'status': 'OK', 'message': 'LDSBUS deleted successfully.'}
+                # cleanup sensors of the LDSUs in the specified port
+                for x in range(3):
+                    device_client = device(self.database_client, self.messaging_requests, self.messaging_client, self.device_client)
+                    sensors = self.database_client.get_all_device_sensors_by_port_by_deviceid(deviceinfo["deviceid"], str(x+1))
+                    if sensors is not None:
+                        for sensor in sensors:
+                            if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
+                                device_client.sensor_cleanup(None, None, deviceinfo["deviceid"], sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+
+                # cleanup LDSUs in all ports
+                self.database_client.delete_ldsus_by_deviceid(deviceinfo["deviceid"])
+                msg = {'status': 'OK', 'message': 'LDSBUS deleted successfully.'}
+
+            elif portnumber == "1" or portnumber == "2" or portnumber == "3":
+
+                # cleanup sensors of the LDSUs in the specified port
+                device_client = device(self.database_client, self.messaging_requests, self.messaging_client, self.device_client)
+                sensors = self.database_client.get_all_device_sensors_by_port_by_deviceid(deviceinfo["deviceid"], portnumber)
+                if sensors is not None:
+                    for sensor in sensors:
+                        if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
+                            device_client.sensor_cleanup(None, None, deviceinfo["deviceid"], sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+
+                # cleanup LDSUs in the specified port
+                self.database_client.delete_ldsus_by_port_by_deviceid(deviceinfo["deviceid"], portnumber)
+                msg = {'status': 'OK', 'message': 'LDSBUS port deleted successfully.'}
+
+            else:
+                response = json.dumps({'status': 'NG', 'message': 'Port number is not valid'})
+                print('\r\nERROR Get LDSBUS: Port number is not valid [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
 
 
         if new_token:
