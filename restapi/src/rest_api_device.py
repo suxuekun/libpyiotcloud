@@ -867,6 +867,13 @@ class device:
 
 
         if True:
+            # check if device is registered
+            device = self.database_client.find_device(entityname, devicename)
+            if not device:
+                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+                print('\r\nERROR Get Device Descriptor: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
             # get descriptor from database
             # this assumes that the device sends the descriptor during device bootup
             descriptor = self.database_client.get_device_descriptor(entityname, devicename)
