@@ -299,6 +299,10 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Name length is invalid'})
             print('\r\nERROR Signup: Name length is invalid\r\n')
             return response, status.HTTP_400_BAD_REQUEST
+        if not data["name"].replace(" ", "").isalnum():
+            response = json.dumps({'status': 'NG', 'message': 'Name characters is invalid'})
+            print('\r\nERROR Signup: Name characters is invalid\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if len(password) > 32 or len(password) == 0:
             response = json.dumps({'status': 'NG', 'message': 'Password length is invalid'})
             print('\r\nERROR Signup: Password length is invalid\r\n')
@@ -309,7 +313,7 @@ class identity_authentication:
         else:
             phonenumber = None
         email = data['email'].lower()
-        name = data['name']
+        name = data['name'].strip()
         names = name.split(" ")
         if (len(names) > 1):
             givenname = " ".join(names[:-1])
