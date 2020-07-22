@@ -1,3 +1,4 @@
+from schematics import Model
 from schematics.types import StringType, DecimalType, ListType, ModelType
 
 from shared.core.model import UserMixin, BaseIotModel, TimeStampMixin, PeriodMixin
@@ -7,14 +8,23 @@ class TransactionStatus():
     CANCEL = "cancel"
     COMPLETE = "complete"
 
-class AbstractTransaction(BaseIotModel,PeriodMixin):
+class AbstractValueItem(BaseIotModel):
     name = StringType()
     value = DecimalType()
     remark = StringType()
+
+class TransactionItem(AbstractValueItem):
+    pass
+
+class TransactionSubtotalItem(PeriodMixin,AbstractValueItem):
+    items = ListType(ModelType(TransactionItem))
+
+class AbstractTransaction(AbstractValueItem):
     date = StringType()
     status = StringType()
     receipt = StringType()
     bt_trans_id = StringType()
+    items = ListType(ModelType(TransactionSubtotalItem))
 
     def pending(self):
         self.status = TransactionStatus.PENDING
@@ -25,10 +35,5 @@ class AbstractTransaction(BaseIotModel,PeriodMixin):
     def complete(self):
         self.status = TransactionStatus.COMPLETE
 
-class TransactionItem(BaseIotModel):
-    name = StringType()
-    remark = StringType()
-    value = DecimalType()
-
 class Transaction(AbstractTransaction,UserMixin,TimeStampMixin):
-    items = ListType(ModelType(TransactionItem))
+    pass
