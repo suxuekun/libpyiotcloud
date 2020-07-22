@@ -11598,10 +11598,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .catch(function (error) {
             $scope.handle_error(error);
             $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-            if (enable_int === 1) {
-                sensor.enabled_bool = !enable;
-            }
-            else {
+            if (enable_int === 0) {
                 delete sensor.readings;
             }
         }); 
