@@ -9,7 +9,6 @@ import argparse
 import http.client
 import logging
 import random
-import subprocess
 from logging.handlers import RotatingFileHandler
 from logging import handlers
 
@@ -122,10 +121,10 @@ def http_recv_response(conn, debug=True):
                 data = r1.read(file_size)
             return file_size, data
         else:
-            printf("RES: Could not communicate with DEVICE! {}".format(r1.status))
+            printf("\tRES: Could not communicate with DEVICE! {}".format(r1.status))
             return 0, None
     except Exception as e:
-        printf("RES: Could not communicate with DEVICE! {}".format(e))
+        printf("\tRES: Could not communicate with DEVICE! {}".format(e))
     return 0, None
 
 
@@ -373,11 +372,9 @@ def generate_script_master(host, devicename_prefix, numdevices):
 def run_script_file(filename):
     if os.name == "nt":
         os.system("START {}".format(filename));
-        #subprocess.call([filename])
     else:
         # TODO
         os.system("START {}".format(filename));
-        #subprocess.call([filename])
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
@@ -393,7 +390,7 @@ def parse_arguments(argv):
 def main(args):
     global printf
 
-    printf = setup_logging("CONFIG_DEVICE_ID_logs.txt")
+    printf = setup_logging("device_simulator_fleet_automation_logs.txt")
     host = args.USE_HOST
     port = int(args.USE_PORT)
     numdevices = int(args.USE_DEVICE_COUNT)
@@ -402,10 +399,19 @@ def main(args):
     printf("-------------------------------------------------------")
     printf("Copyright (C) Bridgetek Pte Ltd")
     printf("-------------------------------------------------------")
+    printf("")
     printf("Welcome to IoT Device Simulator Fleet Automation...")
     printf("")
-    printf("This automates registration and running of devices including configuration and enabling of LDSU sensors.")
-    printf("This is to test backend reliability and scalability with hundreds of devices with multiple sensors publishing data.")
+    printf("This enables system test automation for fleet of devices.")
+    printf("to test backend reliability and scalability.")
+    printf("")
+    printf("It automates")
+    printf("1. registration multiple devices")
+    printf("2. configuration of sensors of multiple devices")
+    printf("3. enabling of sensors of multiple devices")
+    printf("4. generating the batch script for multiple devices")
+    printf("5. running the batch script to run multiple devices")
+    printf("")
     printf("-------------------------------------------------------")
 
 
@@ -413,8 +419,10 @@ def main(args):
     if tokens is None:
         return
     bat_template, sh_template = read_script_templates()
-    print("")
+    printf("")
 
+    printf("Strating registration and running of {} devices...".format(numdevices))
+    printf("")
     for index in range(numdevices):
         # generate device information
         devicename, deviceid, serialnumber, poemacaddress = generate_device(devicename_prefix, index)
@@ -426,29 +434,30 @@ def main(args):
             # if device already exists, get device information
             device = get_device(host, port, tokens, devicename)
             if device is None:
-                print("Error: device does not exist!")
+                printf("Error: device does not exist!")
                 return
             deviceid = device["deviceid"]
             serialnumber = device["serialnumber"]
             poemacaddress = device["poemacaddress"]
-            print("{:03} {} {} {}".format(index, devicename, deviceid, serialnumber, poemacaddress))
-            print("\talready registered...")
+            printf("{:03} {} {} {}".format(index, devicename, deviceid, serialnumber, poemacaddress))
+            printf("\talready registered...")
         else:
-            print("{:03} {} {} {}".format(index, devicename, deviceid, serialnumber, poemacaddress))
-            print("\tregistered...")
+            printf("{:03} {} {} {}".format(index, devicename, deviceid, serialnumber, poemacaddress))
+            printf("\tregistered...")
 
 
         # run device simulators
         filename = generate_script_files(host, bat_template, sh_template, devicename, deviceid, serialnumber, poemacaddress)
         run_script_file(filename)
 
+        time.sleep(1)
         while True:
+            time.sleep(1)
             result = get_device_status(host, port, tokens, devicename)
             if result:
                 break
-            print("\tdevice is offline...")
-            time.sleep(1)
-        print("\tdevice is online!")
+            printf("\tdevice is offline...")
+        printf("\tdevice is online!")
 
         # get sensors
         busport = "1"
@@ -461,19 +470,20 @@ def main(args):
             if config.get("mode") is None:
                 result = set_sensor_configuration(host, port, tokens, devicename, sensor, config["notification"])
                 if not result:
-                    print("ERROR: Sensor configure failed!")
+                    printf("ERROR: Sensor configure failed!")
 
             # enable sensors if not enabled
             if result:
-                print("\t{} {} sensor configured - {}".format(sensor["source"], sensor["number"], sensor["class"]))
+                printf("\t{} {} sensor configured - {}".format(sensor["source"], sensor["number"], sensor["class"]))
                 if not sensor["enabled"]:
                     result = enable_sensor(host, port, tokens, devicename, sensor)
                     if not result:
-                        print("ERROR: Sensor enable failed!")
+                        printf("ERROR: Sensor enable failed!")
                         continue
-                print("\t{} {} sensor enabled - {}".format(sensor["source"], sensor["number"], sensor["class"]))
+                printf("\t{} {} sensor enabled - {}".format(sensor["source"], sensor["number"], sensor["class"]))
 
     generate_script_master(host, devicename_prefix, numdevices)
+    printf("Completed registration and running of {} devices.".format(numdevices))
 
 
 if __name__ == '__main__':
