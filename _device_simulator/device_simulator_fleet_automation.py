@@ -150,11 +150,11 @@ def run_script_file(filename):
 # Device generation
 ###################################################################################
 
-def generate_deviceid(index, key=0):
+def generate_deviceid(index, uid_key):
     year = datetime.now().year - 2000
     month = datetime.now().month
     day = datetime.now().day
-    deviceid = "PH80XX{:02X}{:02}{:02}{:02}{:02X}".format(key, month, day, year, index)
+    deviceid = "PH80XX{:02X}{:02}{:02}{:02}{:02X}".format(uid_key, month, day, year, index)
     return deviceid
 
 def generate_serialnumber():
@@ -167,9 +167,9 @@ def generate_macaddress():
         macaddress += "{:02X}:".format(random.randint(0, 255))
     return macaddress[:-1]
 
-def generate_device(devicename_prefix, index, key=0):
+def generate_device(devicename_prefix, index, uid_key):
     devicename = "{}_{:03}".format(devicename_prefix, index)
-    deviceid = generate_deviceid(index, key)
+    deviceid = generate_deviceid(index, uid_key)
     serialnumber = generate_serialnumber()
     macaddress = generate_macaddress()
     return devicename, deviceid, serialnumber, macaddress
@@ -401,6 +401,35 @@ def parse_arguments(argv):
     parser.add_argument('--USE_UID_KEY',          required=True, default='', help='UID key for deviceid')
     return parser.parse_args(argv)
 
+def get_parameters(args):
+    host = args.USE_HOST
+    try:
+        port = int(args.USE_PORT)
+        if port != 443:
+            print("ERROR: Invalid port number")
+            return None, None, None, None, None
+    except:
+        print("ERROR: Invalid port number")
+        return None, None, None, None, None
+    devicename_prefix = args.USE_DEVICE_NAMEPREFIX
+    try:
+        numdevices = int(args.USE_DEVICE_COUNT)
+        if numdevices == 0 or numdevices > 255:
+            print("ERROR: Invalid number of devices")
+            return None, None, None, None, None
+    except:
+        print("ERROR: Invalid number of devices")
+        return None, None, None, None, None
+    try:
+        uid_key = int(args.USE_UID_KEY)
+        if uid_key > 255:
+            print("ERROR: Invalid uid key")
+            return None, None, None, None, None
+    except:
+        print("ERROR: Invalid uid key")
+        return None, None, None, None, None
+    return host, port, devicename_prefix, numdevices, uid_key
+
 ###################################################################################
 # Application info display
 ###################################################################################
@@ -435,11 +464,10 @@ def main(args):
     display_info()
 
     # get parameters
-    host = args.USE_HOST
-    port = int(args.USE_PORT)
-    numdevices = int(args.USE_DEVICE_COUNT)
-    devicename_prefix = args.USE_DEVICE_NAMEPREFIX
-    uid_key = int(args.USE_UID_KEY)
+    host, port, devicename_prefix, numdevices, uid_key = get_parameters(args)
+    print(uid_key)
+    if host is None:
+        return
 
     # login to retrieve authentication tokens
     tokens = login(host, port, args.USE_USERNAME, args.USE_PASSWORD, args.USE_DEVICE_SECRETKEY)
@@ -454,7 +482,7 @@ def main(args):
 
         # generate device information
         # then add device
-        devicename, deviceid, serialnumber, poemacaddress = generate_device(devicename_prefix, index)
+        devicename, deviceid, serialnumber, poemacaddress = generate_device(devicename_prefix, index, uid_key)
         result = add_device(host, port, tokens, devicename, deviceid, serialnumber, poemacaddress)
         if not result:
             # if device already exists, get device information
