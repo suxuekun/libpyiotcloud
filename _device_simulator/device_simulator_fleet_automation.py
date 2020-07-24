@@ -274,7 +274,7 @@ def http_get_header(authorization):
         "Authorization": "Bearer " + authorization,
     }
 
-def encode_jwt_ex(host, port, username, password):
+def get_userpasstoken(host, port, username, password):
     method = "POST"
     api = "/devicesimulator/userpasstoken"
     headers = http_get_header(None)
@@ -288,10 +288,10 @@ def encode_jwt_ex(host, port, username, password):
     return value
 
 def login(host, port, username, password):
-    jwt_auth = encode_jwt_ex(host, port, username, password)
+    userpasstoken = get_userpasstoken(host, port, username, password)
     method = "POST"
     api = "/user/login"
-    headers = http_get_header(jwt_auth)
+    headers = http_get_header(userpasstoken)
     params = None
 
     result, value = http_send_receive(host, port, method, api, params, headers, "token")
