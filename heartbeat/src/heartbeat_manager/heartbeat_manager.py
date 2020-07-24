@@ -83,7 +83,7 @@ def publish_heartbeat(database_client, deviceid, topic, payload):
         timestamp = int(payload["TS"])
     else:
         timestamp = int(time.time())
-    print("{} {}".format(deviceid, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp)) ))
+    #print("{} {}".format(deviceid, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp)) ))
 
     # record the heartbeat
     database_client.record_device_heartbeat(deviceid, timestamp)
