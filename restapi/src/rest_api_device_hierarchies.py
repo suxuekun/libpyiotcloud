@@ -499,10 +499,14 @@ class device_hierarchies:
         statusx = None
         data = flask.request.get_json()
         if data is not None:
-            if data.get("checkdevice") is not None:
-                checkdevice = data["checkdevice"]
-            if data.get("status") is not None:
-                statusx = data["status"]
+            try:
+                if data.get("checkdevice") is not None:
+                    checkdevice = int(data["checkdevice"])
+                if data.get("status") is not None:
+                    statusx = int(data["status"])
+            except:
+                checkdevice = 0
+                statusx = None
         hierarchy = self.get_default_device_hierarchy_ex(devicename)
         hierarchy = self.generate_device_hierarchy_ex(username, devicename, hierarchy, checkdevice, statusx, token)
 
