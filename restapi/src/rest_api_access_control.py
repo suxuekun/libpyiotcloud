@@ -102,7 +102,11 @@ class access_control:
 
             # get the input parameters
             data = flask.request.get_json()
-            if data is None or data.get("orgname") is None:
+            if data is None:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Create organization: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+            if data.get("orgname") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
                 print('\r\nERROR Create organization: Empty parameter found\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
@@ -212,7 +216,10 @@ class access_control:
 
         # check parameter
         data = flask.request.get_json()
-        #print(data)
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Create organization invitation: Parameters not included [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("emails") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Create organization invitation: Parameters not included [{}]\r\n'.format(username))
@@ -365,7 +372,10 @@ class access_control:
 
         # check parameter
         data = flask.request.get_json()
-        #print(data)
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Update organization membership: Parameters not included [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("emails") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Update organization membership: Parameters not included [{}]\r\n'.format(username))
@@ -718,7 +728,10 @@ class access_control:
 
         # check parameter
         data = flask.request.get_json()
-        #print(data)
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Update organization group members: Parameters not included [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("members") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Update organization group members: Parameters not included [{}]\r\n'.format(username))
@@ -993,7 +1006,11 @@ class access_control:
 
             # get the input parameters
             data = flask.request.get_json()
-            if data is None or data.get("settings") is None:
+            if data is None:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Create organization policy: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+            if data.get("settings") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
                 print('\r\nERROR Create organization policy: Empty parameter found\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
@@ -1212,7 +1229,10 @@ class access_control:
 
         # check parameter
         data = flask.request.get_json()
-        print(data)
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Update organization group policies: Parameters not included [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("policies") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Update organization group policies: Parameters not included [{}]\r\n'.format(username))
