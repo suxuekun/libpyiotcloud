@@ -158,6 +158,10 @@ class device_locations:
 
             # check if new device name is already registered
             data = flask.request.get_json()
+            if data is None:
+                response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+                print('\r\nERROR Set Devices Locations: Parameters not included [{}]\r\n'.format(username))
+                return response, status.HTTP_400_BAD_REQUEST
             if data.get("locations") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
                 print('\r\nERROR Set Devices Locations: Parameters not included [{}]\r\n'.format(username))
@@ -333,6 +337,10 @@ class device_locations:
 
             # check if new device name is already registered
             data = flask.request.get_json()
+            if data is None:
+                response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+                print('\r\nERROR Set Devices Location: Parameters not included [{}]\r\n'.format(username))
+                return response, status.HTTP_400_BAD_REQUEST
             if data.get("latitude") is None or data.get("longitude") is None:
                 print(data)
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
