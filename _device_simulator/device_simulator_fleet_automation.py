@@ -17,6 +17,11 @@ from logging import handlers
 # mode
 CONFIG_MODE_DELETE = False
 
+# maximum values
+CONFIG_MAX_DEVICES   = 100
+CONFIG_MAX_UID_KEY   = 255
+CONFIG_MAX_BOOT_TIME = 5
+
 # add timestamp to logs in console and file
 CONFIG_ADD_LOG_FILE_TIMESTAMP = True
 CONFIG_ADD_LOG_CONSOLE_TIMESTAMP = False
@@ -426,7 +431,7 @@ def get_parameters(args):
     devicename_prefix = args.USE_DEVICE_NAMEPREFIX
     try:
         numdevices = int(args.USE_DEVICE_COUNT)
-        if numdevices == 0 or numdevices > 255:
+        if numdevices == 0 or numdevices > CONFIG_MAX_DEVICES:
             print("ERROR: Invalid number of devices")
             return None, None, None, None, None
     except:
@@ -434,7 +439,7 @@ def get_parameters(args):
         return None, None, None, None, None
     try:
         uid_key = int(args.USE_UID_KEY)
-        if uid_key > 255:
+        if uid_key > CONFIG_MAX_UID_KEY:
             print("ERROR: Invalid uid key")
             return None, None, None, None, None
     except:
@@ -541,7 +546,7 @@ def main(args):
             run_script_file(filename)
 
             # be good citizen, dont congest the network, take some sleep while waiting for script to initialize completely
-            time.sleep(5)
+            time.sleep(CONFIG_MAX_BOOT_TIME)
 
             # get device status
             while True:
