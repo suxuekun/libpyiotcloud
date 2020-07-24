@@ -503,7 +503,7 @@ def main(args):
     bat_template, sh_template = read_script_templates()
 
     display_intro(numdevices)
-    for index in range(numdevices):
+    for index in range(0, numdevices):
 
         # generate device information
         # then add device
