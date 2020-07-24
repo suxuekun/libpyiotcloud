@@ -65,6 +65,10 @@ class identity_authentication:
     ########################################################################################################
     def login_idp_storecode(self, id):
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Login IDP STORE CODE: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("code") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Login IDP STORE CODE: Empty parameter found\r\n')
@@ -525,6 +529,10 @@ class identity_authentication:
     ########################################################################################################
     def forgot_password(self):
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Recover Account: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
 
         if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
             if data.get("email") is None and data.get("phone_number") is None:
@@ -962,9 +970,13 @@ class identity_authentication:
 
         # get refresh and id token
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Refresh token: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if not data.get("refresh") or not data.get("id"):
-            response = json.dumps({'status': 'NG', 'message': 'Refresh and ID tokens are not provided'})
-            print('\r\nERROR Refresh token: Refresh and ID tokens are not provided\r\n')
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Refresh token: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
         token['refresh'] = data['refresh']
         token['id'] = data['id']
@@ -1127,7 +1139,16 @@ class identity_authentication:
             print('\r\nERROR Confirm verify phone: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+        # check parameters
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Confirm verify phone: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("confirmationcode") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Confirm verify phone: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
 
         # confirm verify phone number
         result = self.database_client.confirm_verify_phone_number(token["access"], data["confirmationcode"])
@@ -1214,7 +1235,17 @@ class identity_authentication:
             print('\r\nERROR Change password: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+        # check parameters
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Change password: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("token") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Change password: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
         password, newpassword, reason = rest_api_utils.utils().get_jwtencode_user_pass(data["token"])
         if password is None or newpassword is None:
             response = json.dumps({'status': 'NG', 'message': reason})
@@ -1303,6 +1334,10 @@ class identity_authentication:
 
 
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Enable MFA: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("enable") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Enable MFA: Empty parameter found\r\n')
@@ -1638,7 +1673,11 @@ class identity_authentication:
 
             # get the input parameters
             data = flask.request.get_json()
-            if data is None or data.get("orgname") is None or data.get("orgid") is None:
+            if data is None:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Get organizations: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+            if data.get("orgname") is None or data.get("orgid") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
                 print('\r\nERROR Get organizations: Empty parameter found\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
