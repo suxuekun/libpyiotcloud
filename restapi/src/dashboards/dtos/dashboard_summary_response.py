@@ -1,5 +1,5 @@
 from schematics import Model
-from schematics.types import StringType
+from schematics.types import StringType, IntType
 
 class DashboardSummaryResponse(Model):
     id = StringType()
@@ -7,3 +7,6 @@ class DashboardSummaryResponse(Model):
     color = StringType()
     createdAt = StringType()
     modifiedAt = StringType()
+    totalGateways = IntType()
+    totalSensors = IntType()
+    totalActuators = IntType()

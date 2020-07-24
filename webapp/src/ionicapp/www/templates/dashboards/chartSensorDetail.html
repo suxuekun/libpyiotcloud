@@ -1,0 +1,69 @@
+<ion-view title="Chart Detail" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width_medium">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div>
+        <div class="card">
+            <div style="padding: 10px;">
+              <h4><strong>{{chartDetail.device.name}}</strong></h4>
+              <p style="color: grey"> LDSU UUID: {{chartDetail.device.source}}</p>
+              <p style="color: grey"> Number: {{chartDetail.device.number}}</p>
+              <p style="color: grey"> Gateway Name: {{chartDetail.device.gatewayName}} </p>
+              <p style="color: grey"> Gateway UUID: {{chartDetail.device.gatewayUUID}}</p>
+            </div>
+            <div class="row">
+              <select style="float: left; margin: 30px;"
+                      class="col"
+                      ng-model="chartDetail.currentSelectTime"
+                      ng-change="updateMinuteUrl(chartDetail.currentSelectTime.value)"
+                      ng-options="filter.name for filter in chartDetail.selectedTimes">
+                        <option value="{{filter.value}}">{{filter.name}}</option>
+              </select>
+              <select style="float: left; margin: 30px;"
+                      class="col"
+                      ng-model="chartDetail.currentSelectedPoints"
+                      ng-change="updatePointUrl(chartDetail.currentSelectedPoints.value)"
+                      ng-options="filter.name for filter in chartDetail.selectedPoints">
+                      <option value="{{filter.value}}">{{filter.name}}</option>
+              </select>
+            </div>
+
+            <div class="row">
+              <!--Select Back -->
+              <button ng-click="backToHistorical()"
+                      ng-style="{'opacity': opacityOfHistoricalButton}"
+                      class="button button-positive button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward col">
+              </button>
+
+              <!--Select Next -->
+              <button ng-click="nextToHistorical()"
+                      ng-style="{'opacity': opacityOfHistoricalButton}"
+                      class="button button-positive button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward col">
+              </button>
+            </div>
+
+
+            <canvas title="{{chart.device.name}}"
+                    class="chart chart-line"
+                    chart-colors="chartDetail.colors"
+                    chart-data="chartDetail.data"
+                    chart-labels="chartDetail.labels"
+                    chart-options="chartDetail.options"
+                    ng-show="chartDetail.typeId==3"
+                    chart-dataset-override="chartDetail.datasetOverride">
+            </canvas>
+
+             <canvas title="{{chart.device.name}}"
+                    class="chart chart-bar"
+                    chart-colors="chartDetail.colors"
+                    chart-data="chartDetail.data"
+                    chart-labels="chartDetail.labels"
+                    chart-options="chartDetail.options"
+                    ng-show="chartDetail.typeId==2"
+                    chart-dataset-override="chartDetail.datasetOverride">
+            </canvas>
+        </div>
+    </div>
+  </ion-content>
+</ion-view>

@@ -3,8 +3,8 @@
     <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div>
-        <div ng-show="currentStep == 0">
+    <div class="card" style="padding:10px;">
+        <div ng-show="currentStep == 0" >
           <button id="addGateway-button55"
                   ng-click="compare()"
                   style="width: 40%;margin: auto; margin-top: 20px"
@@ -23,25 +23,13 @@
                 <p>Gateway name: {{chart.gatewayName}}</p>
               </div>
               <input type="checkbox" ng-model="chart.selected"
-                    style="height: 20px;width: 20px;float: right; margin-top: 30px;">
+                    style="height: 20px;width: 20px;float: right; margin-top: 30px;"/>
               </div>
             </div>
           </div>
         </div>
 
         <div ng-show="currentStep == 1">
-            <div class="row">
-              <h3 class="col">Realtime</h3>
-              <label class="toggle col-90">
-                <input type="checkbox" ng-model="isRealTime" ng-change="toggelRealTime()">
-                <div class="track">
-                  <div class="handle"></div>
-                </div>
-              </label>
-            </div>
-
-
-
             <div class="row">
               <select style="float: left; margin: 30px;"
                       class="col"
@@ -60,14 +48,24 @@
             </div>
 
             <div class="row">
+              <input type="radio" ng-model="selectedChart.name"
+                      class="col-10"
+                      value="line"
+                      style="height: 20px;width: 20px; float: left;"/>
+              <p class="col-10">Line</p>
+              <input type="radio" ng-model="selectedChart.name" class="col-10"
+                  style="height: 20px;width: 20px;float: left;" value="bar"/>
+              <p class="col-10">Bar</p>
+            </div>
+            <div class="row">
               <!--Select Back -->
-              <button ng-click="backToHistorical(chart, chart.currentTimespan)"
+              <button ng-click="backToHistorical()"
                       ng-style="{'opacity': opacityOfHistoricalButton}"
                       class="button button-positive button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward col">
               </button>
 
               <!--Select Next -->
-              <button ng-click="nextToHistorical(chart, chart.currentTimespan)"
+              <button ng-click="nextToHistorical()"
                       ng-style="{'opacity': opacityOfHistoricalButton}"
                       class="button button-positive button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward col">
               </button>
@@ -77,6 +75,17 @@
                     class="chart chart-line"
                     chart-colors="comapareCharts.colors"
                     chart-data="comapareCharts.data"
+                    ng-show="selectedChart.name=='line'"
+                    chart-labels="comapareCharts.labels"
+                    chart-options="comapareCharts.options"
+                    chart-dataset-override="comapareCharts.datasetOverride">
+            </canvas>
+
+            <canvas title="Compare"
+                    class="chart chart-bar"
+                    chart-colors="comapareCharts.colors"
+                    chart-data="comapareCharts.data"
+                    ng-show="selectedChart.name=='bar'"
                     chart-labels="comapareCharts.labels"
                     chart-options="comapareCharts.options"
                     chart-dataset-override="comapareCharts.datasetOverride">

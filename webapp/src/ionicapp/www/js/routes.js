@@ -23,12 +23,26 @@ angular.module('app.routes', [])
           serialnumber: "",
           location: ""
         },
+        cache: false,
         views: {
           'side-menu21': {
-            templateUrl: 'templates/dashboards/dashboards1.html',
+            templateUrl: 'templates/dashboards/dashboards.html',
             controller: 'dashboardsCtrl'
           }
         }
+      })
+      .state('dashboardDetail', {
+        url: 'dashboards/{dashboardId}',
+        params: {
+          username: "",
+          token: "",
+          dashboardId: "",
+          dashboard: {},
+          activeTab: 0,
+        },
+        cache: false,
+        templateUrl: 'templates/dashboards/dashboardDetail.html',
+        controller: 'dashboardDetailCtrl'
       })
 
       .state('addDashboard', {
@@ -37,8 +51,22 @@ angular.module('app.routes', [])
           username: "",
           token: "",
         },
+        cache: false,
         templateUrl: 'templates/dashboards/addDashboard.html',
         controller: 'addDashboardCtrl'
+      })
+
+      .state('chartSensorDetail', {
+        url: 'dashboards/{dashboardId}/sensors/{chartId}',
+        params: {
+          username: "",
+          token: "",
+          dashboard: {},
+          chartId: ""
+        },
+        cache: false,
+        templateUrl: 'templates/dashboards/chartSensorDetail.html',
+        controller: 'chartSensorDetailCtrl'
       })
 
       .state('addNewChartGateway', {
@@ -46,8 +74,11 @@ angular.module('app.routes', [])
         params: {
           username: "",
           token: "",
-          dashboard: {}
+          dashboardId: "",
+          dashboard: {},
+          activeTab: 1,
         },
+        cache: false,
         templateUrl: 'templates/dashboards/addNewChartGateway.html',
         controller: 'addNewChartGatewayCtrl'
       })
@@ -57,8 +88,11 @@ angular.module('app.routes', [])
         params: {
           username: "",
           token: "",
-          dashboard: {}
+          dashboard: {},
+          dashboardId: "",
+          activeTab: 2
         },
+        cache: false,
         templateUrl: 'templates/dashboards/addNewChartSensor.html',
         controller: 'addNewChartSensorCtrl'
       })
@@ -68,8 +102,10 @@ angular.module('app.routes', [])
           username: "",
           token: "",
           charts: [],
-          dashboardId: ""
+          dashboardId: "",
+          dashboard: {},
         },
+        cache: false,
         templateUrl: 'templates/dashboards/compareChart.html',
         controller: 'compareChartCtrl'
       })

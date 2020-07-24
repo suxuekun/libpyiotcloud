@@ -52,7 +52,8 @@ class ChartSensorService:
             # if sensor["enabled"] == 0:
             #     return Response.fail("This device should be enabled")
 
-            sameChart = self.chartRepository.get_same_chart(dashboardId,sensor["_id"])
+            sameChart = self.chartRepository.get_same_chart(
+                dashboardId, sensor["_id"])
 
             if sameChart is not None:
                 return Response.fail("Sorry, This chart should not have same device")
@@ -105,9 +106,8 @@ class ChartSensorService:
                 dashboardId, userId)
 
             calculateMultiTimeRange = 1
-            if query.isRealtime == False:
-                calculateMultiTimeRange= query.timeSpan + 1
-            
+           
+
             sensorIds = []
             # Not have query.chartsId
             if len(query.chartsId) == 0:
@@ -116,7 +116,7 @@ class ChartSensorService:
 
                 if len(sensors) == 0:
                     return Response.success([], message="Get chart responses successfully")
-                
+
                 lastMinutes = datetime.fromtimestamp(
                     query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
                 results = self.sensorReadingsLatestRepository.gets_dataset(
@@ -133,7 +133,8 @@ class ChartSensorService:
 
             dictSelectedMinutesAndChartsId = {}
             for i in range(len(query.selectedMinutes)):
-                dictSelectedMinutesAndChartsId[query.chartsId[i]] = query.selectedMinutes[i]
+                dictSelectedMinutesAndChartsId[query.chartsId[i]
+                                               ] = query.selectedMinutes[i]
 
             selectedSensorIds = []
             selectedCharts = []
@@ -153,7 +154,7 @@ class ChartSensorService:
                 sensors = self.sensorRepository.gets_sensors(ids=sensorIds)
                 lastMinutes = datetime.fromtimestamp(
                     query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
-                    
+
                 firstResults = self.sensorReadingsLatestRepository.gets_dataset(
                     sensors, int(lastMinutes.timestamp()), query.timestamp)
                 results = firstResults
@@ -199,7 +200,7 @@ class ChartSensorService:
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong!")
-        
+
     def compare(self, dashboardId: str, userId: str, query: ChartComparisonQuery):
         try:
             timestart = time.time()
@@ -208,9 +209,7 @@ class ChartSensorService:
             chartEntites = self.chartRepository.gets_with_ids(query.chartsId)
 
             calculateMultiTimeRange = 1
-            if query.isRealtime == False:
-                calculateMultiTimeRange= query.timeSpan + 1
-
+          
 
             sensorIds = list(map(lambda c: c["deviceId"], chartEntites))
 
@@ -264,13 +263,15 @@ class ChartSensorService:
 
             chartEntity = self.chartRepository.getById(chartId)
             sensor = self.sensorRepository.getById(chartEntity["deviceId"])
-            gateway = self.deviceRepository.get_by_uuid(sensor["deviceid"]);
-            sensor["gateway"] = gateway
+            gateway = self.deviceRepository.get_by_uuid(sensor["deviceid"])
 
+            if gateway["timestamp"] > query.timestamp:
+                LoggerService().error("Out of range time created gateway", tag=self.tag)
+                return Response.fail("Out of range time created gateway")
+
+            sensor["gateway"] = gateway
             calculateMultiTimeRange = 1
-            if query.isRealtime == False:
-                calculateMultiTimeRange= query.timeSpan + 1
-            
+
             lastMinutes = datetime.fromtimestamp(
                 query.timestamp) - timedelta(minutes=query.minutes * calculateMultiTimeRange)
 

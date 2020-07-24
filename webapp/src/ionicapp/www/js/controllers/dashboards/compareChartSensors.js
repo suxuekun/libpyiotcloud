@@ -1,6 +1,6 @@
 angular.module('app.compareChartCtrl', [])
-  .controller('compareChartCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User',
-    function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
+  .controller('compareChartCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'DateTimeUtil',
+    function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, DateTimeUtil) {
       const server = Server.rest_api;
       $scope.currentStep = 0;
       $scope.data = {
@@ -8,11 +8,26 @@ angular.module('app.compareChartCtrl', [])
       }
       $scope.currentStep = 0;
       $scope.isRealTime = true;
-
-
+      $scope.selectedChart = {
+        name: 'line'
+      }
 
       const charts = $stateParams.charts;
+
       const dashboardId = $stateParams.dashboardId;
+      const dashboard = $stateParams.dashboard;
+      $scope.dashboardDetail = dashboard;
+      $scope.close = () => {
+        const params = {
+          'dashboard': $scope.dashboardDetail,
+          'dashboardId': $scope.dashboardDetail.id,
+          'activeTab': 2
+        }
+        $state.go('dashboardDetail', params, {
+          reload: true
+        });
+      }
+      let currentTimestamp = DateTimeUtil.getCurrentTimestamp();
 
       $scope.dictCharts = {};
       charts.forEach(c => {
@@ -32,7 +47,8 @@ angular.module('app.compareChartCtrl', [])
 
       const startTimeChartSensor = () => {
         timerChartSensor = setInterval(() => {
-          getChartsSensorsCompare();
+          currentTimestamp = DateTimeUtil.getCurrentTimestamp();
+          getChartsSensorsCompare(currentTimestamp);
         }, 5000);
       }
 
@@ -46,7 +62,7 @@ angular.module('app.compareChartCtrl', [])
       });
 
       getChartsIdQueryParams = (chartsId) => {
-        let paramsChartsId = "&chartsId=";
+        let paramsChartsId = "chartsId=";
         for (let index = 0; index < chartsId.length; index++) {
           const id = chartsId[index];
           if (index == chartsId.length - 1)
@@ -57,19 +73,13 @@ angular.module('app.compareChartCtrl', [])
         return paramsChartsId;
       }
 
-      $scope.close = () => {
-        $scope.currentStep = 0;
-        $scope.comapareCharts = {};
-        $state.go('menu.dashboards', {}, {
-          reload: true
-        });
-      };
       $scope.back = () => {
         stopTimeChartSensor();
         $scope.currentStep = 0;
         $scope.comapareCharts = {};
         $scope.currentSelectedPoints = selectedPoints[0];
       }
+
       const selectedPoints = [{
           value: 30,
           name: '30 points'
@@ -92,9 +102,8 @@ angular.module('app.compareChartCtrl', [])
         pointsQueryParam = `points=${point}`;
         foundIndex = selectedPoints.findIndex(p => p.value == point);
         currentSelectedPoints = selectedPoints[foundIndex];
-
         stopTimeChartSensor();
-        getChartsSensorsCompare();
+        getChartsSensorsCompare(currentTimestamp);
         startTimeChartSensor();
       }
 
@@ -136,26 +145,59 @@ angular.module('app.compareChartCtrl', [])
       let minuteQueryParams = "";
       let currentSelectedMinutes = 5;
       $scope.updateMinuteUrl = (minutes) => {
-        minuteQueryParams = `&minutes=${minutes}`;
+        minuteQueryParams = `minutes=${minutes}`;
         currentSelectedMinutes = minutes;
-
         stopTimeChartSensor();
-        getChartsSensorsCompare();
+        getChartsSensorsCompare(currentTimestamp);
         startTimeChartSensor();
       };
+
+      let historiesDatasets = [];
+
+      $scope.backToHistorical = () => {
+        const chart = Object.assign($scope.comapareCharts);
+        historiesDatasets.push(chart);
+        const currentTime = DateTimeUtil.convertTimestampToDate(currentTimestamp);
+        const previousTime = DateTimeUtil.getPreviousTimestamp(currentTime, currentSelectedMinutes);
+        currentTimestamp = previousTime;
+        stopTimeChartSensor();
+        getChartsSensorsCompare(previousTime);
+      }
+
+      $scope.nextToHistorical = () => {
+        if (historiesDatasets.length == 0) {
+          const current = DateTimeUtil.getCurrentTimestamp();
+          if (current > currentTimestamp) {
+            $scope.isRealTime = true;
+            currentTimestamp = current;
+            getChartsSensorsCompare(currentTimestamp);
+            startTimeChartSensor();
+          }
+          return;
+        }
+
+        const chart = historiesDatasets.pop();
+        $scope.comapareCharts = chart;
+      }
 
       $scope.compare = () => {
         console.log("Compare: ", currentSelectedPoints);
         resetPointQueryParam();
-        getChartsSensorsCompare();
+        $scope.currentStep = 1;
+        currentTimestamp = DateTimeUtil.getCurrentTimestamp();
+        getChartsSensorsCompare(currentTimestamp);
         startTimeChartSensor();
       }
 
-      getChartsSensorsCompare = () => {
+      getChartsSensorsCompare = (timestamp) => {
+        if (!timestamp)
+          timestamp = DateTimeUtil.getCurrentTimestamp();
+
         const chartsId = $scope.charts.filter(c => c.selected)
           .map(c => c.id);
         let paramsChartsId = getChartsIdQueryParams(chartsId);
-        let url = `${server}/dashboards/dashboard/${dashboardId}/sensors/comparison?${pointsQueryParam}${paramsChartsId}${minuteQueryParams}`;
+        let url = `${server}/dashboards/dashboard/${dashboardId}/sensors/comparison?timestamp=${timestamp}&${pointsQueryParam}&${paramsChartsId}&${minuteQueryParams}`;
+
         $http({
             method: 'GET',
             url: url,
@@ -227,7 +269,6 @@ angular.module('app.compareChartCtrl', [])
               }
             }
 
-            $scope.currentStep = 1;
           })
           .catch(function (error) {
             stopTimeChartSensor();

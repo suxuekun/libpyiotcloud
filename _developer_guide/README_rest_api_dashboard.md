@@ -300,16 +300,12 @@ DETAIL:
             - mobile: true or false (default=false, optional)    
             - selected_minutes: string  (optional)
             - chartsId: string  (optional)
-            - realtime (optional, default=true, description: if value is false, old data of historical will appear)
-            - timespan (optional, default=1, max=3, 
-                description: if value is 3, old data of historical will have datasets of three part of previous time. For example: current time is 9:00. timespan is 3, so api will reponse dataset for 8:50 - 8:55, 8:45 - 8:50, 8:40 - 8:45)
 
             * Note:
             - minutes: int  (default = 5 min, should convert hour or day to minutes)
             - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
             - selected_minutes: string (example: &selected_minutues=15,30) 
             - chartsId: string (example: &chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2 )  
-            - timespan only work when realtime is false
 
         selected_minutes & chartsId shoulb be the same size and match index together
         For Example: &selected_minutes=15,30&chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2
@@ -354,36 +350,12 @@ DETAIL:
                             'high': [float]
                         }
                     ],
-                    'oldDatasets': [ (#if realtime is false)
-                        {
-                            'data': [float],
-                            'lables': [int],
-                            'low': [float],
-                            'high': [float],
-                            'fromTimestamp': int,
-                            'toTimestamp': int
-                        }
-                    ]
                     'datasetsEx': [ (#if mobile is false)
                         {
                            'x': int,
                            'y': float,
                            'high': float,
                            'low': float
-                        }
-                    ],
-                    'oldDatasetsEx': [ (#if mobile is false && realtime is false)
-                        {
-                           'datasets': [
-                               {
-                                    'x': int,
-                                    'y': float,
-                                    'high': float,
-                                    'low': float
-                               }
-                           ],
-                            'fromTimestamp': int,
-                            'toTimestamp': int
                         }
                     ],
                     'readings: [
@@ -407,13 +379,10 @@ DETAIL:
             - timestamp: int (optional)
             - points: int  (optional, descriptions: value should in 30 or 60)
             - mobile: true or false (default=false, optional)
-            - realtime (optional, default=true, description: if value is false, old data of historical will appear)
-            - timespan (optional, default=1, max=3, 
-                description: if value is 3, old data of historical will have datasets of three part of previous time. For example: current time is 9:00. timespan is 3, so api will reponse dataset for 8:50 - 8:55, 8:45 - 8:50, 8:40 - 8:45)
+       
             * Note:
             - minutes: int  (default = 5 min, should convert hour or day to minutes)
             - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
-            - timespan only work when realtime is false
 
         Example request: /dashboards/dashboard/5ef998655de8966f2de5064e/sensors/5efc2c38cc25092a0c952291?minutes=5&points=30
         
@@ -451,36 +420,12 @@ DETAIL:
                             'high': [float]
                         }
                     ],
-                    'oldDatasets': [ (#if realtime is false)
-                        {
-                            'data': [float],
-                            'lables': [int],
-                            'low': [float],
-                            'high': [float],
-                            'fromTimestamp': int,
-                            'toTimestamp': int
-                        }
-                    ]
                     'datasetsEx': [ (#if mobile is false)
                         {
                            'x': int,
                            'y': float,
                            'high': float,
                            'low': float
-                        }
-                    ],
-                    'oldDatasetsEx': [ (#if mobile is false && realtime is false)
-                        {
-                           'datasets': [
-                               {
-                                    'x': int,
-                                    'y': float,
-                                    'high': float,
-                                    'low': float
-                               }
-                           ],
-                            'fromTimestamp': int,
-                            'toTimestamp': int
                         }
                     ],
                     'readings: [
@@ -517,15 +462,11 @@ DETAIL:
             - points: int  (optional)
             - chartsId: string (require, max = 3, min = 2)
             - mobile: true or false (default=false, optional)
-            - realtime (optional, default=true, description: if value is false, old data of historical will appear)
-            - timespan (optional, default=1, max=3, 
-                description: if value is 3, old data of historical will have datasets of three part of previous time. For example: current time is 9:00. timespan is 3, so api will reponse dataset for 8:50 - 8:55, 8:45 - 8:50, 8:40 - 8:45)    
 
             * Note:
             - minutes: int  (default = 5 min, should convert hour or day to minutes)
             - timestamp: int (default = currentTime now, unit of timestamp is unix timestamp. For example: 1593760508 )
             - chartsId: string (example: &chartsId=5f04962217e8e565d1fd4adf,5f04966117e8e565d1fd4ae2 )
-            - timespan only work when realtime is false
             
         Example request:
         /dashboards/dashboard/5ef998655de8966f2de5064e/sensors/comparison?chartsId=5efc2c38cc25092a0c952291,5efc3128c6c8bd539d036f28
@@ -563,36 +504,12 @@ DETAIL:
                             'high': [float]
                         }
                     ],
-                    'oldDatasets': [ (#if realtime is false)
-                        {
-                            'data': [float],
-                            'lables': [int],
-                            'low': [float],
-                            'high': [float],
-                            'fromTimestamp': int,
-                            'toTimestamp': int
-                        }
-                    ]
                     'datasetsEx': [ (#if mobile is false)
                         {
                            'x': int,
                            'y': float,
                            'high': float,
                            'low': float
-                        }
-                    ],
-                    'oldDatasetsEx': [ (#if mobile is false && realtime is false)
-                        {
-                           'datasets': [
-                               {
-                                    'x': int,
-                                    'y': float,
-                                    'high': float,
-                                    'low': float
-                               }
-                           ],
-                            'fromTimestamp': int,
-                            'toTimestamp': int
                         }
                     ],
                     'readings: [

@@ -1,82 +1,214 @@
-<ion-view title="Add Dashboard" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width_medium">
+<ion-view title="Dashboard Detail" hide-back-button="true" nav-transition="none" id="page12"
+  style="background-color:#FFFFFF;" class="page_width_medium_dashboard">
+
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
   </ion-nav-buttons>
-  <ion-content padding="true" class="has-header">
-    <div class="dashboard-container dashboard-border dashboard-round-border">
-      <h3>Information</h3>
-      <form>
-        <div class="row">
-          <div ng-repeat="color in data.colors">
-            <div class="item item-body box-color"
-                ng-if="data.selectedColor !== color"
-                ng-click="selectColor(color)"
-                ng-style="{'background-color': color}">
-            </div>
-            <div class="item item-body box-color box-selected-color"
-                ng-if="data.selectedColor === color"
-                ng-click="selectColor(color)"
-                ng-style="{'background-color': color}">
+  <ion-nav-buttons side="right" class="has-header">
+
+    <button id="addGateway-button55" ng-click="compare()" ng-show="activeTab == 2 && sensorsView.length != 0"
+      style="float:right; color:white;" class="button-large button-icon col">Compare</button>
+
+    <button class="button button-large button-icon icon ion-android-add-circle" ng-show="activeTab != 0"
+      style="float:right; color: white" class="col" ng-click="addChart(activeTab)"></button>
+  </ion-nav-buttons>
+
+  <ion-content>
+    <div class="dashboard-border dashboard-round-border">
+      <div>
+        <!--TAB: GATEWAY AND SENSORS-->
+        <form id="gateways-form54" class="list" style="margin-bottom: 80px;">
+          <div class="tabs-striped tabs-top tabs-background-positive tabs-color-light">
+            <div class="tabs" style="top: 0px; background-color: #3c5a99">
+              <a class="tab-item" ng-click="changeActiveTab(0)" ng-class="{'active': activeTab==0}">
+                Information
+              </a>
+              <a class="tab-item" ng-click="changeActiveTab(1)" ng-class="{'active': activeTab==1}">
+                Gateways
+              </a>
+              <a class="tab-item" ng-click="changeActiveTab(2)" ng-class="{'active': activeTab==2}">
+                Sensors
+              </a>
+              <a class="tab-item" ng-click="changeActiveTab(3)" ng-class="{'active': activeTab==3}">
+                Actuators
+              </a>
             </div>
           </div>
-        </div>
-        <ion-item class="item-divider" id="addGateway-list-item-divider22"> Name</ion-item>
-        <label class="item item-input" id="addGateway-input28" name="input-name">
-        <input type="text" placeholder="Dashboard Name" ng-model="data.name">
-        </label>
-        <button id="addGateway-button55"
-                ng-click="save()"
-                ng-style="{'background-color': data.selectedColor}"
-                class="button button-positive button-block">SAVE</button>
-      </form>
-    </div>
+        </form>
 
-    <div class="dashboard-container dashboard-border dashboard-round-border"
-         style="margin-top: 10px;">
-       <div class="row">
-        <div class="dashboard-item-main-column" style="width: 90%">
-          <h3>Charts</h3>
-        </div>
-
-        <div class="dashboard-item-action-column" style="width: 10%; height:20px">
-          <button class="button button-large button-icon ion-android-add-circle"
-                  style="font-weight:600;"
-                  ng-click="add()"></button>
-        </div>
-       </div>
-
-       <form id="gateways-form54" class="list">
-        <div id="gateways-button-bar11" class="button-bar">
-          <button id="gateways-button164"
-                  ng-click="changeActiveTab(0)"
-                  ng-class="{'active': activeTab==0}"
-                  style="font-weight:300;color:#AAAAAA;font-size:12px;border-radius:256px 256px 256px 256px;"
-                  class="button button-stable button-small button-block">Gateways</button>
-          <button id="gateways-button165"
-                  ng-click="changeActiveTab(1)"
-                  ng-class="{'active': activeTab==1}"
-                  style="font-weight:300;color:#AAAAAA;font-size:12px;border-radius:256px 256px 256px 256px;"
-                  class="button button-stable button-small button-block">Sensors</button>
-        </div>
-      </form>
-      <div  ng-show="activeTab==0">
-         <div class="item item-body" ng-repeat="chart in chartsGatewaysView">
-            <div class="column">
-                <h2><strong>{{chart.deviceName}}</strong></h2>
-                <canvas class="chart chart-doughnut"
-                chart-data="chart.values"
-                chart-labels="chart.labels"
-                chart-colors="sensors_datachart_colors_options_ex"
-                chart-options="sensors_datachart_piechart_sensors_statuses_options">
-                </canvas>
+        <!--TAB: Information  -->
+        <div ng-if="activeTab==0" class="page_width_small" style="padding-bottom: 10px;">
+          <form>
+            <div class="row">
+              <div ng-repeat="color in colors" class="col">
+                <div class="item item-body box-color" ng-if="selectedColor !== color" ng-click="selectColor(color)"
+                  ng-style="{'background-color': color}">
+                </div>
+                <div class="item item-body box-color box-selected-color" ng-if="selectedColor === color"
+                  ng-click="selectColor(color)" ng-style="{'background-color': color}">
+                </div>
+              </div>
             </div>
-         </div>
+            <br />
 
+            <label class="item item-input item-floating-label">
+              <span class="input-label">Dashboard Name</span>
+              <input type="text" placeholder="Dashboard Name" ng-model="dashboardDetail.name">
+            </label>
+
+            <button id="addGateway-button55" ng-click="save()" style="width: 40%;margin: auto; margin-top: 20px"
+              ng-style="{'background-color': selectedColor}" class="button button-positive button-block">SAVE</button>
+          </form>
+        </div>
+
+        <!--TAB: GATEWAY-->
+        <div ng-if="activeTab==1">
+          <div ng-show="chartsGateways.length == 0" style="width: 100%">
+            <h4 style="text-align: center;">No Gateway attributes selected to display</h4>
+          </div>
+          <div class="list" ng-show="chartsGateways.length != 0" >
+            <div ng-repeat="(attributeName, groupCharts) in groupChartsGatewayView" style="padding: 10px;">
+              <div class="row">
+                <h4 style="margin-right: 10px;"><strong>{{attributeName}}</strong></h4>
+                <div>
+                  <div class="numberCircle">
+                    <p style="font-size:large;">{{getTotalSizeOfGroup(groupCharts)}}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div ng-repeat="charts in groupCharts" style="width: 100%">
+                <div class="row responsive-sm" >
+                  <div  ng-repeat="chart in charts" class="col col-33" style="padding: 20px;" >
+                    <div class="card" style="padding: 10px;">
+                      <div class="dashboard-item-main-column" style="width:80%">
+                        <b>{{dashboard.name}}</b>
+                        <p> Gateway Name: <strong>{{chart.deviceName}}</strong></p>
+                        <p> Gateway UUID: #<strong>{{chart.deviceUUID}}</strong></p>
+                        <p> Attribute: <strong>{{chart.attribute.name}}</strong></p>
+                        <select style="float: left;" ng-show="chart.attribute.filters != 0"
+                          ng-model="chart.currentSelectFilter"
+                          ng-change="selectFilter(chart.id, chart.attribute.id, chart.currentSelectFilter.id)"
+                          ng-options="filter.name for filter in chart.attribute.filters">
+                          <option value="{{filter.id}}">{{filter.name}}</option>
+                        </select>
+                        <br ng-show="chart.attribute.filters == 0" />
+                      </div>
+
+                      <div class="dashboard-item-action-column" style="width:20%; float: right;">
+                        <button ng-click="deleteChartGateway(chart.id)" style="font-weight:600; float: right;"
+                          ng-style="{'color': dashboard.color}"
+                          class="button button-positive button-large button-block button-clear icon-right ion-android-close">
+                        </button>
+                      </div>
+                      <div class="chart-container">
+                        <canvas class="chart chart-pie" ng-show="chart.typeId==0" chart-data="chart.selectedDataset.data"
+                          chart-labels="chart.selectedDataset.labels" chart-colors="sensors_datachart_colors_options"
+                          chart-options="sensors_datachart_piechart_sensors_statuses_options">
+                        </canvas>
+                        <canvas class="chart chart-doughnut" ng-show="chart.typeId==1"
+                          chart-data="chart.selectedDataset.data" chart-labels="chart.selectedDataset.labels"
+                          chart-colors="sensors_datachart_colors_options_ex"
+                          chart-options="sensors_datachart_piechart_sensors_statuses_options">
+                        </canvas>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+        </div>
+
+        <!--TAB: SENSORS-->
+        <div ng-if="activeTab==2">
+          <div ng-show="sensorsView.length == 0" style="width: 100%">
+            <h4 style="text-align: center;">No sensors attributes selected to display</h4>
+          </div>
+
+          <div ng-show="sensorsView.length != 0" class="list">
+            <div ng-repeat="(sensorClass, groupCharts) in groupChartsSensorView" style="padding: 10px;">
+              <div class="row">
+                <h4 style="margin-right: 10px;"><strong>{{sensorClass}}</strong></h4>
+                <div>
+                  <div class="numberCircle">
+                    <p style="font-size:large;">{{getTotalSizeOfGroup(groupCharts)}}</p>
+                  </div>
+                </div>
+              </div>
+              <div ng-repeat="charts in groupCharts">
+                <div class="row responsive-sm">
+                  <div class="col col-50" style="padding: 20px;" ng-repeat="chart in charts">
+                    <div class="card" style="padding: 10px;">
+                      <div class="row">
+                        <div class="col-90">
+                          <!--Chart Information-->
+                          <div ng-click="getChartSensorDetail(chart.id)" >
+                            <h4><strong>{{chart.device.name}}</strong></h4>
+                            <p> <strong>Gateway Name: {{chart.device.gatewayName}}</strong></p>
+                            <p style="color: grey"> Gateway UUID: {{chart.device.gatewayUUID}}</p>
+                            <p style="color: grey"> LDSU UUID: {{chart.device.source}}</p>
+                            <p style="color: grey"> Number: {{chart.device.number}}</p>
+                          </div>
+
+                          <!--Chart Low high-->
+                          <div class="row" style="padding:5px;" ng-click="getChartSensorDetail(chart.id)" >
+                            <h3 class="col">{{chart.readings.value}} {{chart.device.unit}}</h3>
+                            <div class="col" style="float:right;">
+                              <p>Low: {{chart.readings.lowest}}</p>
+                              <p>High: {{chart.readings.highest}}</p>
+                            </div>
+                          </div>
+
+                        </div>
+                        <div class="col-10" style="float: right;">
+                          <button ng-click="deleteChartSensor(chart.id)" style="font-weight:600; float: right;"
+                            ng-style="{'color': dashboard.color}"
+                            class="button button-positive button-large button-block button-clear icon-right ion-android-close">
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="chart-container" ng-click="getChartSensorDetail(chart.id)">
+                        <!--Select Time-->
+                        <select style="float: right;" class="col" ng-model="chart.currentSelectTime"
+                          ng-change="updateGetChartSensorsUrl(chart.currentSelectTime.value, chart.id)"
+                          ng-options="filter.name for filter in chart.selectedTimes">
+                          <option value="{{filter.value}}">{{filter.name}}</option>
+                        </select>
+                        <br />
+                        <br />
+
+                        <canvas title="{{chart.device.name}}" class="chart chart-line" chart-colors="chart.colors"
+                          chart-data="chart.data" ng-show="chart.typeId==3" chart-labels="chart.labels"
+                          chart-options="chart.options" chart-dataset-override="chart.datasetOverride">
+                        </canvas>
+
+                        <canvas title="{{chart.device.name}}" class="chart chart-bar" chart-colors="chart.colors"
+                          chart-data="chart.data" ng-show="chart.typeId==2" chart-labels="chart.labels"
+                          chart-options="chart.options" chart-dataset-override="chart.datasetOverride">
+                        </canvas>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB: Actuators-->
+        <div ng-if="activeTab==3">
+          <div style="width: 100%">
+            <h4 style="text-align: center;">No actuators attributes selected to display</h4>
+          </div>
+        </div>
       </div>
-      <div class="list card" ng-show="activeTab==1">
-        <h1>Sensors</h1>
-      </div>
-    </div>
 
   </ion-content>
 </ion-view>

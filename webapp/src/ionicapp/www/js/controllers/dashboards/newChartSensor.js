@@ -2,10 +2,18 @@ angular.module('app.addNewChartSensorCtrl', [])
   .controller('addNewChartSensorCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User',
     function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
       const server = Server.rest_api;
-      $scope.close = () => $state.go('menu.dashboards', {}, {
-        reload: true
-      });
-      let dashboard = $stateParams.dashboard;
+      const dashboard = $stateParams.dashboard;
+      $scope.dashboardDetail = dashboard;
+      $scope.close = () => {
+        const params = {
+          'dashboard': $scope.dashboardDetail,
+          'dashboardId': $scope.dashboardDetail.id,
+          'activeTab': 2
+        }
+        $state.go('dashboardDetail', params, {
+          reload: true
+        });
+      }
       $scope.currentStep = 0;
       $scope.data = {
         'token': User.get_token(),
@@ -188,8 +196,8 @@ angular.module('app.addNewChartSensorCtrl', [])
       }
 
       $scope.$on('$ionicView.enter', (e) => {
-        dashboard = $stateParams.dashboard;
         reset();
+        console.log("Start to get gateways");
         getGateways();
       });
     }

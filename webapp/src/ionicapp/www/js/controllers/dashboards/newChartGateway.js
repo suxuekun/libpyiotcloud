@@ -3,10 +3,18 @@ angular.module('app.addNewChartGatewayCtrl', [])
     function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
       const server = Server.rest_api;
-      let dashboard = $stateParams.dashboard;
-      $scope.close = () => $state.go('menu.dashboards', {}, {
-        reload: true
-      })
+      const dashboard = $stateParams.dashboard;
+      $scope.dashboardDetail = dashboard;
+      $scope.close = () => {
+        const params = {
+          'dashboard': $scope.dashboardDetail,
+          'dashboardId': $scope.dashboardDetail.id,
+          'activeTab': 1
+        }
+        $state.go('dashboardDetail', params, {
+          reload: true
+        });
+      }
       $scope.currentStep = 0;
 
       $scope.data = {
@@ -103,7 +111,6 @@ angular.module('app.addNewChartGatewayCtrl', [])
 
       // Start the page
       $scope.$on('$ionicView.enter', (e) => {
-        dashboard = $stateParams.dashboard;
         resest()
         getGateways();
         getAttributes();
@@ -184,10 +191,8 @@ angular.module('app.addNewChartGatewayCtrl', [])
             data: request
           })
           .then(function (result) {
-            resest()
-            $state.go('menu.dashboards', {}, {
-              reload: true
-            })
+            resest();
+            $scope.close();
           })
           .catch(function (error) {
             console.log(error);
