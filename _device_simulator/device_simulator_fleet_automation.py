@@ -461,6 +461,7 @@ def main(args):
     global printf
     printf = setup_logging("device_simulator_fleet_automation_logs.txt")
     display_info()
+    starttime = time.time()
 
     # get parameters
     host, port, devicename_prefix, numdevices, uid_key = get_parameters(args)
@@ -537,12 +538,12 @@ def main(args):
                     if not result:
                         printf("ERROR: Sensor enable failed!")
                         continue
-                printf("\t{} {} sensor enabled - {}".format(sensor["source"], sensor["number"], sensor["class"]))
+                printf("\t{} {} sensor enabled    - {}".format(sensor["source"], sensor["number"], sensor["class"]))
 
 
     # generate the master script for all the device script
     generate_script_master(host, devicename_prefix, numdevices)
-    printf("Completed registration and running of {} devices.".format(numdevices))
+    printf("Completed registration and running of {} devices in {} seconds.".format(numdevices, int(time.time()-starttime) ))
 
 
 if __name__ == '__main__':
