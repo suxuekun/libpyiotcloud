@@ -90,6 +90,10 @@ class other_stuffs:
 
         # check if a parameter is empty
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Send Feedback: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data["feedback"] is None or data["rating"] is None or data["contactme"] is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Send Feedback: Empty parameter found\r\n')
@@ -400,6 +404,10 @@ class other_stuffs:
 
         # decode the devicetoken and service
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Register mobile device token: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("token") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Register mobile device token: Empty parameter found\r\n')
