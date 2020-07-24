@@ -69,6 +69,14 @@ class device_otaupdates:
 
         # get username from token
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Upgrade Device Firmware: Parameters not included\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("version") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Upgrade Device Firmware: Parameters not included\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         data['token'] = {'access': auth_header_token}
         data['devicename'] = devicename
         username = self.database_client.get_username_from_token(data['token'])
@@ -204,6 +212,14 @@ class device_otaupdates:
 
         # get username from token
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Upgrade Firmwares: Parameters not included\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("version") is None or data.get("devices") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Upgrade Firmwares: Parameters not included\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         data['token'] = {'access': auth_header_token}
         username = self.database_client.get_username_from_token(data['token'])
         if username is None:
