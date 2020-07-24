@@ -775,7 +775,11 @@ class device_ldsbus:
 
 
         data = flask.request.get_json()
-        if data is None or data.get("name") is None:
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Change LDSU name: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("name") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Change LDSU name: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
