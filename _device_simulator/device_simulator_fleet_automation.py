@@ -274,7 +274,7 @@ def http_get_header(authorization):
         "Authorization": "Bearer " + authorization,
     }
 
-def encode_jwt_ex(host, port, username, password, secret_key):
+def encode_jwt_ex(host, port, username, password):
     method = "POST"
     api = "/devicesimulator/userpasstoken"
     headers = http_get_header(None)
@@ -287,8 +287,8 @@ def encode_jwt_ex(host, port, username, password, secret_key):
     result, value = http_send_receive(host, port, method, api, params, headers, "userpasstoken")
     return value
 
-def login(host, port, username, password, secret_key):
-    jwt_auth = encode_jwt_ex(host, port, username, password, secret_key)
+def login(host, port, username, password):
+    jwt_auth = encode_jwt_ex(host, port, username, password)
     method = "POST"
     api = "/user/login"
     headers = http_get_header(jwt_auth)
@@ -395,7 +395,6 @@ def parse_arguments(argv):
     parser.add_argument('--USE_PORT',             required=True, default='', help='Host port to connect to')
     parser.add_argument('--USE_USERNAME',         required=True, default='', help='Account username to use')
     parser.add_argument('--USE_PASSWORD',         required=True, default='', help='Account password to use')
-    parser.add_argument('--USE_DEVICE_SECRETKEY', required=True, default='', help='HTTP secret key')
     parser.add_argument('--USE_DEVICE_COUNT',     required=True, default='', help='Number of devices to create run')
     parser.add_argument('--USE_DEVICE_NAMEPREFIX',required=True, default='', help='Name prefix to be used')
     parser.add_argument('--USE_UID_KEY',          required=True, default='', help='UID key for deviceid')
@@ -469,7 +468,7 @@ def main(args):
         return
 
     # login to retrieve authentication tokens
-    tokens = login(host, port, args.USE_USERNAME, args.USE_PASSWORD, args.USE_DEVICE_SECRETKEY)
+    tokens = login(host, port, args.USE_USERNAME, args.USE_PASSWORD)
     if tokens is None:
         return
     bat_template, sh_template = read_script_templates()

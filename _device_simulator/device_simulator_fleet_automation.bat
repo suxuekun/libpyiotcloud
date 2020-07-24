@@ -7,7 +7,6 @@ set PASS=""
 :: Server to connect to
 set HOST=""
 set PORT="443"
-set SECRETKEY=""
 
 :: Number of device to register and run
 :: Max of 255
@@ -33,6 +32,6 @@ set DEVICE_NAME_PREFIX="DeviceFleet"
 set UID_KEY=""
 
 
-python.exe device_simulator_fleet_automation.py --USE_HOST %HOST% --USE_PORT %PORT% --USE_USERNAME %USER% --USE_PASSWORD %PASS% --USE_DEVICE_SECRETKEY %SECRETKEY% --USE_DEVICE_COUNT %DEVICE_COUNT% --USE_DEVICE_NAMEPREFIX %DEVICE_NAME_PREFIX% --USE_UID_KEY %UID_KEY%
+python.exe device_simulator_fleet_automation.py --USE_HOST %HOST% --USE_PORT %PORT% --USE_USERNAME %USER% --USE_PASSWORD %PASS% --USE_DEVICE_COUNT %DEVICE_COUNT% --USE_DEVICE_NAMEPREFIX %DEVICE_NAME_PREFIX% --USE_UID_KEY %UID_KEY%
 pause
 
