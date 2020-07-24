@@ -514,3 +514,46 @@ class other_stuffs:
         print('\r\nCompute otaauthcode successful: {}\r\n'.format(data["uuid"]))
         return response
 
+
+    ########################################################################################################
+    #
+    # COMPUTE USERPASSTOKEN
+    #
+    # - Request:
+    #   POST /devicesimulator/userpasstoken
+    #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+    #   data: {'username': string, 'password': string}
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def compute_userpasstoken(self):
+
+        # decode the devicetoken and service
+        data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Compute userpasstoken: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("username") is None or data.get("password") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Compute userpasstoken: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # compute the password
+        currtime = int(time.time())
+        params = {
+            "username": data["username"],
+            "password": data["password"],
+            "iat": currtime,
+            "exp": currtime + 10
+        }
+        userpasstoken = jwt.encode(params, config.CONFIG_JWT_SECRET_KEY, algorithm='HS256')
+        userpasstoken = userpasstoken.decode("utf-8")
+
+        response = json.dumps({'status': 'OK', 'message': 'Compute otaauthcode successful', 'userpasstoken': userpasstoken})
+        print('\r\nCompute userpasstoken successful\r\n')
+        return response
+
+

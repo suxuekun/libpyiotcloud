@@ -229,6 +229,7 @@ def http_recv_response(conn, debug=True):
             return file_size, data
         else:
             printf("\tRES: Could not communicate with DEVICE! {}".format(r1.status))
+            printf(r1.reason)
             return 0, None
     except Exception as e:
         printf("\tRES: Could not communicate with DEVICE! {}".format(e))
@@ -275,22 +276,22 @@ def http_get_header(authorization):
 
 def encode_jwt_ex(host, port, username, password, secret_key):
     method = "POST"
-    api = "/devicesimulator/otaauthcode"
+    api = "/devicesimulator/userpasstoken"
     headers = http_get_header(None)
     params = json.dumps({
-        "uuid"     : "jwt",
+        "uuid"     : "",
         "username" : username,
         "password" : password
     })
 
-    result, value = http_send_receive(host, port, method, api, params, headers, "otaauthcode")
-    print(value)
+    result, value = http_send_receive(host, port, method, api, params, headers, "userpasstoken")
     return value
 
 def login(host, port, username, password, secret_key):
+    jwt_auth = encode_jwt_ex(host, port, username, password, secret_key)
     method = "POST"
     api = "/user/login"
-    headers = http_get_header(encode_jwt_ex(host, port, username, password, secret_key))
+    headers = http_get_header(jwt_auth)
     params = None
 
     result, value = http_send_receive(host, port, method, api, params, headers, "token")

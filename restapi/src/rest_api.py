@@ -925,6 +925,12 @@ def compute_device_password():
 
 # This is for the device simulator. 
 # This can be easily blocked by removing entry in nginx.conf.
+@app.route('/devicesimulator/userpasstoken', methods=['POST'])
+def compute_userpass_token():
+    return g_other_stuffs.compute_userpasstoken()
+
+# This is for the device simulator. 
+# This can be easily blocked by removing entry in nginx.conf.
 @app.route('/devicesimulator/otaauthcode', methods=['POST'])
 def compute_ota_authcode():
     return g_other_stuffs.compute_ota_authcode()
