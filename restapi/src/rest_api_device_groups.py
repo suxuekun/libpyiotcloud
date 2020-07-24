@@ -943,7 +943,11 @@ class device_groups:
 
         # check if new device group name is already registered
         data = flask.request.get_json()
-        if data is None or data.get("devices") is None:
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Add/Delete Device To/From DeviceGroup: Parameters not included [{},{}]\r\n'.format(entityname, devicegroupname))
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("devices") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Add/Delete Device To/From DeviceGroup: Parameters not included [{},{}]\r\n'.format(entityname, devicegroupname))
             return response, status.HTTP_400_BAD_REQUEST
@@ -1130,9 +1134,13 @@ class device_groups:
 
             # get parameters
             data = flask.request.get_json()
+            if data is None:
+                response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+                print('\r\nERROR Set DeviceGroup Locations: Parameters not included [{},{}]\r\n'.format(entityname, devicegroupname))
+                return response, status.HTTP_400_BAD_REQUEST
             if data.get("locations") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-                print('\r\nERROR Set DeviceGroup Locations: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+                print('\r\nERROR Set DeviceGroup Locations: Parameters not included [{},{}]\r\n'.format(entityname, devicegroupname))
                 return response, status.HTTP_400_BAD_REQUEST
 
             # get devices of the user
@@ -1161,7 +1169,7 @@ class device_groups:
                     longitude = float(location["location"]["longitude"])
                 except:
                     response = json.dumps({'status': 'NG', 'message': 'Atleast one of the location is invalid'})
-                    print('\r\nERROR Set DeviceGroup Location: Atleast one of the location is invalid [{},{}]\r\n'.format(entityname, devicename))
+                    print('\r\nERROR Set DeviceGroup Location: Atleast one of the location is invalid [{},{}]\r\n'.format(entityname, devicegroupname))
                     return response, status.HTTP_400_BAD_REQUEST
 
 
