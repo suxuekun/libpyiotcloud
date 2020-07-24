@@ -160,7 +160,7 @@ class device_locations:
             data = flask.request.get_json()
             if data.get("locations") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-                print('\r\nERROR Set Devices Locations: Parameters not included [{},{}]\r\n'.format(username, devicename))
+                print('\r\nERROR Set Devices Locations: Parameters not included [{}]\r\n'.format(username))
                 return response, status.HTTP_400_BAD_REQUEST
 
             # check if the locations are valid
@@ -171,7 +171,7 @@ class device_locations:
                     longitude = float(location["location"]["longitude"])
                 except:
                     response = json.dumps({'status': 'NG', 'message': 'Atleast one of the location is invalid'})
-                    print('\r\nERROR Set Devices Locations: Atleast one of the location is invalid [{},{}]\r\n'.format(entityname, devicename))
+                    print('\r\nERROR Set Devices Locations: Atleast one of the location is invalid [{}]\r\n'.format(entityname))
                     return response, status.HTTP_400_BAD_REQUEST
 
                 # check if device is valid
@@ -182,7 +182,7 @@ class device_locations:
                         break
                 if not found:
                     response = json.dumps({'status': 'NG', 'message': 'Atleast one of the devices is invalid'})
-                    print('\r\nERROR Set Devices Locations: Atleast one of the devices is invalid [{},{}]\r\n'.format(entityname, devicename))
+                    print('\r\nERROR Set Devices Locations: Atleast one of the devices is invalid [{}]\r\n'.format(entityname))
                     return response, status.HTTP_400_BAD_REQUEST
 
             # set the location to database
