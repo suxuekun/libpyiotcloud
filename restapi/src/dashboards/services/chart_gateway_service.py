@@ -16,9 +16,9 @@ from dashboards.dtos.chart_gateway_query import ChartGatewayQuery
 from dashboards.repositories.heart_beat_repository import IHeartBeatRepository
 from dashboards.repositories.storage_usage_repository import IStorageUsageRepositoy
 from dashboards.repositories.menos_alert_repository import IMenosAlertRepository
+from dashboards.repositories.chart_type_repository import IChartTypeRepository
 from dashboards.models.gateway_attribute import *
 import time
-
 
 class ChartGatewayService:
 
@@ -29,6 +29,7 @@ class ChartGatewayService:
                  heartBeatRepository: IHeartBeatRepository,
                  menosAlertRepository: IMenosAlertRepository,
                  storageUsageRepository: IStorageUsageRepositoy,
+                 chartTypeRepository: IChartTypeRepository,
                  dashboardService: DashboardService):
 
         self.deviceRepository = deviceRepository
@@ -39,6 +40,7 @@ class ChartGatewayService:
         self.heartBeatRepository = heartBeatRepository
         self.storageUsageRepository = storageUsageRepository
         self.menosAlertRepository = menosAlertRepository
+        self.chartTypeRepository = chartTypeRepository
         self.tag = type(self).__name__
 
     def create(self, dashboardId: str, userId: str, dto: ChartGatewayDto):
@@ -47,13 +49,13 @@ class ChartGatewayService:
             dto.validate()
 
             # Validate chartType
-            chartType = self.chartRepository.getById(dto.chartTypeId)
+            chartType = self.chartTypeRepository.get_by_id(dto.chartTypeId)
             if chartType is None:
                 LoggerService().error("This chartType was not existed", tag=self.tag)
                 return Response.fail("This chartType was not existed")
 
             # Validate attribute
-            attribute = self.attributeRepository.getById(dto.chartTypeId)
+            attribute = self.attributeRepository.get_by_id(dto.attributeId)
             if attribute is None:
                 LoggerService().error("This attribute was not existed", tag=self.tag)
                 return Response.fail("This attribute was not existed")

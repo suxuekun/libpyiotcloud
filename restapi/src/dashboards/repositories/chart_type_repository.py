@@ -12,6 +12,9 @@ class IChartTypeRepository(BaseRepository, IMongoBaseRepository):
     
     def gets_for_sensor(self):
         pass
+    
+    def get_by_id(self, id: int):
+        pass
 
 class ChartTypeRepository(MongoBaseRepository, IChartTypeRepository):
     
@@ -45,5 +48,11 @@ class ChartTypeRepository(MongoBaseRepository, IChartTypeRepository):
         }
         return self.gets(query=query, projection=projection)
     
+    def get_by_id(self, id: int):
+        query = {
+            "_id": id,
+        }
+        chartTye = self.get_one(query)
+        return chartTye
    
     

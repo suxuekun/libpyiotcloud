@@ -66,10 +66,10 @@ storageUsageRepository = StorageUsageRepository(db_client)
 dashboardService = DashboardService(dashboardRepository, chartGatewayRepository, chartSensorRepository)
 
 chartGatewayService = ChartGatewayService(
-    dashboardRepository, chartGatewayRepository, attributeRepository, deviceRepository, heartBeatRepository, menoAlertRepository, storageUsageRepository, dashboardService)
+    dashboardRepository, chartGatewayRepository, attributeRepository, deviceRepository, heartBeatRepository, menoAlertRepository, storageUsageRepository, chartTypeRepository, dashboardService)
 
 chartSensorService = ChartSensorService(
-    dashboardRepository, chartSensorRepository, attributeRepository, deviceRepository, sensorRepository, sensorReadingsLatestRepository, dashboardService)
+    dashboardRepository, chartSensorRepository, attributeRepository, deviceRepository, sensorRepository, sensorReadingsLatestRepository, chartTypeRepository, dashboardService)
 
 def init_chart_gateway_service():
     return chartGatewayService

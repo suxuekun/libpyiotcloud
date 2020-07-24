@@ -42,10 +42,10 @@ def get(dashboardId: str):
 @dashboards_blueprint.route("/dashboard/<dashboardId>", methods=['PUT'])
 @default_middleware
 @login_required()
-def update(dashboardId: str):
+def update_name_and_color(dashboardId: str):
     body = request.get_json()
     dto = DashboardDto(body)
-    response = dashboardService.updateNameAndOption(dashboardId, dto)
+    response = dashboardService.update_name_and_color(dashboardId, dto)
     return response
 
 @dashboards_blueprint.route("/dashboard/<dashboardId>", methods=['DELETE'])

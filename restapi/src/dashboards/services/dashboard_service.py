@@ -50,12 +50,21 @@ class DashboardService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
 
-    def updateNameAndOption(self, id: str, dto: UpdatingDashboardDto):
+    def update_name_and_color(self, id: str, dto: UpdatingDashboardDto):
 
         try:
             dto.validate()
+            
+            # Validate same dashboard
             entity = self.dashboardRepository.getById(id)
             dashboard = Dashboard.to_domain(entity)
+
+            if dto.name is not None and dto.name != "" and dto.name != dashboard.model.name:
+                sameDashboard = self.dashboardRepository.get_same_dashboard(dto.name)
+                if sameDashboard is not None:
+                    LoggerService().error("Sorry, dashboard name has already existed", tag=self.tag)
+                    return Response.fail("Sorry, dashboard name has already existed")
+
             dashboard.update_name_and_option(dto)
             self.dashboardRepository.update(id, dashboard.model.to_primitive())
             return Response.success_without_data("Update dashboard successfully")

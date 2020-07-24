@@ -18,6 +18,7 @@ from dashboards.services.dashboard_service import DashboardService
 from dashboards.exceptions.chart_sensor_query_exception import ChartSensorQueryException
 from dashboards.repositories.sensor_repository import ISensorRepository
 from dashboards.repositories.sensor_readings_latest_repository import ISensorReadingsLatestRepository
+from dashboards.repositories.chart_type_repository import IChartTypeRepository
 import time
 
 
@@ -29,6 +30,7 @@ class ChartSensorService:
                  deviceRepository: IDeviceRepostory,
                  sensorRepository: ISensorRepository,
                  sensorReadingsLatestRepository: ISensorReadingsLatestRepository,
+                 chartTypeRepository: IChartTypeRepository,
                  dashboardService: DashboardService):
 
         self.deviceRepository = deviceRepository
@@ -38,6 +40,7 @@ class ChartSensorService:
         self.sensorRepository = sensorRepository
         self.sensorReadingsLatestRepository = sensorReadingsLatestRepository
         self.dashboardService = dashboardService
+        self.chartTypeRepository = chartTypeRepository
         self.tag = type(self).__name__
 
     def create(self, dashboardId: str, userId: str, dto: ChartSensorDto):
@@ -45,7 +48,7 @@ class ChartSensorService:
             dto.validate()
 
             # Validate chartType
-            chartType = self.chartRepository.getById(dto.chartTypeId)
+            chartType = self.chartTypeRepository.get_by_id(dto.chartTypeId)
             if chartType is None:
                 LoggerService().error("This chartType was not existed", tag=self.tag)
                 return Response.fail("This chartType was not existed")
