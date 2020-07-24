@@ -409,18 +409,17 @@ class device_peripheral_properties:
 
         # get username from token
         data = flask.request.get_json()
-        #print(data)
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data['baudrate'] is None or data['parity'] is None or data['databits'] is None or data['stopbits'] is None or data['flowcontrol'] is None or data['notification'] is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
-        #print(data['baudrate'])
-        #print(data['parity'])
-        #print(data['notification'])
 
         # get notifications and remove from list
         notification = data['notification']
-        #print(notification)
         data.pop('notification')
         #print(notification)
         #print(data)
@@ -985,15 +984,18 @@ class device_peripheral_properties:
             print('\r\nERROR Invalid authorization header\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
 
-        # get username from token
-        data = flask.request.get_json()
-
         # check parameter input
+        data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data['enable'] is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
+        # get username from token
         data['token'] = {'access': auth_header_token}
         data['devicename'] = devicename
         username = self.database_client.get_username_from_token(data['token'])
