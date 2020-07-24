@@ -140,6 +140,10 @@ class payment_accounting:
     ########################################################################################################
     def set_payment_paypal_setup(self):
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Paypal Setup: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
         if data.get("returnurl") is None or data.get("cancelurl") is None or data.get("amount") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Paypal Setup: Empty parameter found\r\n')
