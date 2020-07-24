@@ -563,7 +563,10 @@ class device:
 
             # check parameters exist
             data = flask.request.get_json()
-            #print(data)
+            if data is None:
+                response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+                print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_400_BAD_REQUEST
             if not data.get("deviceid") or not data.get("serialnumber") or not data.get("poemacaddress"):
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
                 print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
@@ -1211,9 +1214,11 @@ class device:
 
         # get parameter input
         data = flask.request.get_json()
-
-        # check parameter input
-        if data['status'] is None:
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Set status: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get('status') is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Set status: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
@@ -1287,6 +1292,10 @@ class device:
 
         # get parameter input
         data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Set settings: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
 
         # get username from token
         data['token'] = {'access': auth_header_token}
