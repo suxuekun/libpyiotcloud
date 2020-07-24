@@ -1327,7 +1327,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 		   // version is the version of the firmware to use
-		   // note that user can select the latest version or the same version (as per Sree)
+		   // note that user can select the latest version or the same version or lower version (as per Sree)
 		   // This API will return immediately if the device to be updated is online.
 		   //   If the device is offline, it takes 3 seconds to find out (timeout for waiting device response) so the API will only return after 3 seconds.
 		   // GET OTA STATUS should be polled to determine if the OTA update is completed.
@@ -1341,7 +1341,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 		   // version is the version of the firmware to use
-		   // note that user can select the latest version or the same version (as per Sree)
+		   // note that user can select the latest version or the same version or lower version (as per Sree)
 		   // This API will return immediately if all devices to be updated are online.
 		   //   If atleast 1 is offline, it takes 3 seconds to find out (timeout for waiting device response) so the API will only return after 3 seconds.
 		   // GET OTA STATUSES should be polled to determine if the OTA update is completed.
@@ -1392,6 +1392,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   data: {'checkdevice': int, 'status': int}
 		   // checkdevice and status are both optional.
+		   // will use default values if parameters do not appear or is not valid
 		   // checkdevice is 1 or 0. it indicates if backend will check the status of the sensors of the device
 		   // status is 1 or 0. it indicates if device is online. (DEVICE page needs to query the status of the device. To prevent repeating the call, user can provide the result when calling the API.)
 		-  Response:
