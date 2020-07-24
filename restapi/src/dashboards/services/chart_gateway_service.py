@@ -45,15 +45,30 @@ class ChartGatewayService:
         try:
             # Validate request
             dto.validate()
-            gatewayDevice = self.deviceRepository.get_by_uuid(dto.deviceId)
 
+            # Validate chartType
+            chartType = self.chartRepository.getById(dto.chartTypeId)
+            if chartType is None:
+                LoggerService().error("This chartType was not existed", tag=self.tag)
+                return Response.fail("This chartType was not existed")
+
+            # Validate attribute
+            attribute = self.attributeRepository.getById(dto.chartTypeId)
+            if attribute is None:
+                LoggerService().error("This attribute was not existed", tag=self.tag)
+                return Response.fail("This attribute was not existed")
+
+            # Validate gateway device
+            gatewayDevice = self.deviceRepository.get_by_uuid(dto.deviceId)
             if gatewayDevice is None:
+                LoggerService().error("This device was not existed", tag=self.tag)
                 return Response.fail("This device was not existed")
 
             #  Validate same chart
             sameChart = self.chartRepository.get_same_chart(
                 dashboardId, dto.deviceId, dto.attributeId, dto.chartTypeId)
             if sameChart is not None:
+                LoggerService().error("Sorry, This chart should not have same device, same attribute and same type", tag=self.tag)
                 return Response.fail("Sorry, This chart should not have same device, same attribute and same type")
 
             # Create chart

@@ -49,6 +49,8 @@ def update(dashboardId: str):
     return response
 
 @dashboards_blueprint.route("/dashboard/<dashboardId>", methods=['DELETE'])
+@default_middleware
+@login_required()
 def delete(dashboardId: str):
     response = dashboardService.delete(dashboardId)
     return response

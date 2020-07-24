@@ -2,7 +2,7 @@
 from bson.objectid import ObjectId
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
-from dashboards.dtos.dashboard_dto import DashboardDto
+from dashboards.dtos.dashboard_dto import *
 from shared.utils import timestamp_util
 
 class Option(BaseModel):
@@ -35,9 +35,12 @@ class Dashboard:
         model.actuators = []
         return Dashboard(model)
 
-    def update_name_and_option(self, dto: DashboardDto):
-        self.model.name = dto.name
-        self.model.option =  Option({'color': dto.color.replace("#", "")})
+    def update_name_and_option(self, dto: UpdatingDashboardDto):
+        if dto.name is not None and dto.name != "":
+            self.model.name = dto.name
+        
+        if dto.color is not None and dto.color != "":
+            self.model.option =  Option({'color': dto.color.replace("#", "")})
 
     def add_chart_gateway(self, chartId: str):
         self.model.gateways.append(chartId)
