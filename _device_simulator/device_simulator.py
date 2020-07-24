@@ -2935,7 +2935,7 @@ def http_compute_ota_authcode(uuid, username, password):
     params = json.dumps({ "uuid": uuid, "username": username, "password": password })
     api = "/devicesimulator/otaauthcode"
 
-    result = http_send_request(conn, "GET", api, params, headers, debug=False)
+    result = http_send_request(conn, "POST", api, params, headers, debug=False)
     if result:
         length, response = http_recv_response(conn, debug=False)
         if length == 0:
@@ -2968,7 +2968,7 @@ def http_compute_device_password(uuid, serial_number, mac_address):
     params = json.dumps({ "uuid": uuid, "serialnumber": serial_number, "poemacaddress": mac_address })
     api = "/devicesimulator/devicepassword"
 
-    result = http_send_request(conn, "GET", api, params, headers, debug=False)
+    result = http_send_request(conn, "POST", api, params, headers, debug=False)
     if result:
         length, response = http_recv_response(conn, debug=False)
         if length == 0:

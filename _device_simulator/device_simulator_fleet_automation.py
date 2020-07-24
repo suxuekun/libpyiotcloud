@@ -238,20 +238,6 @@ def http_recv_response(conn, debug=True):
 # HTTP APIs
 ###################################################################################
 
-def encode_jwt(username, password, secret_key):
-    iat = int(time.time())
-    params = {
-        "username": username,
-        "password": password,
-        "iat": iat,
-        "exp": iat + 10
-    }
-    password = jwt.encode(params, secret_key, algorithm='HS256')
-    if type(password) == bytes:
-        password = password.decode("utf-8")
-
-    return password
-
 def http_send_receive(host, port, method, api, params, headers, key):
     try:
         conn = http_initialize_connection(host, port)
@@ -261,37 +247,50 @@ def http_send_receive(host, port, method, api, params, headers, key):
             if length == 0:
                 conn.close()
                 return False, None
-            try:
-                response = json.loads(response)
-                if response["status"] == "OK":
-                    conn.close()
-                    if key:
-                        return True, response[key]
-                    else:
-                        return True, None
-            except Exception as e:
-                printf("exception {}".format(e))
+            response = json.loads(response)
+            if response["status"] == "OK":
                 conn.close()
-                return False, None
+                if key:
+                    return True, response[key]
+                else:
+                    return True, None
         conn.close()
         return False, None
-    except:
+    except Exception as e:
+        print(e)
         conn.close()
         return False, None
 
 def http_get_header(authorization):
+    if authorization is None:
+        return { 
+            "Connection": "keep-alive",
+            "Content-Type" : "application/json"
+        }
     return { 
         "Connection": "keep-alive",
         "Content-Type" : "application/json",
         "Authorization": "Bearer " + authorization,
     }
 
-def login(host, port, username, password, secret_key):
-    tokens = None
+def encode_jwt_ex(host, port, username, password, secret_key):
+    method = "POST"
+    api = "/devicesimulator/otaauthcode"
+    headers = http_get_header(None)
+    params = json.dumps({
+        "uuid"     : "jwt",
+        "username" : username,
+        "password" : password
+    })
 
+    result, value = http_send_receive(host, port, method, api, params, headers, "otaauthcode")
+    print(value)
+    return value
+
+def login(host, port, username, password, secret_key):
     method = "POST"
     api = "/user/login"
-    headers = http_get_header(encode_jwt(username, password, secret_key))
+    headers = http_get_header(encode_jwt_ex(host, port, username, password, secret_key))
     params = None
 
     result, value = http_send_receive(host, port, method, api, params, headers, "token")
@@ -465,7 +464,6 @@ def main(args):
 
     # get parameters
     host, port, devicename_prefix, numdevices, uid_key = get_parameters(args)
-    print(uid_key)
     if host is None:
         return
 
@@ -476,7 +474,7 @@ def main(args):
     bat_template, sh_template = read_script_templates()
     printf("")
 
-    printf("Strating registration and running of {} devices...".format(numdevices))
+    printf("Starting registration and running of {} devices...".format(numdevices))
     printf("")
     for index in range(numdevices):
 
@@ -508,8 +506,10 @@ def main(args):
         filename = generate_script_files(host, bat_template, sh_template, devicename, deviceid, serialnumber, poemacaddress)
         run_script_file(filename)
 
+        # be good citizen, dont congest the network, take some sleep while waiting for script to initialize completely
+        time.sleep(5)
+
         # get device status
-        time.sleep(1)
         while True:
             time.sleep(1)
             result = get_device_status(host, port, tokens, devicename)
@@ -538,6 +538,7 @@ def main(args):
                         printf("ERROR: Sensor enable failed!")
                         continue
                 printf("\t{} {} sensor enabled - {}".format(sensor["source"], sensor["number"], sensor["class"]))
+
 
     # generate the master script for all the device script
     generate_script_master(host, devicename_prefix, numdevices)

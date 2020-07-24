@@ -919,13 +919,13 @@ def get_device_firmware_updates():
 
 # This is for the device simulator. 
 # This can be easily blocked by removing entry in nginx.conf.
-@app.route('/devicesimulator/devicepassword', methods=['GET'])
+@app.route('/devicesimulator/devicepassword', methods=['POST'])
 def compute_device_password():
     return g_other_stuffs.compute_device_password()
 
 # This is for the device simulator. 
 # This can be easily blocked by removing entry in nginx.conf.
-@app.route('/devicesimulator/otaauthcode', methods=['GET'])
+@app.route('/devicesimulator/otaauthcode', methods=['POST'])
 def compute_ota_authcode():
     return g_other_stuffs.compute_ota_authcode()
 
