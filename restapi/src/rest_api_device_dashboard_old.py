@@ -770,6 +770,10 @@ class device_dashboard_old:
 
             # get filter parameters
             filter = flask.request.get_json()
+            if filter is None:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
             if filter.get("devicename") is None or filter.get("class") is None or filter.get("status") is None or filter.get("timerange") is None or filter.get("points") is None or filter.get("index") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
                 print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
@@ -937,6 +941,10 @@ class device_dashboard_old:
                     return response, status.HTTP_401_UNAUTHORIZED
 
             filter = flask.request.get_json()
+            if filter is None:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
             if filter.get("devicename") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
                 print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')

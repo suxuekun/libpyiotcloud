@@ -75,7 +75,7 @@ class payment_accounting:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get Subscription: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_subscription {}'.format(username))
+        #print('get_subscription {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -120,7 +120,7 @@ class payment_accounting:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
+        #print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
         return response
 
 
@@ -169,7 +169,7 @@ class payment_accounting:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Paypal Setup: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('set_payment_paypal_setup {}'.format(username))
+        #print('set_payment_paypal_setup {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -212,7 +212,7 @@ class payment_accounting:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\n{}: {}\r\n'.format(msg['message'], username))
+        #print('\r\n{}: {}\r\n'.format(msg['message'], username))
         return response
 
 
@@ -237,8 +237,9 @@ class payment_accounting:
         payerid = None
 
         data = flask.request.get_json()
-        if data.get("payerid"):
-            payerid = data["payerid"]
+        if data is not None:
+            if data.get("payerid") is not None:
+                payerid = data["payerid"]
 
         if CONFIG_USE_REDIS_FOR_PAYPAL:
             # redis
@@ -301,7 +302,7 @@ class payment_accounting:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Paypal Execute: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('set_payment_paypal_execute {}'.format(username))
+        #print('set_payment_paypal_execute {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -380,7 +381,7 @@ class payment_accounting:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\n{} {}\r\n'.format(msg["message"], username))
+        #print('\r\n{} {}\r\n'.format(msg["message"], username))
         return response
 
 
@@ -418,7 +419,7 @@ class payment_accounting:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Paypal Verify: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('set_payment_paypal_verify {}'.format(username))
+        #print('set_payment_paypal_verify {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -472,7 +473,7 @@ class payment_accounting:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\n{} {}\r\n'.format(msg["message"], username))
+        #print('\r\n{} {}\r\n'.format(msg["message"], username))
         return response
 
 
@@ -505,7 +506,7 @@ class payment_accounting:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Paypal Get Transactions: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_payment_paypal_transactions {}'.format(username))
+        #print('get_payment_paypal_transactions {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -554,7 +555,7 @@ class payment_accounting:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\n{} {}\r\n'.format(msg["message"], username))
+        #print('\r\n{} {}\r\n'.format(msg["message"], username))
         return response
 
 
@@ -587,7 +588,7 @@ class payment_accounting:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Paypal Get Transaction: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_payment_paypal_transactions_detailed {}'.format(username))
+        #print('get_payment_paypal_transactions_detailed {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -665,7 +666,7 @@ class payment_accounting:
             paypal["transactions"][0]["item_list"] = {}
             paypal["transactions"][0]["item_list"]["items"]   = [{}]
             #paypal["transactions"][0]["item_list"]["items"][0][""] paypal_param["transactions"][0]["item_list"]["total"]
-            print(paypal)
+            #print(paypal)
             #paypal = json.dumps(paypal_param, default=lambda x: getattr(x, '__dict__', str(x)))
             #print_json(paypal, is_json=False)
 
@@ -676,5 +677,5 @@ class payment_accounting:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\n{} {}\r\n'.format(msg["message"], username))
+        #print('\r\n{} {}\r\n'.format(msg["message"], username))
         return response

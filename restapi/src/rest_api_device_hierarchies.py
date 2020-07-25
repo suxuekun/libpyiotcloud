@@ -451,7 +451,7 @@ class device_hierarchies:
             print('\r\nERROR Get hierarchy tree: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
 
-        print('get_device_hierarchy_with_status {} devicename={}'.format(username, devicename))
+        #print('get_device_hierarchy_with_status {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -515,5 +515,5 @@ class device_hierarchies:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nGet hierarchy tree successful: {}\r\n\r\n'.format(username))
+        #print('\r\nGet hierarchy tree successful: {}\r\n\r\n'.format(username))
         return response

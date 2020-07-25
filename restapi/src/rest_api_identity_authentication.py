@@ -144,7 +144,7 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': reason})
             print('\r\nERROR Login: Username password format invalid\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('login {} {}'.format(username, password))
+        print('login {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(password) == 0:
@@ -958,8 +958,6 @@ class identity_authentication:
             return response, status.HTTP_401_UNAUTHORIZED
         token = {'access': auth_header_token}
 
-        #print('refresh_user_token')
-
         # check if a parameter is empty
         if len(token) == 0:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
@@ -974,7 +972,7 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Refresh token: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
-        if not data.get("refresh") or not data.get("id"):
+        if data.get("refresh") is None or data.get("id") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Refresh token: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
@@ -989,15 +987,17 @@ class identity_authentication:
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         # update mobile device token
+        username = None
         try:
             self.database_client.update_mobile_device_token(token["access"], new_token["access"])
+            username = self.database_client.get_username_from_token(new_token)
         except:
             print("exception update_mobile_device_token")
             pass
 
         msg = {'status': 'OK', 'message': 'Refresh token successful.', 'token': new_token}
         response = json.dumps(msg)
-        print('\r\nRefresh token successful DATETIME {}\r\n'.format(datetime.datetime.now()))
+        print('\r\nRefresh token {} DATETIME {}\r\n'.format(username, datetime.datetime.now()))
         return response
 
     ########################################################################################################

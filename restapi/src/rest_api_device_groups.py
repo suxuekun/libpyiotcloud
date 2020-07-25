@@ -69,7 +69,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get Device Groups: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        #print('get_device_list {}'.format(username))
+        #print('get_device_group_list {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -122,7 +122,7 @@ class device_groups:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('get_device_list {} {} devices'.format(username, len(devicegroups)))
+        #print('get_device_list {} {} devices'.format(username, len(devicegroups)))
         return response
 
 
@@ -177,7 +177,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get/Add/Delete DeviceGroup: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('register_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
+        #print('register_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0:
@@ -328,7 +328,7 @@ class device_groups:
             self.database_client.delete_devicegroup(entityname, devicegroupname)
 
 
-        print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
+        #print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
         response = json.dumps(msg)
         return response
 
@@ -362,7 +362,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get/Add/Delete DeviceGroup: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_devicegroup_detailed {} devicegroupname={}'.format(username, devicegroupname))
+        #print('get_devicegroup_detailed {} devicegroupname={}'.format(username, devicegroupname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0:
@@ -421,7 +421,7 @@ class device_groups:
         msg['devicegroup']['devices'] = device_list
 
 
-        print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
+        #print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
         response = json.dumps(msg)
         return response
 
@@ -455,7 +455,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get Ungrouped Devices: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_ungroupeddevices {}'.format(username))
+        #print('get_ungroupeddevices {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -494,7 +494,7 @@ class device_groups:
         msg = {'status': 'OK', 'message': 'Ungrouped devices retrieved successfully.', 'devices': devices}
 
 
-        print('\r\n {}\r\n{}\r\n'.format(username, msg["message"]))
+        #print('\r\n {}\r\n{}\r\n'.format(username, msg["message"]))
         response = json.dumps(msg)
         return response
 
@@ -528,7 +528,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get Mixed Devices: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_mixeddevices {}'.format(username))
+        #print('get_mixeddevices {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -616,7 +616,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Update Device Group Name: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('update_devicegroupname {} devicegroupname={}'.format(username, devicegroupname))
+        #print('update_devicegroupname {} devicegroupname={}'.format(username, devicegroupname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0:
@@ -707,7 +707,7 @@ class device_groups:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nDevice Group name updated successful: {}\r\n{}\r\n'.format(username, response))
+        #print('\r\nDevice Group name updated successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
 
@@ -752,7 +752,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Add/Delete Device To/From DeviceGroup: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('register_device_to_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
+        #print('register_device_to_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0 or len(devicename) == 0:
@@ -871,7 +871,7 @@ class device_groups:
                 return response, status.HTTP_400_BAD_REQUEST
 
 
-        print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
+        #print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
         response = json.dumps(msg)
         return response
 
@@ -906,7 +906,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Add/Delete Device To/From DeviceGroup: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('set_devices_to_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
+        #print('set_devices_to_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0:
@@ -999,7 +999,7 @@ class device_groups:
         msg = {'status': 'OK', 'message': 'Devices set to device group successfully.'}
 
 
-        print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
+        #print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
         response = json.dumps(msg)
         return response
 
@@ -1053,7 +1053,7 @@ class device_groups:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Set Devices Locations: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_devicegroup_locations {}'.format(username))
+        #print('get_devicegroup_locations {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -1114,7 +1114,7 @@ class device_groups:
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\nDeviceGroup locations retrieved successful: {}\r\n'.format(username))
+            #print('\r\nDeviceGroup locations retrieved successful: {}\r\n'.format(username))
             return response
 
         elif flask.request.method == 'POST':
@@ -1182,7 +1182,7 @@ class device_groups:
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\nDeviceGroup locations updated successful: {}\r\n'.format(username))
+            #print('\r\nDeviceGroup locations updated successful: {}\r\n'.format(username))
             return response
 
         elif flask.request.method == 'DELETE':
@@ -1212,7 +1212,7 @@ class device_groups:
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\nDeviceGroup locations deleted successful: {}\r\n'.format(username))
+            #print('\r\nDeviceGroup locations deleted successful: {}\r\n'.format(username))
             return response
 
 
@@ -1245,7 +1245,7 @@ class device_groups:
             print('\r\nERROR Get OTA statuses: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
 
-        print('get_devicegroup_ota_statuses {}'.format(username))
+        #print('get_devicegroup_ota_statuses {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -1292,8 +1292,8 @@ class device_groups:
             print('\r\nERROR Delete DeviceGroup Locations: Device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
             return response, status.HTTP_404_NOT_FOUND
 
+        devices = self.database_client.get_devices(entityname)
         if len(devicegroup["devices"]):
-            devices = self.database_client.get_devices(entityname)
             for x in range(len(devices)-1,-1,-1):
                 if devices[x]["deviceid"] not in devicegroup["devices"]:
                     del devices[x]
@@ -1335,8 +1335,8 @@ class device_groups:
                 else:
                     ota_status["version"] = "0.1"
                 ota_statuses.append(ota_status)
-        print(len(ota_statuses))
-        print(ota_statuses)
+        #print(len(ota_statuses))
+        #print(ota_statuses)
         if len(ota_statuses):
             ota_statuses.sort(key=self.sort_by_devicename)
 
@@ -1345,6 +1345,6 @@ class device_groups:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nGet OTA statuses successful: {}\r\n\r\n'.format(username))
+        #print('\r\nGet OTA statuses successful: {}\r\n\r\n'.format(username))
         return response
 

@@ -91,7 +91,7 @@ class messaging_requests:
         # check if device is registered
         if not self.database_client.find_device(entityname, devicename):
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Device is not registered [{}]\r\n'.format(entityname))
+            print('\r\nERROR Device is not registered [{} {}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
         # get deviceid for subscribe purpose (AMQP)

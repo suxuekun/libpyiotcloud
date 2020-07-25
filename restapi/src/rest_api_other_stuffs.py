@@ -353,11 +353,15 @@ class other_stuffs:
             response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
             print('\r\nERROR Get Device Firmware Updates: Could not retrieve JSON document [{}]\r\n'.format(username))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+        if document is None:
+            response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
+            print('\r\nERROR Get Device Firmware Updates: Could not retrieve JSON document [{}]\r\n'.format(username))
+            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
         msg = {'status': 'OK', 'message': 'Content queried successfully.', 'document': document}
         response = json.dumps(msg)
-        print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
+        #print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
         return response
 
 
@@ -477,7 +481,7 @@ class other_stuffs:
         password = password.decode("utf-8")
 
         response = json.dumps({'status': 'OK', 'message': 'Compute password successful', 'password': password})
-        print('\r\nCompute password successful: {}\r\n'.format(data["uuid"]))
+        print('\r\nDevice: {} {}\r\n'.format(data["uuid"], password))
         return response
 
 
@@ -519,7 +523,6 @@ class other_stuffs:
         otaauthcode = otaauthcode.decode("utf-8")
 
         response = json.dumps({'status': 'OK', 'message': 'Compute otaauthcode successful', 'otaauthcode': otaauthcode})
-        print('\r\nCompute otaauthcode successful: {}\r\n'.format(data["uuid"]))
         return response
 
 
@@ -560,8 +563,7 @@ class other_stuffs:
         userpasstoken = jwt.encode(params, config.CONFIG_JWT_SECRET_KEY, algorithm='HS256')
         userpasstoken = userpasstoken.decode("utf-8")
 
-        response = json.dumps({'status': 'OK', 'message': 'Compute otaauthcode successful', 'userpasstoken': userpasstoken})
-        print('\r\nCompute userpasstoken successful\r\n')
+        response = json.dumps({'status': 'OK', 'message': 'Compute userpasstoken successful', 'userpasstoken': userpasstoken})
         return response
 
 

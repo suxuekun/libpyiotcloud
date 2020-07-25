@@ -85,7 +85,7 @@ class device_otaupdates:
             print('\r\nERROR Upgrade Device Firmware: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
         data['username'] = username
-        print('update_firmware {} devicename={}'.format(data['username'], data['devicename']))
+        #print('update_firmware {} devicename={}'.format(data['username'], data['devicename']))
 
 
         # get entity using the active organization
@@ -168,7 +168,7 @@ class device_otaupdates:
 
         msg = {'status': 'OK', 'message': 'Upgrade Device Firmware successful.'}
         response = json.dumps(msg)
-        print('\r\nUpgrade Device Firmware successful: {} {}\r\n'.format(username, devicename))
+        print('Update firmware successful: {} {}'.format(username, devicename))
         return response
 
 
@@ -183,7 +183,7 @@ class device_otaupdates:
 
         # save ota firmware update status in database
         self.database_client.set_ota_status_ongoing(entityname, devicename, version)
-        print("{} {}".format(devicename, "ongoing"))
+        #print("{} {}".format(devicename, "ongoing"))
 
 
     ########################################################################################################
@@ -227,7 +227,7 @@ class device_otaupdates:
             print('\r\nERROR Update Firmwares: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
         data['username'] = username
-        print('update_firmwares {}'.format(data['username']))
+        #print('update_firmwares {}'.format(data['username']))
 
 
         # get entity using the active organization
@@ -316,7 +316,7 @@ class device_otaupdates:
 
         msg = {'status': 'OK', 'message': 'Update Firmwares successful.'}
         response = json.dumps(msg)
-        print('\r\nUpdate Firmwares successful: {}\r\n'.format(username))
+        print('Update firmwares successful: {}'.format(username))
         return response
 
 
@@ -349,7 +349,7 @@ class device_otaupdates:
             print('\r\nERROR Get Upgrade Device Firmware: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
 
-        print('get_update_firmware {} devicename={}'.format(username, devicename))
+        #print('get_update_firmware {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -409,7 +409,7 @@ class device_otaupdates:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nDevice upgrade queried successful: {}\r\n\r\n'.format(username))
+        print('get_update_firmware: {} {}'.format(username, devicename))
         return response
 
 
@@ -442,7 +442,7 @@ class device_otaupdates:
             print('\r\nERROR Get OTA statuses: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
 
-        print('get_ota_statuses {}'.format(username))
+        #print('get_ota_statuses {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -523,7 +523,7 @@ class device_otaupdates:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nGet OTA statuses successful: {}\r\n\r\n'.format(username))
+        print('Get OTA statuses successful: {}'.format(username))
         return response
 
 
@@ -556,7 +556,7 @@ class device_otaupdates:
             print('\r\nERROR Get OTA status: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
 
-        print('get_ota_status {} devicename={}'.format(username, devicename))
+        #print('get_ota_status {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -620,7 +620,7 @@ class device_otaupdates:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nGet OTA status successful: {}\r\n\r\n'.format(username))
+        print('Get OTA status: {} {} {}'.format(username, devicename, ota_status["status"]))
         return response
 
 

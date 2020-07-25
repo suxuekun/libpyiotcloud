@@ -207,15 +207,15 @@ class device_histories:
         datebegin = 0
         dateend = 0
         data = flask.request.get_json()
-        if data.get("devicename"):
+        if data.get("devicename") is not None:
             devicename = data["devicename"]
-        if data.get("direction"):
+        if data.get("direction") is not None:
             direction = data["direction"]
-        if data.get("topic"):
+        if data.get("topic") is not None:
             topic = data["topic"]
-        if data.get("datebegin"):
+        if data.get("datebegin") is not None:
             datebegin = data["datebegin"]
-            if data.get("dateend"):
+            if data.get("dateend") is not None:
                 dateend = data["dateend"]
 
         histories = self.database_client.get_user_history_filtered(entityname, devicename, direction, topic, datebegin, dateend)
@@ -395,15 +395,15 @@ class device_histories:
         dateend = 0
         data = flask.request.get_json()
         #print(data)
-        if data.get("devicename"):
+        if data.get("devicename") is not None:
             devicename = data["devicename"]
-        if data.get("type"):
+        if data.get("type") is not None:
             type = data["type"]
-        if data.get("source"):
+        if data.get("source") is not None:
             source = data["source"]
-        if data.get("datebegin"):
+        if data.get("datebegin") is not None:
             datebegin = data["datebegin"]
-            if data.get("dateend"):
+            if data.get("dateend") is not None:
                 dateend = data["dateend"]
 
         # get menos histories of all devices of user

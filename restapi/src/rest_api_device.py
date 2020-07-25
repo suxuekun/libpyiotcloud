@@ -399,7 +399,7 @@ class device:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('get_device_list {} {} devices'.format(username, len(devices)))
+        #print('get_device_list {} {} devices'.format(username, len(devices)))
         return response
 
     ########################################################################################################
@@ -430,7 +430,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get Devices: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_device_list_filtered {}'.format(username))
+        #print('get_device_list_filtered {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(filter) == 0:
@@ -478,7 +478,7 @@ class device:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nGet Devices successful: {}\r\n{} devices\r\n'.format(username, len(devices)))
+        #print('\r\nGet Devices successful: {}\r\n{} devices\r\n'.format(username, len(devices)))
         return response
 
 
@@ -567,7 +567,7 @@ class device:
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
                 print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
-            if not data.get("deviceid") or not data.get("serialnumber") or not data.get("poemacaddress"):
+            if data.get("deviceid") is None or data.get("serialnumber") is None or data.get("poemacaddress") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
                 print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
@@ -755,7 +755,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get Device: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_device {} devicename={}'.format(username, devicename))
+        #print('get_device {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -802,7 +802,7 @@ class device:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nDevice queried successful: {}\r\n{}\r\n'.format(username, response))
+        #print('\r\nDevice queried successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
 
@@ -834,7 +834,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get Device Descriptor: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_device_descriptor {} devicename={}'.format(username, devicename))
+        #print('get_device_descriptor {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -923,7 +923,7 @@ class device:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nDevice Descriptor queried successful: {}\r\n{}\r\n'.format(username, response))
+        #print('\r\nDevice Descriptor queried successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
 
@@ -956,7 +956,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Update Device Name: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_device {} devicename={}'.format(username, devicename))
+        #print('get_device {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -1052,7 +1052,7 @@ class device:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nDevice name updated successful: {}\r\n{}\r\n'.format(username, response))
+        #print('\r\nDevice name updated successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
 
@@ -1231,7 +1231,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('set_status {} devicename={}'.format(data['username'], data['devicename']))
+        #print('set_status {} devicename={}'.format(data['username'], data['devicename']))
 
         return self.messaging_requests.process(api, data)
 
@@ -1265,7 +1265,7 @@ class device:
             print('\r\nERROR Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
         data['username'] = username
-        print('get_settings {} devicename={}'.format(data['username'], data['devicename']))
+        #print('get_settings {} devicename={}'.format(data['username'], data['devicename']))
 
         return self.messaging_requests.process(api, data)
 
@@ -1305,7 +1305,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('set_settings {} devicename={}'.format(data['username'], data['devicename']))
+        #print('set_settings {} devicename={}'.format(data['username'], data['devicename']))
 
         return self.messaging_requests.process(api, data)
 
@@ -1357,7 +1357,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get All {} Sensors: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_all_i2c_sensors {} devicename={}'.format(username, devicename))
+        #print('get_all_i2c_sensors {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -1398,7 +1398,7 @@ class device:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nGet All {} Sensors successful: {}\r\n{} sensors\r\n'.format(xxx, username, len(sensors)))
+        #print('\r\nGet All {} Sensors successful: {}\r\n{} sensors\r\n'.format(xxx, username, len(sensors)))
         return response
 
 
@@ -1457,7 +1457,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get {} Sensors: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_{}_sensors {} devicename={} number={}'.format(xxx, username, devicename, number))
+        #print('get_{}_sensors {} devicename={} number={}'.format(xxx, username, devicename, number))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -1588,7 +1588,7 @@ class device:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nGet {} Sensors successful: {}\r\n{} sensors\r\n'.format(xxx, username, len(sensors)))
+        #print('\r\nGet {} Sensors successful: {}\r\n{} sensors\r\n'.format(xxx, username, len(sensors)))
         return response
 
 
@@ -1671,7 +1671,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Add/Delete {} Sensor: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('register_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
+        #print('register_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -1762,7 +1762,7 @@ class device:
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\n{} Sensor registered successful: {}\r\n{}\r\n'.format(xxx, entityname, response))
+            #print('\r\n{} Sensor registered successful: {}\r\n{}\r\n'.format(xxx, entityname, response))
             return response
 
         elif flask.request.method == 'DELETE':
@@ -1787,7 +1787,7 @@ class device:
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\n{} Sensor unregistered successful: {}\r\n{}\r\n'.format(xxx, username, response))
+            #print('\r\n{} Sensor unregistered successful: {}\r\n{}\r\n'.format(xxx, username, response))
             return response
 
 
@@ -1840,7 +1840,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
+        #print('get_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -1887,7 +1887,7 @@ class device:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\n{} Sensor queried successful: {}\r\n{}\r\n'.format(xxx, username, response))
+        #print('\r\n{} Sensor queried successful: {}\r\n{}\r\n'.format(xxx, username, response))
         return response
 
 
@@ -1930,7 +1930,7 @@ class device:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Download Device Sensor Data: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('download_device_sensor_data {} devicename={}'.format(username, devicename))
+        #print('download_device_sensor_data {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -2029,12 +2029,12 @@ class device:
                 return response, status.HTTP_404_NOT_FOUND
 
             self.database_client.delete_device_sensor_reading(entityname, devicename)
-            print("clear_device_sensor_data")
+            #print("clear_device_sensor_data")
             msg = {'status': 'OK', 'message': 'Sensor data deleted successfully.'}
 
 
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nSensor download triggered successful: {}\r\n{}\r\n'.format(username, response))
+        #print('\r\nSensor download triggered successful: {}\r\n{}\r\n'.format(username, response))
         return response

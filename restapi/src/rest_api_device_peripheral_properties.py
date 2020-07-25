@@ -413,7 +413,11 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
-        if data['baudrate'] is None or data['parity'] is None or data['databits'] is None or data['stopbits'] is None or data['flowcontrol'] is None or data['notification'] is None:
+        if data.get('baudrate') is None or data.get('parity') is None or data.get('databits') is None or data.get('stopbits') is None or data.get('flowcontrol') is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get('notification') is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
@@ -429,7 +433,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('set_uart_prop {} devicename={}'.format(username, devicename))
+        #print('set_uart_prop {} devicename={}'.format(username, devicename))
 
 
         # get entity using the active organization
@@ -604,7 +608,7 @@ class device_peripheral_properties:
     #
     ########################################################################################################
     def set_xxx_dev_prop(self, devicename, xxx, number, sensorname):
-        print('set_{}_dev_prop'.format(xxx))
+        #print('set_{}_dev_prop'.format(xxx))
 
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
@@ -619,7 +623,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Set {} Sensor: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+        #print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -758,7 +762,7 @@ class device_peripheral_properties:
     #
     ########################################################################################################
     def get_xxx_dev_prop(self, devicename, xxx, number, sensorname):
-        print('get_{}_dev_prop'.format(xxx))
+        #print('get_{}_dev_prop'.format(xxx))
 
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
@@ -773,7 +777,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+        #print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -846,7 +850,7 @@ class device_peripheral_properties:
             if notification.get("endpoints"):
                 if notification["endpoints"].get("notification"):
                     if notification["endpoints"]["notification"].get("recipients_ex") is not None:
-                        print(notification["endpoints"]["notification"]["recipients_ex"])
+                        #print(notification["endpoints"]["notification"]["recipients_ex"])
                         notification["endpoints"]["notification"].pop("recipients_ex")
             value['notification'] = notification
         else:
@@ -871,7 +875,7 @@ class device_peripheral_properties:
     #
     ########################################################################################################
     def delete_xxx_dev_prop(self, devicename, xxx, number, sensorname):
-        print('delete_{}_dev_prop'.format(xxx))
+        #print('delete_{}_dev_prop'.format(xxx))
 
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
@@ -886,7 +890,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Delete {} Sensor: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+        #print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -990,7 +994,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
-        if data['enable'] is None:
+        if data.get('enable') is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
@@ -1053,7 +1057,7 @@ class device_peripheral_properties:
             print('\r\nERROR Enable {} Sensor: Sensor is yet configured [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
 
-        print('enable_{}_dev {} devicename={} number={}'.format(xxx, entityname, devicename, number))
+        #print('enable_{}_dev {} devicename={} number={}'.format(xxx, entityname, devicename, number))
 
 
         # get opmode
@@ -1100,7 +1104,7 @@ class device_peripheral_properties:
     #
     ########################################################################################################
     def change_xxx_dev_name(self, devicename, xxx, number, sensorname):
-        print('change_{}_dev_name'.format(xxx))
+        #print('change_{}_dev_name'.format(xxx))
 
         # check number parameter
         #if int(number) > 4 or int(number) < 1:
@@ -1185,7 +1189,7 @@ class device_peripheral_properties:
 
         msg = {'status': 'OK', 'message': 'Peripheral Sensor name changed successfully.'}
         response = json.dumps(msg)
-        print('\r\nPeripheral Sensor name changed successful: {} {}\r\n'.format(username, devicename))
+        #print('\r\nPeripheral Sensor name changed successful: {} {}\r\n'.format(username, devicename))
         return response
 
 
@@ -1218,7 +1222,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Delete All Device Sensors Properties: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('delete_all_device_sensors_properties {} devicename={}'.format(username, devicename))
+        #print('delete_all_device_sensors_properties {} devicename={}'.format(username, devicename))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -1268,7 +1272,7 @@ class device_peripheral_properties:
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nDelete All Device Sensors Properties successful: {} {}\r\n'.format(username, devicename))
+        #print('\r\nDelete All Device Sensors Properties successful: {} {}\r\n'.format(username, devicename))
         return response
 
 
@@ -1301,7 +1305,7 @@ class device_peripheral_properties:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get {} Sensor Readings: Token expired\r\n'.format(xxx))
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_{}_dev_readings {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
+        #print('get_{}_dev_readings {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:

@@ -84,7 +84,7 @@ class device_ldsbus:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get LDSBUS: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_lds_bus {}'.format(username))
+        #print('get_lds_bus {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -260,7 +260,7 @@ class device_ldsbus:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get LDSBUS component: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_lds_bus_component {}'.format(username))
+        #print('get_lds_bus_component {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:
@@ -391,7 +391,7 @@ class device_ldsbus:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Scan LDSBUS: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('scan_lds_bus {}'.format(username))
+        print('scan_lds_bus {} {} {}'.format(username, devicename, portnumber))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:

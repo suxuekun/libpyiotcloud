@@ -234,7 +234,7 @@ class utils:
             return None, None, reason
 
         currepoch = int(time.time())
-        if True:
+        if False:
             print("username: {}".format(payload["username"]))
             print("password: {}".format(payload["password"]))
             print("cur: {}".format(currepoch))

@@ -2629,11 +2629,11 @@ class database_client_mongodb:
         #print("update_device_notification find_one")
         found = notifications.find_one({'deviceid': deviceid, 'source': source})
         if found is None:
-            print("update_device_notification insert_one")
+            #print("update_device_notification insert_one")
             #print(found)
             notifications.insert_one(item)
         else:
-            print("update_device_notification replace_one")
+            #print("update_device_notification replace_one")
             notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
@@ -2653,20 +2653,20 @@ class database_client_mongodb:
         if number is not None:
             found = notifications.find_one({'deviceid': deviceid, 'source': source, 'number': number})
             if found is None:
-                print("update_device_notification_with_notification_subclass insert_one")
+                #print("update_device_notification_with_notification_subclass insert_one")
                 #print(found)
                 notifications.insert_one(item)
             else:
-                print("update_device_notification_with_notification_subclass replace_one")
+                #print("update_device_notification_with_notification_subclass replace_one")
                 notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         else:
             found = notifications.find_one({'deviceid': deviceid, 'source': source})
             if found is None:
-                print("update_device_notification_with_notification_subclass insert_one")
+                #print("update_device_notification_with_notification_subclass insert_one")
                 #print(found)
                 notifications.insert_one(item)
             else:
-                print("update_device_notification_with_notification_subclass replace_one")
+                #print("update_device_notification_with_notification_subclass replace_one")
                 notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
