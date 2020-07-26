@@ -26,7 +26,7 @@ CONFIG_USE_BATCH_API = True
 # maximum values
 CONFIG_MAX_DEVICES   = 100
 CONFIG_MAX_UID_KEY   = 255
-CONFIG_MAX_BOOT_TIME = 5
+CONFIG_MAX_BOOT_TIME = 4
 
 # add timestamp to logs in console and file
 CONFIG_ADD_LOG_FILE_TIMESTAMP = True

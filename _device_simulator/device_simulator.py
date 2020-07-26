@@ -3516,7 +3516,7 @@ def main(args):
     while True:
 
         # Connect to MQTT/AMQP broker
-        ignore_hostname = False
+        ignore_hostname = True #False
         while True:
             try:
                 (result, code) = g_messaging_client.initialize(timeout=5, ignore_hostname=ignore_hostname)
