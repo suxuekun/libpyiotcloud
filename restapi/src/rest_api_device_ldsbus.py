@@ -895,3 +895,261 @@ class device_ldsbus:
             msg['new_token'] = new_token
         response = json.dumps(msg)
         return response
+
+
+    ########################################################################################################
+    # 
+    # ENABLE LSDU SENSORS - for test automation
+    #
+    # - Request:
+    #   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/sensors/enable
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #   data: {'enable': int}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string }
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def enable_ldsu_sensors(self, devicename, ldsuuuid):
+
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Enable LDSU sensors: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Enable LDSU sensors: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        #print('change_ldsu_name {}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Enable LDSU sensors: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Enable LDSU sensors: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Enable LDSU sensors: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Enable LDSU sensors: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Enable LDSU sensors: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, ldsuuuid)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Enable LDSU sensors: LDSU is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check parameters
+        data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Enable LDSU sensors: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("enable") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Enable LDSU sensors: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+        do_enable = data['enable']
+
+
+        sensors = self.database_client.get_all_sensors(entityname, devicename, ldsuuuid)
+
+        # check all sensors are configured
+        for sensor in sensors:
+            if sensor["configured"] == 0:
+                response = json.dumps({'status': 'NG', 'message': 'One of the sensors is not yet configured'})
+                print('\r\nERROR Enable LDSU sensors: One of the sensors is not yet configured [{},{}]\r\n'.format(xxx, entityname, devicename))
+                return response, status.HTTP_400_BAD_REQUEST
+
+        # enable/disable all sensors
+        for sensor in sensors:
+            self.database_client.set_enable_configure_sensor(entityname, devicename, sensor["source"], str(sensor["number"]), None, do_enable, 1)
+            self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, sensor["source"], int(sensor["number"]), None, do_enable)
+
+            # communicate with device
+            api = 'enable_ldsu_dev'
+            data['token'] = token
+            data['devicename'] = devicename
+            data['username'] = username
+            data["UID"] = sensor["source"]
+            data['SAID'] = str(sensor["number"])
+            data['MODE'] = str(0)
+            response, status_return = self.messaging_requests.process(api, data)
+            if status_return != 200:
+                
+                # allow enabling/disabling even when device is offline
+                return response, status_return
+
+
+        msg = {'status': 'OK', 'message': 'LDSU sensors enabled/disabled successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        return response
+
+    ########################################################################################################
+    # 
+    # SET LSDU SENSORS PROPERTIES - for test automation
+    #
+    # - Request:
+    #   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/sensors/properties
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #   data: {'properties': [], 'enable': 1}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string }
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def set_ldsu_sensors_properties(self, devicename, ldsuuuid):
+
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Set LDSU sensors properties: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Set LDSU sensors properties: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        #print('change_ldsu_name {}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Set LDSU sensors properties: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Set LDSU sensors properties: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Set LDSU sensors properties: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Set LDSU sensors properties: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        # check if device is registered
+        deviceinfo = self.database_client.find_device(entityname, devicename)
+        if not deviceinfo:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Set LDSU sensors properties: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if ldsu is registered
+        ldsu = self.database_client.get_ldsu(entityname, devicename, ldsuuuid)
+        if not ldsu:
+            response = json.dumps({'status': 'NG', 'message': 'LDSU is not registered'})
+            print('\r\nERROR Set LDSU sensors properties: LDSU is not registered [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check parameters
+        data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Set LDSU sensors properties: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("properties") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Set LDSU sensors properties: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+
+
+        sensors = self.database_client.get_all_sensors(entityname, devicename, ldsuuuid)
+        if len(data["properties"]) != len(sensors):
+            response = json.dumps({'status': 'NG', 'message': 'Invalid properties'})
+            print('\r\nERROR Set LDSU sensors properties: Invalid properties [{},{}]\r\n'.format(entityname, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # enable/disable all sensors
+        for x in range(len(sensors)):
+            notification = data["properties"][x]["notification"]
+            data["properties"][x].pop("notification")
+
+            # set to disabled and configured
+            self.database_client.set_enable_configure_sensor(entityname, devicename, sensors[x]["source"], str(sensors[x]["number"]), None, 0, 1)
+            # update notification and configuration
+            self.database_client.update_device_notification_with_notification_subclass(entityname, devicename, sensors[x]["source"], notification, None, int(sensors[x]["number"]))
+            item = self.database_client.update_device_peripheral_configuration(entityname, devicename, sensors[x]["source"], int(sensors[x]["number"]), None, None, None, data["properties"][x] )
+
+            # if auto-enable
+            if data.get("enable") is not None:
+                if data["enable"]:
+                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensors[x]["source"], str(sensors[x]["number"]), None, 1, 1)
+                    self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, sensors[x]["source"], int(sensors[x]["number"]), None, 1)
+                    # communicate with device
+                    api = 'enable_ldsu_dev'
+                    data['token'] = token
+                    data['devicename'] = devicename
+                    data['username'] = username
+                    data["UID"] = sensors[x]["source"]
+                    data['SAID'] = str(sensors[x]["number"])
+                    data['MODE'] = str(0)
+                    response, status_return = self.messaging_requests.process(api, data)
+
+
+        msg = {'status': 'OK', 'message': 'LDSU sensors set properties successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        return response

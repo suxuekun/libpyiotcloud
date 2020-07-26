@@ -770,6 +770,16 @@ def change_ldsu_name(devicename, ldsuuuid):
 def identify_ldsu(devicename, ldsuuuid):
     return g_device_ldsbus.identify_ldsu(devicename, ldsuuuid)
 
+# for automation
+@app.route('/devices/device/<devicename>/ldsu/<ldsuuuid>/sensors/enable', methods=['POST'])
+def enable_ldsu_sensors(devicename, ldsuuuid):
+    return g_device_ldsbus.enable_ldsu_sensors(devicename, ldsuuuid)
+
+# for automation
+@app.route('/devices/device/<devicename>/ldsu/<ldsuuuid>/sensors/properties', methods=['POST'])
+def set_ldsu_sensors_properties(devicename, ldsuuuid):
+    return g_device_ldsbus.set_ldsu_sensors_properties(devicename, ldsuuuid)
+
 g_device_ldsbus_list = [
     { "name": "GET LDS BUS",           "func": get_lds_bus,           "api": "/devices/device/<devicename>/ldsbus/<portnumber>",             "method": "GET"    },
     { "name": "DELETE LDS BUS",        "func": get_lds_bus,           "api": "/devices/device/<devicename>/ldsbus/<portnumber>",             "method": "DELETE" },
