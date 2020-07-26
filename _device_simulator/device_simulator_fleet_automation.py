@@ -538,6 +538,7 @@ def display_finale(numdevices, starttime):
 def main(args):
 
     global printf
+    global CONFIG_MAX_BOOT_TIME
     printf = setup_logging("device_simulator_fleet_automation_logs.txt")
     display_info()
 
@@ -545,6 +546,8 @@ def main(args):
     host, port, devicename_prefix, numdevices, uid_key = get_parameters(args)
     if host is None:
         return
+    if host == "localhost":
+        CONFIG_MAX_BOOT_TIME = 3
 
     # login to retrieve authentication tokens
     tokens = login(host, port, args.USE_USERNAME, args.USE_PASSWORD)
