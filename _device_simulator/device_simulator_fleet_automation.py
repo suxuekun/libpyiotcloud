@@ -20,8 +20,11 @@ CONFIG_MODE_RUN    = 1
 CONFIG_MODE_DELETE = 2
 g_mode             = CONFIG_MODE_CREATE
 
+# optimization
+CONFIG_USE_BATCH_API = True
+
 # maximum values
-CONFIG_MAX_DEVICES   = 30
+CONFIG_MAX_DEVICES   = 100
 CONFIG_MAX_UID_KEY   = 255
 CONFIG_MAX_BOOT_TIME = 5
 
@@ -353,6 +356,16 @@ def get_sensors_by_port(host, port, tokens, devicename, busport):
     result, value = http_send_receive(host, port, method, api, params, headers, "sensors")
     return value
 
+def get_ldsus_by_port(host, port, tokens, devicename, busport):
+    method = "GET"
+    api = "/devices/device/" + devicename + "/ldsbus/" + busport + "/ldsus"
+    api = api.replace(" ", "%20")
+    headers = http_get_header(tokens["access"])
+    params = None
+
+    result, value = http_send_receive(host, port, method, api, params, headers, "ldsus")
+    return value
+
 def get_sensor_configuration(host, port, tokens, devicename, sensor):
     method = "GET"
     api = "/devices/device/" + devicename + "/" + sensor["source"] + "/" + sensor["number"] + "/sensors/sensor/" + sensor["sensorname"] + "/properties"
@@ -363,25 +376,49 @@ def get_sensor_configuration(host, port, tokens, devicename, sensor):
     result, value = http_send_receive(host, port, method, api, params, headers, "value")
     return value
 
-def set_sensor_configuration(host, port, tokens, devicename, sensor, notification):
+def generate_configuration():
+    configuration = {
+        "opmode": 0,
+        "mode": 2, #continuous mode
+        "alert": {"type": 0, "period": 60000}, 
+        "hardware": {"enable": False, "recipients": "", "isgroup": False},
+        "threshold": {"activate": 0, "min": -1000, "max": 1000, "value": 1000},
+        "notification": {
+           "messages": [
+               {"enable": False, "message": ""},
+               {"enable": False, "message": ""},
+           ],
+           "endpoints": {
+               "mobile":       {"enable": False, "recipients": ""},
+               "email":        {"enable": False, "recipients": ""},
+               "notification": {"enable": False, "recipients": ""},
+               "modem":        {"enable": False, "recipients": "", "isgroup": False},
+               "storage":      {"enable": False, "recipients": ""},
+           }
+        }
+    }
+    return configuration
+
+def set_sensor_configuration(host, port, tokens, devicename, sensor):
     method = "POST"
     api = "/devices/device/" + devicename + "/" + sensor["source"] + "/" + sensor["number"] + "/sensors/sensor/" + sensor["sensorname"] + "/properties"
     api = api.replace(" ", "%20")
     headers = http_get_header(tokens["access"])
-    params = json.dumps({
-        "opmode": 0,
-        "mode": 2, #continuous mode
-        "alert": {
-           "type": 0, 
-           "period": 60000,
-        }, 
-        "hardware": {
-           "enable": False,
-           "recipients": "",
-           "isgroup": False,
-        },
-        "notification": notification
-    })
+    params = json.dumps(generate_configuration())
+    result, value = http_send_receive(host, port, method, api, params, headers, None)
+    return result
+
+def set_ldsu_sensors_configuration(host, port, tokens, devicename, ldsuuuid, enable=True):
+    method = "POST"
+    api = "/devices/device/" + devicename + "/ldsu/" + ldsuuuid + "/sensors/properties"
+    api = api.replace(" ", "%20")
+    headers = http_get_header(tokens["access"])
+
+    properties = []
+    for x in range(4):
+        properties.append(generate_configuration())
+    params = json.dumps({"properties": properties, "enable": 1 if enable else 0})
+
     result, value = http_send_receive(host, port, method, api, params, headers, None)
     return result
 
@@ -502,7 +539,6 @@ def main(args):
     global printf
     printf = setup_logging("device_simulator_fleet_automation_logs.txt")
     display_info()
-    starttime = time.time()
 
     # get parameters
     host, port, devicename_prefix, numdevices, uid_key = get_parameters(args)
@@ -515,7 +551,10 @@ def main(args):
         return
     bat_template, sh_template = read_script_templates()
 
+    # display intro and start time
     display_intro(numdevices)
+    starttime = time.time()
+
 
     if g_mode == CONFIG_MODE_RUN:
         filename = generate_script_master(host, devicename_prefix, numdevices)
@@ -563,33 +602,45 @@ def main(args):
 
                 # get device status
                 while True:
-                    time.sleep(1)
                     result = get_device_status(host, port, tokens, devicename)
                     if result:
                         break
                     printf("\tdevice is offline...")
+                    time.sleep(1)
                 printf("\tdevice is online!")
 
-                # get sensors
-                busport = "1"
-                sensors = get_sensors_by_port(host, port, tokens, devicename, busport)
-                for sensor in sensors:
-                    result = True
-                    # set configuration if not configured
-                    config = get_sensor_configuration(host, port, tokens, devicename, sensor)
-                    if config.get("mode") is None:
-                        result = set_sensor_configuration(host, port, tokens, devicename, sensor, config["notification"])
+
+                # configure and enable sensors
+                if CONFIG_USE_BATCH_API:
+                    busport = "1"
+                    # get ldsus on port 1
+                    ldsus = get_ldsus_by_port(host, port, tokens, devicename, busport)
+                    for ldsu in ldsus:
+                        # configure and enable ldsu sensors
+                        result = set_ldsu_sensors_configuration(host, port, tokens, devicename, ldsu["UID"])
                         if not result:
                             printf("ERROR: Sensor configure failed!")
-                    # enable sensors if not enabled
-                    if result:
-                        printf("\t{} {} sensor configured - {}".format(sensor["source"], sensor["number"], sensor["class"]))
-                        if not sensor["enabled"]:
-                            result = enable_sensor(host, port, tokens, devicename, sensor)
-                            if not result:
-                                printf("ERROR: Sensor enable failed!")
-                                continue
-                        printf("\t{} {} sensor enabled    - {}".format(sensor["source"], sensor["number"], sensor["class"]))
+                            continue
+                        printf("\tldsu sensors configured and enabled {}".format(ldsu["UID"]) )
+                else:
+                    busport = "1"
+                    # get sensors on port 1
+                    sensors = get_sensors_by_port(host, port, tokens, devicename, busport)
+                    for sensor in sensors:
+                        # configure sensor
+                        result = set_sensor_configuration(host, port, tokens, devicename, sensor)
+                        if not result:
+                            printf("ERROR: Sensor configure failed!")
+                        else:
+                            printf("\t{} {} sensor configured - {}".format(sensor["source"], sensor["number"], sensor["class"]))
+                            if not sensor["enabled"]:
+                                # enable sensor
+                                result = enable_sensor(host, port, tokens, devicename, sensor)
+                                if not result:
+                                    printf("ERROR: Sensor enable failed!")
+                                    continue
+                            printf("\t{} {} sensor enabled    - {}".format(sensor["source"], sensor["number"], sensor["class"]))
+
 
         # generate the master script for all the device script
         filename = generate_script_master(host, devicename_prefix, numdevices)
