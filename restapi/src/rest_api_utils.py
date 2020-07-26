@@ -268,7 +268,7 @@ class utils:
         return payload["username"], payload["password"], payload
 
 
-    def build_default_notifications(self, type, token, database_client):
+    def build_default_notifications(self, type, token, database_client, username=None):
         notifications = {}
 
         if type == "uart":
@@ -325,26 +325,31 @@ class utils:
             },
         }
 
-        info = database_client.get_user_info(token['access'])
-        if info is None:
-            return None
+        if username:
+            notifications["endpoints"]["email"]["recipients"] = username
+            notifications["endpoints"]["email"]["enable"] = True
+        else:
+            info = database_client.get_user_info(token['access'])
+            if info is None:
+                return None
 
-        if info.get("email"):
-            notifications["endpoints"]["email"]["recipients"] = info["email"]
-            #notifications["endpoints"]["email"]["recipients_list"].append(info["email"])
+            if info.get("email"):
+                notifications["endpoints"]["email"]["recipients"] = info["email"]
+                #notifications["endpoints"]["email"]["recipients_list"].append(info["email"])
 
-        if info.get("email_verified"):
-            notifications["endpoints"]["email"]["enable"] = info["email_verified"]
+            if info.get("email_verified"):
+                notifications["endpoints"]["email"]["enable"] = info["email_verified"]
 
-        if info.get("phone_number"):
-            notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
-            #notifications["endpoints"]["mobile"]["recipients_list"].append(info["phone_number"])
-            #notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
-            #notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
+            #if info.get("phone_number"):
+            #    notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
+                #notifications["endpoints"]["mobile"]["recipients_list"].append(info["phone_number"])
+                #notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
+                #notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
 
-        if type == "uart":
-            if info.get("phone_number_verified"):
-                notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
-                #notifications["endpoints"]["notification"]["enable"] = False
+            #if type == "uart":
+            #    if info.get("phone_number_verified"):
+            #        notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
+            #        #notifications["endpoints"]["notification"]["enable"] = False
 
         return notifications
+

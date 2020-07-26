@@ -500,10 +500,10 @@ def display_info():
     printf("Welcome to IoT Device Simulator Fleet Automation...")
     printf("")
     printf("This enables system test automation for fleet of devices.")
-    printf("to test backend reliability and scalability.")
+    printf("to test backend reliability and scalability using existing device simulator .")
     printf("")
     printf("It automates")
-    printf("1. registration multiple devices")
+    printf("1. registration of multiple devices")
     printf("2. configuration of sensors of multiple devices")
     printf("3. enabling of sensors of multiple devices")
     printf("4. generating the batch script for multiple devices")
@@ -522,13 +522,14 @@ def display_intro(numdevices):
     printf("")
 
 def display_finale(numdevices, starttime):
+    difftime = "{:.2f}".format(time.time()-starttime)
     printf("")
     if g_mode == CONFIG_MODE_DELETE:
-        printf("Completed unregistration of {} devices in {} seconds.".format(numdevices, int(time.time()-starttime) ))
+        printf("Completed unregistration of {} devices in {} seconds.".format(numdevices, difftime ))
     elif g_mode == CONFIG_MODE_CREATE:
-        printf("Completed registration and running of {} devices in {} seconds.".format(numdevices, int(time.time()-starttime) ))
+        printf("Completed registration and running of {} devices in {} seconds.".format(numdevices, difftime ))
     elif g_mode == CONFIG_MODE_RUN:
-        printf("Completed running of {} devices in {} seconds.".format(numdevices, int(time.time()-starttime) ))
+        printf("Completed running of {} devices in {} seconds.".format(numdevices, difftime ))
 
 ###################################################################################
 # Main application logic
@@ -556,94 +557,95 @@ def main(args):
     starttime = time.time()
 
 
-    if g_mode == CONFIG_MODE_RUN:
-        filename = generate_script_master(host, devicename_prefix, numdevices)
-        run_script_file(filename)
-
-    else:
+    if g_mode == CONFIG_MODE_CREATE:
         for index in range(0, numdevices):
-
             # generate device information
             # then add device
             devicename, deviceid, serialnumber, poemacaddress = generate_device(devicename_prefix, index, uid_key)
+            result = add_device(host, port, tokens, devicename, deviceid, serialnumber, poemacaddress)
+            if result:
+                printf("{:03} {} {} {}".format(index, devicename, deviceid, serialnumber, poemacaddress))
+                printf("\tregistered...")
+            else:
+                # if device already exists, get device information
+                device = get_device(host, port, tokens, devicename)
+                if device is None:
+                    printf("Error: device does not exist!")
+                    # try with a new key and repeat the index
+                    uid_key += 1
+                    index -= 1
+                    continue
+                # save the device information
+                deviceid = device["deviceid"]
+                serialnumber = device["serialnumber"]
+                poemacaddress = device["poemacaddress"]
+                printf("{:03} {} {} {}".format(index, devicename, deviceid, serialnumber, poemacaddress))
+                printf("\talready registered...")
 
-            if g_mode == CONFIG_MODE_DELETE:
-                printf("{:03} {}".format(index, devicename))
-                delete_device(host, port, tokens, devicename)
+            # create the script for the device simulator
+            # then execute the script to run the device simulators
+            filename = generate_script_files(host, bat_template, sh_template, devicename, deviceid, serialnumber, poemacaddress)
+            run_script_file(filename)
 
-            elif g_mode == CONFIG_MODE_CREATE:
-                result = add_device(host, port, tokens, devicename, deviceid, serialnumber, poemacaddress)
-                if not result:
-                    # if device already exists, get device information
-                    device = get_device(host, port, tokens, devicename)
-                    if device is None:
-                        printf("Error: device does not exist!")
-                        # try with a new key and repeat the index
-                        uid_key += 1
-                        index -= 1
+            # be good citizen, dont congest the network, take some sleep while waiting for script to initialize completely
+            time.sleep(CONFIG_MAX_BOOT_TIME)
+
+            # get device status
+            while True:
+                result = get_device_status(host, port, tokens, devicename)
+                if result:
+                    break
+                printf("\tdevice is offline...")
+                time.sleep(1)
+            printf("\tdevice is online!")
+
+
+            # configure and enable sensors
+            if CONFIG_USE_BATCH_API:
+                busport = "1"
+                # get ldsus on port 1
+                ldsus = get_ldsus_by_port(host, port, tokens, devicename, busport)
+                for ldsu in ldsus:
+                    # configure and enable ldsu sensors
+                    result = set_ldsu_sensors_configuration(host, port, tokens, devicename, ldsu["UID"])
+                    if not result:
+                        printf("ERROR: Sensor configure failed!")
                         continue
-                    # save the device information
-                    deviceid = device["deviceid"]
-                    serialnumber = device["serialnumber"]
-                    poemacaddress = device["poemacaddress"]
-                    printf("{:03} {} {} {}".format(index, devicename, deviceid, serialnumber, poemacaddress))
-                    printf("\talready registered...")
-                else:
-                    printf("{:03} {} {} {}".format(index, devicename, deviceid, serialnumber, poemacaddress))
-                    printf("\tregistered...")
+                    printf("\tldsu sensors configured and enabled {}".format(ldsu["UID"]) )
 
-                # create the script for the device simulator
-                # then execute the script to run the device simulators
-                filename = generate_script_files(host, bat_template, sh_template, devicename, deviceid, serialnumber, poemacaddress)
-                run_script_file(filename)
-
-                # be good citizen, dont congest the network, take some sleep while waiting for script to initialize completely
-                time.sleep(CONFIG_MAX_BOOT_TIME)
-
-                # get device status
-                while True:
-                    result = get_device_status(host, port, tokens, devicename)
-                    if result:
-                        break
-                    printf("\tdevice is offline...")
-                    time.sleep(1)
-                printf("\tdevice is online!")
-
-
-                # configure and enable sensors
-                if CONFIG_USE_BATCH_API:
-                    busport = "1"
-                    # get ldsus on port 1
-                    ldsus = get_ldsus_by_port(host, port, tokens, devicename, busport)
-                    for ldsu in ldsus:
-                        # configure and enable ldsu sensors
-                        result = set_ldsu_sensors_configuration(host, port, tokens, devicename, ldsu["UID"])
-                        if not result:
-                            printf("ERROR: Sensor configure failed!")
-                            continue
-                        printf("\tldsu sensors configured and enabled {}".format(ldsu["UID"]) )
-                else:
-                    busport = "1"
-                    # get sensors on port 1
-                    sensors = get_sensors_by_port(host, port, tokens, devicename, busport)
-                    for sensor in sensors:
-                        # configure sensor
-                        result = set_sensor_configuration(host, port, tokens, devicename, sensor)
-                        if not result:
-                            printf("ERROR: Sensor configure failed!")
-                        else:
-                            printf("\t{} {} sensor configured - {}".format(sensor["source"], sensor["number"], sensor["class"]))
-                            if not sensor["enabled"]:
-                                # enable sensor
-                                result = enable_sensor(host, port, tokens, devicename, sensor)
-                                if not result:
-                                    printf("ERROR: Sensor enable failed!")
-                                    continue
-                            printf("\t{} {} sensor enabled    - {}".format(sensor["source"], sensor["number"], sensor["class"]))
-
+            else:
+                busport = "1"
+                # get sensors on port 1
+                sensors = get_sensors_by_port(host, port, tokens, devicename, busport)
+                for sensor in sensors:
+                    # configure sensor
+                    result = set_sensor_configuration(host, port, tokens, devicename, sensor)
+                    if not result:
+                        printf("ERROR: Sensor configure failed!")
+                    else:
+                        printf("\t{} {} sensor configured - {}".format(sensor["source"], sensor["number"], sensor["class"]))
+                        if not sensor["enabled"]:
+                            # enable sensor
+                            result = enable_sensor(host, port, tokens, devicename, sensor)
+                            if not result:
+                                printf("ERROR: Sensor enable failed!")
+                                continue
+                        printf("\t{} {} sensor enabled    - {}".format(sensor["source"], sensor["number"], sensor["class"]))
 
         # generate the master script for all the device script
         filename = generate_script_master(host, devicename_prefix, numdevices)
+
+    elif g_mode == CONFIG_MODE_RUN:
+        filename = generate_script_master(host, devicename_prefix, numdevices)
+        run_script_file(filename)
+
+    elif g_mode == CONFIG_MODE_DELETE:
+        for index in range(0, numdevices):
+            # generate device information
+            # then delete device
+            devicename, deviceid, serialnumber, poemacaddress = generate_device(devicename_prefix, index, uid_key)
+            printf("{:03} {}".format(index, devicename))
+            delete_device(host, port, tokens, devicename)
 
     display_finale(numdevices, starttime)
 

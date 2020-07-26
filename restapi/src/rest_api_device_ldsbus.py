@@ -18,7 +18,7 @@ from flask_api import status
 from jose import jwk, jwt
 #import http.client
 #from s3_client import s3_client
-#import threading
+import threading
 #import copy
 #from redis_client import redis_client
 #import statistics
@@ -1024,6 +1024,34 @@ class device_ldsbus:
         response = json.dumps(msg)
         return response
 
+
+    def enable_ldsu_sensors_threaded(self, token, username, entityname, devicename, sensors):
+        for x in range(len(sensors)):
+            self.database_client.set_enable_configure_sensor(entityname, devicename, sensors[x]["source"], str(sensors[x]["number"]), None, 1, 1)
+            self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, sensors[x]["source"], int(sensors[x]["number"]), None, 1)
+            # communicate with device
+            api = 'enable_ldsu_dev'
+            datax = {}
+            datax['token'] = token
+            datax['devicename'] = devicename
+            datax['username'] = username
+            datax["UID"] = sensors[x]["source"]
+            datax['SAID'] = str(sensors[x]["number"])
+            datax['MODE'] = str(0)
+            datax['enable'] = 1
+            response, status_return = self.messaging_requests.process(api, datax)
+
+    def configure_ldsu_sensors_threaded(self, token, username, entityname, devicename, sensors, data, x):
+        notification = data["properties"][x]["notification"]
+        data["properties"][x].pop("notification")
+
+        # set to disabled and configured
+        self.database_client.set_enable_configure_sensor(entityname, devicename, sensors[x]["source"], str(sensors[x]["number"]), None, 0, 1)
+        # update notification and configuration
+        self.database_client.update_device_notification_with_notification_subclass(entityname, devicename, sensors[x]["source"], notification, None, int(sensors[x]["number"]))
+        item = self.database_client.update_device_peripheral_configuration(entityname, devicename, sensors[x]["source"], int(sensors[x]["number"]), None, None, None, data["properties"][x] )
+
+
     ########################################################################################################
     # 
     # SET LSDU SENSORS PROPERTIES - for test automation
@@ -1121,35 +1149,49 @@ class device_ldsbus:
             print('\r\nERROR Set LDSU sensors properties: Invalid properties [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
 
-        # enable/disable all sensors
-        for x in range(len(sensors)):
-            notification = data["properties"][x]["notification"]
-            data["properties"][x].pop("notification")
+        # configure sensors
+        if True:
+            for x in range(len(sensors)):
+                notification = data["properties"][x]["notification"]
+                data["properties"][x].pop("notification")
 
-            # set to disabled and configured
-            self.database_client.set_enable_configure_sensor(entityname, devicename, sensors[x]["source"], str(sensors[x]["number"]), None, 0, 1)
-            # update notification and configuration
-            self.database_client.update_device_notification_with_notification_subclass(entityname, devicename, sensors[x]["source"], notification, None, int(sensors[x]["number"]))
-            item = self.database_client.update_device_peripheral_configuration(entityname, devicename, sensors[x]["source"], int(sensors[x]["number"]), None, None, None, data["properties"][x] )
+                # set to disabled and configured
+                self.database_client.set_enable_configure_sensor(entityname, devicename, sensors[x]["source"], str(sensors[x]["number"]), None, 0, 1)
+                # update notification and configuration
+                self.database_client.update_device_notification_with_notification_subclass(entityname, devicename, sensors[x]["source"], notification, None, int(sensors[x]["number"]))
+                item = self.database_client.update_device_peripheral_configuration(entityname, devicename, sensors[x]["source"], int(sensors[x]["number"]), None, None, None, data["properties"][x] )
+        else:
+            thread_list = []
+            for x in range(len(sensors)):
+                thr = threading.Thread(target = self.configure_ldsu_sensors_threaded, args = (token, username, entityname, devicename, sensors, data, x, ))
+                thread_list.append(thr) 
+                thr.start()
+            for thr in thread_list:
+                thr.join()
 
-            # if auto-enable
+        # enable/disable sensors
+        if True:
             if data.get("enable") is not None:
                 if data["enable"]:
-                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensors[x]["source"], str(sensors[x]["number"]), None, 1, 1)
-                    self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, sensors[x]["source"], int(sensors[x]["number"]), None, 1)
-                    # communicate with device
-                    api = 'enable_ldsu_dev'
-                    data['token'] = token
-                    data['devicename'] = devicename
-                    data['username'] = username
-                    data["UID"] = sensors[x]["source"]
-                    data['SAID'] = str(sensors[x]["number"])
-                    data['MODE'] = str(0)
-                    response, status_return = self.messaging_requests.process(api, data)
+                    thr1 = threading.Thread(target = self.enable_ldsu_sensors_threaded, args = (token, username, entityname, devicename, sensors, ))
+                    thr1.start()
+        else:
+            for x in range(len(sensors)):
+                if data.get("enable") is not None:
+                    if data["enable"]:
+                        self.database_client.set_enable_configure_sensor(entityname, devicename, sensors[x]["source"], str(sensors[x]["number"]), None, 1, 1)
+                        self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, sensors[x]["source"], int(sensors[x]["number"]), None, 1)
+                        # communicate with device
+                        api = 'enable_ldsu_dev'
+                        datax = {}
+                        datax['token'] = token
+                        datax['devicename'] = devicename
+                        datax['username'] = username
+                        datax["UID"] = sensors[x]["source"]
+                        datax['SAID'] = str(sensors[x]["number"])
+                        datax['MODE'] = str(0)
+                        datax['enable'] = 1
+                        response, status_return = self.messaging_requests.process(api, datax)
 
-
-        msg = {'status': 'OK', 'message': 'LDSU sensors set properties successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
+        response = json.dumps({'status': 'OK', 'message': 'LDSU sensors set properties successfully.'})
         return response

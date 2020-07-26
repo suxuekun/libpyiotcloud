@@ -658,11 +658,9 @@ class device:
             # this is necessary so that an entry exist for consumption of notification manager
             try:
                 source = "uart"
-                notification = self.database_client.get_device_notification(entityname, devicename, source)
-                if notification is None:
-                    notification = rest_api_utils.utils().build_default_notifications(source, token, self.database_client)
-                    if notification is not None:
-                        self.database_client.update_device_notification(entityname, devicename, source, notification)
+                notification = rest_api_utils.utils().build_default_notifications(source, token, self.database_client, username)
+                if notification is not None:
+                    self.database_client.update_device_notification(entityname, devicename, source, notification)
             except Exception as e:
                 print("Exception encountered {} update_device_notification".format(e))
 
