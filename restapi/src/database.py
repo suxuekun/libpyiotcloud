@@ -3524,16 +3524,28 @@ class database_client_mongodb:
     def set_enable_configure_sensor(self, deviceid, source, number, sensorname, enabled, configured):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number, 'sensorname': sensorname}):
-                i2csensor.pop('_id')
-                sensor = copy.deepcopy(i2csensor)
-                sensor['enabled'] = enabled
-                sensor['configured'] = configured
-                #print("xxx")
-                #print(sensor)
-                #print("yyy")
-                i2csensors.replace_one(i2csensor, sensor)
-                break
+            if sensorname is None:
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    i2csensor.pop('_id')
+                    sensor = copy.deepcopy(i2csensor)
+                    sensor['enabled'] = enabled
+                    sensor['configured'] = configured
+                    #print("xxx")
+                    #print(sensor)
+                    #print("yyy")
+                    i2csensors.replace_one(i2csensor, sensor)
+                    break
+            else:
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number, 'sensorname': sensorname}):
+                    i2csensor.pop('_id')
+                    sensor = copy.deepcopy(i2csensor)
+                    sensor['enabled'] = enabled
+                    sensor['configured'] = configured
+                    #print("xxx")
+                    #print(sensor)
+                    #print("yyy")
+                    i2csensors.replace_one(i2csensor, sensor)
+                    break
 
 
     ##########################################################

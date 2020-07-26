@@ -695,7 +695,7 @@ class device_peripheral_properties:
         # no notification data
         if not data.get("notification"):
             # set to disabled and configured
-            self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 1)
+            self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, None, 0, 1)
             # update configuration
             item = self.database_client.update_device_peripheral_configuration(entityname, devicename, xxx, int(number), None, None, None, data)
             response = json.dumps({'status': 'OK', 'message': 'Sensor set successfully'})
@@ -735,7 +735,7 @@ class device_peripheral_properties:
 
 
         # set to disabled and configured
-        self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 1)
+        self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, None, 0, 1)
 
         # update notification and configuration
         self.database_client.update_device_notification_with_notification_subclass(entityname, devicename, xxx, notification, None, int(number))
@@ -958,7 +958,7 @@ class device_peripheral_properties:
         self.database_client.delete_device_notification_sensor_ex(entityname, devicename, xxx, int(number))
 
         # set to disabled and unconfigured
-        self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
+        self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, None, 0, 0)
 
         response = json.dumps({'status': 'OK', 'message': 'Sensor properties deleted'})
         return response
@@ -1071,7 +1071,7 @@ class device_peripheral_properties:
         # set enabled to do_enable and configured to 1
         # set enabled
         do_enable = data['enable']
-        self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, do_enable, 1)
+        self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, None, do_enable, 1)
         self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, xxx, int(number), None, do_enable)
 
         # communicate with device
