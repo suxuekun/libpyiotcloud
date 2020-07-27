@@ -1,4 +1,8 @@
-:: NOTE: All empty strings are required to be set
+::::::::::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::::::::::::::::
+:: NOTE: All empty strings are required to be set ::
+::::::::::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :: Account user name and password
 set USER=""
