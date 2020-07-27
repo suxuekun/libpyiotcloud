@@ -122,26 +122,30 @@ def payment_webhook():
 '''
 TEST
 '''
-@payment_blueprint.route("/test_dummy_webhook/", methods=['GET'],endpoint="test_dummy_webhook")
+
+payment_test_blueprint = Blueprint('payment_test_blueprint', __name__)
+
+@payment_test_blueprint.before_request
+@default_middleware
+def before_test_request():
+    pass
+
+@payment_test_blueprint.route("/test_dummy_webhook/", methods=['GET'],endpoint="test_dummy_webhook")
 def test_dummy_webhook_api():
     test_dummy_webhook()
     return Response(status=200)
 
-@payment_blueprint.route("/gen_dummy_webhook/", methods=['GET'],endpoint="gen_dummy_webhook")
+@payment_test_blueprint.route("/gen_dummy_webhook/", methods=['GET'],endpoint="gen_dummy_webhook")
 def gen_dummy_webhook_api():
     gen_dummy_webhook()
     return Response(status=200)
 
-@payment_blueprint.route("/test_reset_usage/{id}/", methods=['GET'],endpoint="test_reset_usage")
-def test_reset_usage(id):
-    subscription_service.move_subscription_to_next_month()
-
-@payment_blueprint.route("/test_monthly/", methods=['GET'],endpoint="test_monthly")
+@payment_test_blueprint.route("/test_monthly/", methods=['GET'],endpoint="test_monthly")
 def test_monthly_api():
     test_monthly()
     return Response(status=200)
 
-@payment_blueprint.route("/test_daily/", methods=['GET'],endpoint="test_daily")
+@payment_test_blueprint.route("/test_daily/", methods=['GET'],endpoint="test_daily")
 def test_daily_api():
     test_daily()
     return Response(status=200)

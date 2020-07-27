@@ -1,7 +1,7 @@
 from payment.core import payment_client
 from payment.models.device import DeviceLinkModel
 from payment.models.subscription import SubScriptionStatus, SubScriptionCancelReason, NextSubscription, PaymentStatus, \
-    CurrentSubscription, Subscription
+    CurrentSubscription, Subscription, NoticeObject
 from shared.simple_api.service import BaseMongoService, throw_bad_db_query
 from shared.utils import timestamp_util
 
@@ -83,11 +83,9 @@ class SubscriptionService(BaseMongoService):
 
     def get_subscription_by_bt_id(self,bt_sub_id):
         query = {'next.bt_sub':bt_sub_id}
-        print(query)
         obj = self.repo.get_one(query)
         if (obj):
             item = Subscription(obj,strict=False)
-            print(item.to_primitive())
             return item
         print('failed to find with id')
         return None
@@ -100,11 +98,17 @@ class SubscriptionService(BaseMongoService):
 
     def subscription_recurring_paid_by_bt_id(self,bt_sub_id):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
-        return self.subscription_recurring_paid(sub)
+        res = self.subscription_recurring_paid(sub)
+        if res:
+            return sub
+        return None
 
     def subscription_recurring_fail_by_bt_id(self,bt_sub_id):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
-        return self.subscription_recurring_fail(sub)
+        res = self.subscription_recurring_fail(sub)
+        if res:
+            return sub
+        return None
 
     def subscription_recurring_overdue_by_bt_id(self,bt_sub_id):
         sub = self.get_subscription_by_bt_id(bt_sub_id)
@@ -160,11 +164,21 @@ class SubscriptionService(BaseMongoService):
     def move_subscription_to_next_month(self,subscription):
         sms = subscription.current.sms
         storage = subscription.current.storage
+        sms_100_flag = False
+        storage_100_flag = False
+        if subscription.current.notice:
+            sms_100_flag = subscription.current.notice.sms
+            storage_100_flag = subscription.current.notice.storage
+
         subscription.current = CurrentSubscription(subscription.next.to_primitive())
         subscription.current.start = timestamp_util.get_first_day_of_month_timestamp()
         subscription.current.end = timestamp_util.get_last_day_of_month_timestamp()
         subscription.current.sms = sms
         subscription.current.storage = storage
+        subscription.current.notice = NoticeObject()
+        subscription.current.notice.sms=sms_100_flag
+        subscription.current.notice.storage = storage_100_flag
+        subscription.current.notice.validate()
         subscription.current.validate()
         subscription.reset()
         subscription.validate()

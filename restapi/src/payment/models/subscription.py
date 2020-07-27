@@ -1,7 +1,7 @@
 import json
 from bson import ObjectId
 from schematics import Model
-from schematics.types import StringType, ModelType, BooleanType, IntType
+from schematics.types import StringType, ModelType, BooleanType, IntType, DecimalType
 
 from payment.models.plan import Plan, Usage
 from shared.client.db.mongo.test import TestMongoDB
@@ -29,10 +29,15 @@ class PaymentSettings():
     MAX_RETRY = 2
 
 class AbstractSubscription(BaseIotModel,DeviceMixin):
+    paymentCode = StringType()  # for verify payment
     status = StringType()
     payment_status = StringType()
     retry_count = IntType(default = 0)
     cancel_reason = StringType()
+
+    def renew_paymentcode(self):
+        self.paymentCode = str(ObjectId())
+        return
 
     def is_max_retry(self):
         return self.retry_count >= PaymentSettings.MAX_RETRY
@@ -43,25 +48,34 @@ class AbstractSubscription(BaseIotModel,DeviceMixin):
         self.retry_count = 0
         self.cancel_reason = ""
 
-class AbstractSubscriptionHistory(BaseIotModel,Usage,MonthPeriodMixin):
-    pass
-
 class SubscriptionItem(BaseIotModel):
     plan = ModelType(Plan)
     bt_sub = StringType()
     def get_braintree_subscription_id(self):
         return self.bt_sub
 
-class SubscripionHistory(SubscriptionItem,AbstractSubscriptionHistory):
+class AbstractSubscriptionHistory(Usage,MonthPeriodMixin,SubscriptionItem):
+    transactionID = StringType()
     pass
 
+class SubscripionHistory(AbstractSubscriptionHistory):
+    pass
+
+class NoticeObject(Model):
+    sms = BooleanType(default=False)
+    email = BooleanType(default=False)
+    notification = BooleanType(default=False)
+    storage = BooleanType(default=False)
+
 class CurrentSubscription(SubscripionHistory):
+    notice = ModelType(NoticeObject)
     pass
 
 class NextSubscription(SubscriptionItem):
     pass
 
 class Subscription(AbstractSubscription,UserMixin):
+    gst = DecimalType()
     current = ModelType(CurrentSubscription)
     next = ModelType(NextSubscription)
     draft = ModelType(NextSubscription)
@@ -82,9 +96,6 @@ class Subscription(AbstractSubscription,UserMixin):
 
     def cancel(self):
         self.status = SubScriptionStatus.CANCEL
-
-    def __str__(self):
-        return self.device.__str__()
 
 if __name__ == "__main__":
     s = SubscriptionItem.get_mock_object()

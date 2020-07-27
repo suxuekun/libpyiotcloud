@@ -3,6 +3,9 @@ from datetime import datetime, timezone, timedelta
 import time
 import calendar
 
+import pytz
+
+
 def get_timestamp_float():
     return datetime.now().timestamp()
 
@@ -12,44 +15,44 @@ def get_timestamp_int():
 def get_timestamp():
     return get_timestamp_int()
 
-def totalday_of_month(from_date=None):
-    from_date = from_date or datetime.now()
+def totalday_of_month(from_date=None,timezone=None):
+    from_date = from_date or datetime.now(tz=timezone)
     total_days = calendar.monthrange(from_date.year, from_date.month)[1]
     return total_days
 
-def get_first_day_of_month(from_date = None):
-    from_date = from_date or datetime.now()
+def get_first_day_of_month(from_date = None,timezone=None):
+    from_date = from_date or datetime.now(tz=timezone)
     res_date = from_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     return res_date
 
-def get_first_day_of_month_timestamp(from_date = None):
-    return int(get_first_day_of_month(from_date).timestamp())
+def get_first_day_of_month_timestamp(from_date = None,timezone=None):
+    return int(get_first_day_of_month(from_date,timezone).timestamp())
 
-def get_next_month_first_day(from_date = None):
-    from_date = from_date or datetime.now()
+def get_next_month_first_day(from_date = None,timezone=None):
+    from_date = from_date or datetime.now(tz=timezone)
     days_in_month = lambda dt: calendar.monthrange(dt.year, dt.month)[1]
     next_month_first_day = from_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0) + timedelta(days_in_month(from_date))
     return next_month_first_day
 
-def get_next_month_first_day_timestamp(from_date = None):
-    next_month_first_day = get_next_month_first_day(from_date)
+def get_next_month_first_day_timestamp(from_date = None,timezone=None):
+    next_month_first_day = get_next_month_first_day(from_date,timezone)
     return int(next_month_first_day.timestamp())
 
-def get_last_day_of_month(from_date = None):
-    next_month_first_day = get_next_month_first_day(from_date)
+def get_last_day_of_month(from_date = None,timezone=None):
+    next_month_first_day = get_next_month_first_day(from_date,timezone)
     res_date = next_month_first_day - timedelta(seconds=1)
     return res_date
 
-def get_last_day_of_month_timestamp(from_date = None):
-    return int(get_last_day_of_month(from_date).timestamp())
+def get_last_day_of_month_timestamp(from_date = None,timezone=None):
+    return int(get_last_day_of_month(from_date,timezone).timestamp())
 
-def remaining_days_of_month(from_date=None):
-    from_date = from_date or datetime.now()
+def remaining_days_of_month(from_date=None,timezone=None):
+    from_date = from_date or datetime.now(tz=timezone)
     total_days = totalday_of_month()
     return total_days - from_date.day + 1
 
-def percent_of_month_left(from_date=None):
-    from_date = from_date or datetime.now()
+def percent_of_month_left(from_date=None,timezone=None):
+    from_date = from_date or datetime.now(tz=timezone)
     total_days = totalday_of_month(from_date)
     remaining_days = total_days - from_date.day + 1
     return remaining_days/total_days,remaining_days,total_days
@@ -73,6 +76,10 @@ def timing(f):
         return ret
 
     return wrap
+
+def reset_utc_timestamp(dt):
+    d = dt.replace(tzinfo=pytz.UTC)
+    return int(d.timestamp())
 
 # if __name__ == "__main__":
 #     r = percent_of_month_left()
@@ -117,6 +124,11 @@ if __name__ == "__main__":
     print (d_now.month)
 
     d2_now = datetime.now()
+    d3_now = datetime.now(tz=pytz.utc)
+    d4_now = datetime.utcnow()
+
+    print('d2d3',d2_now,d3_now,d4_now)
+    print('dt',d2_now.timestamp(),d3_now.timestamp(),d4_now.timestamp())
 
     d2_now = d_now.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
     last_day = get_last_day_of_month_timestamp()
@@ -134,5 +146,7 @@ if __name__ == "__main__":
     print(datetime.fromtimestamp(int(next_month_first_day_timestamp)),datetime.fromtimestamp(int(next_month_last_day_timestamp)))
 
     timing(get_next_month_first_day_timestamp)()
+
+
 
 

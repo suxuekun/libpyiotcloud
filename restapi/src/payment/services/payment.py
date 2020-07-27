@@ -285,13 +285,13 @@ class PaymentService():
             print(_)
         return res,message
 
-
-    def test(self):
-        option = {
-            'payment_method_token': 'nkq3yr2',
-            'plan_id': "Basic10",
-            'price': "10.00",
-        }
-        print('new_sub', option)
-        bt_subscription = payment_client.create_subscription(option)
+    #
+    # def test(self):
+    #     option = {
+    #         'payment_method_token': 'nkq3yr2',
+    #         'plan_id': "Basic10",
+    #         'price': "10.00",
+    #     }
+    #     print('new_sub', option)
+    #     bt_subscription = payment_client.create_subscription(option)
 

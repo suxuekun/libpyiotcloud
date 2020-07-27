@@ -23,7 +23,10 @@ customer_service = CustomerServiceService(UserCustomer,customer_repo)
 promocode_usecount_service = PromocodeUseCountService(Promocode_Usecount,promocode_usecount_repo)
 promocode_service = PromocodeS3Service(model=PromoCode,repo=s3_promocode_repo,usecount_service=promocode_usecount_service)
 
-transaction_service = TransactionService(Transaction,transaction_repo)
+transaction_service = TransactionService(model=Transaction,
+                                         repo=transaction_repo,
+                                         billing_address_service=billing_address_service,
+                                         customer_service=customer_service)
 subscription_service = SubscriptionService(model=Subscription,
                                            repo=subscription_repo,
                                            device_repo=device_repo,

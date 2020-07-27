@@ -4,6 +4,7 @@ from payment.core import payment_client
 from payment.scheduler.tasks.daily import daily_jobs
 from payment.scheduler.tasks.monthly import monthly_jobs
 from payment.webhook import handle_webhook
+from shared.utils import timestamp_util
 
 gateway = payment_client.gateway
 TEST_NOTES = [braintree.WebhookNotification.Kind.SubscriptionCanceled,
@@ -33,15 +34,16 @@ def dummy_webhook_body_with_param(bt_id,kind):
 
 def gen_dummy_webhooks():
     l = [
-        ['5f11361199fd1346b7396d53',braintree.WebhookNotification.Kind.SubscriptionChargedSuccessfully],
-        ['5f11362599fd1346b7396d55', braintree.WebhookNotification.Kind.SubscriptionChargedUnsuccessfully],
-        ['5f11362599fd1346b7396d55', braintree.WebhookNotification.Kind.SubscriptionWentPastDue],
-        ['5f11475ff011688b2b300f88', braintree.WebhookNotification.Kind.SubscriptionChargedUnsuccessfully],
-        ['5f11475ff011688b2b300f88', braintree.WebhookNotification.Kind.SubscriptionCanceled],
+        # ['5f11361199fd1346b7396d53',braintree.WebhookNotification.Kind.SubscriptionChargedSuccessfully],
+        ['5f11361199fd1346b7396d53', braintree.WebhookNotification.Kind.SubscriptionChargedUnsuccessfully],
+        # ['5f11362599fd1346b7396d55', braintree.WebhookNotification.Kind.SubscriptionWentPastDue],
+        # ['5f11475ff011688b2b300f88', braintree.WebhookNotification.Kind.SubscriptionChargedUnsuccessfully],
+        # ['5f11475ff011688b2b300f88', braintree.WebhookNotification.Kind.SubscriptionCanceled],
     ]
     res =[]
     for x in l:
-        res.append(dummy_webhook_body_with_param(*x))
+        item = dummy_webhook_body_with_param(*x)
+        res.append(item)
     return res
 
 def test_dummy_webhook():
@@ -52,7 +54,7 @@ def gen_dummy_webhook():
     webhooks_nots = gen_dummy_webhooks()
     for noti in webhooks_nots:
         bt_signature, bt_payload = noti[0],noti[1]
-        handle_webhook(bt_signature, bt_payload)
+        timestamp_util.timing(handle_webhook)(bt_signature, bt_payload)
 
 
 def test_monthly():

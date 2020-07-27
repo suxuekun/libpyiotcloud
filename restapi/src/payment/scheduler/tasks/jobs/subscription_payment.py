@@ -5,7 +5,7 @@ from payment.webhook import process_webhook
 
 
 def update_subscriptions_payment():
-    webhooks = [Webhook(x) for x in webhook_repo.gets({'status':WebhookStatus.PENDING},sort={'timestamp':-1})]
+    webhooks = [Webhook(x) for x in webhook_repo.gets({'status':WebhookStatus.PENDING},sort={'timestamp':1})]
     res = []
     for webhook in webhooks:
         item = process_webhook(webhook)

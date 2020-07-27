@@ -6,17 +6,13 @@ from payment.models.webhook import Webhook, WebhookStatus
 from payment.repositories import webhook_repo
 from payment.webhook import disbursement, dispute, payment_method, subscription
 from shared.middlewares.request.permission.base import getRequest
-
+from shared.utils import timestamp_util
 
 HANDLERS = {}
 HANDLERS.update(disbursement.HANDLERS)
 HANDLERS.update(dispute.HANDLERS)
 HANDLERS.update(payment_method.HANDLERS)
 HANDLERS.update(subscription.HANDLERS)
-
-def reset_utc_timestamp(dt):
-    d = dt.replace(tzinfo=pytz.UTC)
-    return str(int(d.timestamp()))
 
 def webbhook():
     request = getRequest()
@@ -35,8 +31,8 @@ def webbhook():
 def handle_webhook(bt_signature,bt_payload):
     webhook_notification = payment_client.gateway.webhook_notification.parse(bt_signature,bt_payload)
     kind = webhook_notification.kind
-    timestamp = reset_utc_timestamp(webhook_notification.timestamp)
-    print(kind,timestamp)
+    timestamp = timestamp_util.reset_utc_timestamp(webhook_notification.timestamp)
+    print(kind,timestamp,webhook_notification)
     data ={
         'kind':kind,
         'timestamp':timestamp,
@@ -73,7 +69,10 @@ def process_webhook(webhook):
         try:
             webhook.status = WebhookStatus.PROCESSING
             res = handler(webhook_notification)
-            webhook.status = WebhookStatus.PROCESSED
+            if res:
+                webhook.status = WebhookStatus.PROCESSED
+            else:
+                webhook.status = WebhookStatus.FAIL
         except Exception as e:
             webhook.status = WebhookStatus.FAIL
             print(' process webhook error', e)
