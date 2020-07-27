@@ -96,7 +96,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
     5. Organization and access control management services
        Manage an organization of users and assign permissions (role-based access control aka RBAC).
        A. Create and manage an organization, adding new/existing users
-       B. Group the users based on assigned tasks/roles
+       B. Group the organization users based on assigned tasks/roles
        C. Assign permissions policies to each user groups
 
     6. Alerting and messaging services
