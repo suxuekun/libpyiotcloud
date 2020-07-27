@@ -72,6 +72,12 @@ class device_peripheral_properties:
         return True
 
     def is_email_list_valid(self, notification, users):
+        # check endpoints parameter
+        if notification.get("endpoints") is None:
+            return False
+        if notification["endpoints"].get("email") is None:
+            return False
+
         email = notification["endpoints"]["email"]
         if email["enable"] == False:
             return True
@@ -100,6 +106,12 @@ class device_peripheral_properties:
         return True
 
     def is_sms_list_valid(self, notification, users):
+        # check endpoints parameter
+        if notification.get("endpoints") is None:
+            return False
+        if notification["endpoints"].get("mobile") is None:
+            return False
+
         mobile = notification["endpoints"]["mobile"]
         if mobile["enable"] == False:
             return True
@@ -131,6 +143,12 @@ class device_peripheral_properties:
         return True
 
     def is_pushnotif_list_valid(self, notification, users):
+        # check endpoints parameter
+        if notification.get("endpoints") is None:
+            return False
+        if notification["endpoints"].get("notification") is None:
+            return False
+
         mobile = notification["endpoints"]["notification"]
         if mobile["enable"] == False:
             return True
@@ -173,6 +191,12 @@ class device_peripheral_properties:
         return True
 
     def is_device_list_valid(self, notification, entityname):
+        # check endpoints parameter
+        if notification.get("endpoints") is None:
+            return False
+        if notification["endpoints"].get("modem") is None:
+            return False
+
         modem = notification["endpoints"]["modem"]
         if modem["enable"] == False:
             return True
@@ -220,6 +244,8 @@ class device_peripheral_properties:
         return True
 
     def is_configuration_valid(self, configuration, entityname):
+        if configuration.get("mode") is None:
+            return False
         mode = configuration["mode"]
 
         if configuration.get("alert") is None:
