@@ -108,6 +108,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        F. Alert multiple registered recipients (for various combinations of sMs, Email, push Notification, Other gateway, Storage)
        *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
        *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
+       *  Webhooks: trigger a user-defined webhook API for highly customized alerting
 
     7. Subscription and payment services
        Conveniently pay for subscription upgrade for each device to avail all services for all purchased IoT devices.
