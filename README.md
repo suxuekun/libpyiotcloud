@@ -90,6 +90,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        C. Login with multi-factor authentication (MFA/2FA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        E. User lockout security on consecutive failed attempts to alert suspicious behavior
+       F. Last successful login time and last successful failed login time to easily detect account hacking
        *  MFA/2FA using Google Authenticator
 
     5. Organization and access control management services
