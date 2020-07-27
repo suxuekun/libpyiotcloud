@@ -166,7 +166,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        A. Experiment and test the features using device simulator and unofficial web app to help generate test cases (For the QA team)
        B. Use the IoT device simulator as reference implementation for the firmware (For the firmware team)
        C. Use the Ionic hybrid web app as reference implementation for the frontend mobile apps (For the mobile team)
-       D. Use the IoT device simulator fleet manager to register and run hundreds of devices sending sensor data automatically for automated load/stress tests
+       D. Use the IoT device simulator fleet manager to register and run hundreds of devices automatically sending sensor data for automated load/stress tests
 
 
 With IoT, the opportunities are endless. 
