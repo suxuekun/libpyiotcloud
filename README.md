@@ -154,10 +154,10 @@ Below are the features of this secure, scalable and reliable IoT platform:
        Understand device and sensor behaviour via the dashboard charts/graphs/infographics to derive new holistic insights for data driven decisions
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
-       C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter)
+       C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter, sensor data comparison)
        D. Visualize device and sensor related metrics via pie, doughnut and bar charts
-       E. Download sensor data for data analysis, data backup, data recovery or data privacy
-       F. Clear sensor data for once storage allocation is fully consumed
+       E. Download sensor data for further data analysis, data backup, data recovery or data privacy
+       F. Clear sensor data once storage allocation is fully consumed
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
 
