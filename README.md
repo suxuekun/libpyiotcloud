@@ -91,6 +91,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        E. User lockout security on consecutive failed attempts to alert suspicious behavior
        F. Last successful login time and last successful failed login time to easily detect account hacking
+       G. Receive email acknowledgement on account creation and deletion
        *  MFA/2FA using Google Authenticator
 
     5. Organization and access control management services
