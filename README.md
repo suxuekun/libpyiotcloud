@@ -161,6 +161,13 @@ Below are the features of this secure, scalable and reliable IoT platform:
        F. Clear sensor data once storage allocation is fully consumed
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
+    11.Testing and simulation tools
+       Conveniently use the IoT device simulator and Ionic web app as reference implementation and as backend tester
+       A. Experiment and test the features using device simulator and unofficial web app to help generate test cases (For the QA team)
+       B. Use the IoT device simulator as reference implementation for the firmware (For the firmware team)
+       C. Use the Ionic hybrid web app as reference implementation for the frontend mobile apps (For the mobile team)
+       D. Use the IoT device simulator fleet manager to register and run hundreds of devices sending sensor data automatically for load/stress testing
+
 
 With IoT, the opportunities are endless. 
 Below, we outline just some of the applications in which this IoT platform can used to influence outcomes, 
