@@ -7,6 +7,9 @@ class IGatewayAttributeRepository(BaseRepository, IMongoBaseRepository):
     
     def gets_summary(self):
         pass
+
+    def get_by_id(self, id: int):
+        pass
     
 class GatewayAttributeRepository(MongoBaseRepository, IGatewayAttributeRepository):
     
@@ -17,7 +20,14 @@ class GatewayAttributeRepository(MongoBaseRepository, IGatewayAttributeRepositor
         cursors = self.collection.find(query, projection)
         results = list(cursors)
         return results
-    
+
+    def get_by_id(self, id: int):
+        query = {
+            "_id": id,
+        }
+        attribute = self.get_one(query)
+        return attribute
+
     def gets_summary(self):
         projection = {
             "labels": 0,

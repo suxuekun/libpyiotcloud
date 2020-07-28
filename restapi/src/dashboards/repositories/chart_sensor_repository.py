@@ -18,6 +18,7 @@ class IChartSensorRepository(BaseRepository, IMongoBaseRepository):
     def delete_many_by_dashboard(self, dashboardId):
         pass
     
+    
 class ChartSensorRepository(MongoBaseRepository, IChartSensorRepository):
 
     def get_same_chart(self, dashboardId, deviceId):

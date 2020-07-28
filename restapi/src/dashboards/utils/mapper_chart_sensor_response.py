@@ -143,62 +143,6 @@ def map_to_charts_sensor_response(charts, dictSensors: {}, query: ChartSensorQue
     return response
 
 
-def map_to_old__datasets_mobile_response(dataset, query: ChartSensorQuery, customMinutes: int = 0):
-
-    calculateTimeRange = query.timeSpan + 1
-    listTimestamp = []
-
-    minutes = query.minutes
-    if customMinutes != 0:
-        minutes = customMinutes
-
-    for i in range(calculateTimeRange):
-        if i > 0:
-            previousTimestamp = (datetime.fromtimestamp(
-                query.timestamp) - timedelta(minutes=minutes*i)).timestamp()
-            listTimestamp.append(int(previousTimestamp))
-
-    oldDatasets = []
-    for timestamp in listTimestamp:
-        datasets = map_to_sensor_dataset_mobile(
-            dataset, query.points, timestamp, query.minutes, customMinutes=customMinutes)
-        
-        fromTimestamp = (datetime.fromtimestamp(timestamp) -
-                       timedelta(minutes=minutes)).timestamp()
-        oldDataset = OldMobileDatasetSensorResponse.create(
-            fromTimestamp, timestamp, datasets)
-        oldDatasets.append(oldDataset)
-
-    return oldDatasets
-
-def map_to_old_datasets_web_response(dataset, query: ChartSensorQuery, customMinutes: int = 0):
-
-    calculateTimeRange = query.timeSpan + 1
-    listTimestamp = []
-
-    minutes = query.minutes
-    if customMinutes != 0:
-        minutes = customMinutes
-
-    for i in range(calculateTimeRange):
-        if i > 0:
-            previousTimestamp = (datetime.fromtimestamp(
-                query.timestamp) - timedelta(minutes=minutes*i)).timestamp()
-            listTimestamp.append(int(previousTimestamp))
-
-    oldDatasets = []
-
-    for timestamp in listTimestamp:
-        datasets = map_to_sensor_dataset(
-            dataset, query.points, timestamp, query.minutes, customMinutes=customMinutes)
-
-        fromTimestamp = (datetime.fromtimestamp(timestamp) -
-                       timedelta(minutes=minutes)).timestamp()
-        oldDataset = OldDatasetSensorResponse.create(
-            fromTimestamp, timestamp, datasets)
-        oldDatasets.append(oldDataset)
-    return oldDatasets
-
 def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customMinutes: int = 0) -> SensorResponse:
 
     device = SensorResponse()
@@ -245,11 +189,7 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
         if sensor["dataset"] is not None:
             mobileResponse.datasetsEx = map_to_sensor_dataset_mobile(
                 sensor["dataset"], query.points, query.timestamp, query.minutes, customMinutes=minutes)
-            if query.isRealtime == False:
-                print("OKdas d asdss das das ad")
-                mobileResponse.oldDatasetsEx = map_to_old__datasets_mobile_response(
-                    sensor["dataset"], query, customMinutes=minutes)
-        
+           
         return mobileResponse.to_primitive()
 
     # Web Response
@@ -266,7 +206,5 @@ def map_to_chart_sensor_response(chart, sensor, query: ChartSensorQuery, customM
             sensor["dataset"], query.points, query.timestamp, query.minutes, customMinutes=minutes)
 
     response.datasets = datasets
-    if query.isRealtime == False:
-        response.oldDatasets = map_to_old_datasets_web_response(sensor["dataset"], query, customMinutes=minutes)
 
     return response.to_primitive()

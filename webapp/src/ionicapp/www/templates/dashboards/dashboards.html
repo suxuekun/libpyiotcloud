@@ -1,0 +1,40 @@
+<ion-view title="Dashboards" hide-back-button="true" class="page_width_medium" style="background-color:#FFFFFF;">
+  <ion-nav-buttons side="right" class="has-header">
+    <input type="text" placeholder="Search" ng-model="data.search"
+      style="border: 2px solid grey; border-radius: 5px; padding: 5px" ng-keyup="submitSearch($event)"
+      ng-keydown="submitSearch($event)">
+    <button class="button button-icon ion-android-add-circle" ng-click="add()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div ng-show="dashboards.length == 0" style="width: 100%">
+      <h4 style="text-align: center;">No dashboards</h4>
+    </div>
+    <div ng-show="dashboards.length != 0">
+      <div>
+        <div style="padding: 20px;">
+          <div ng-repeat="dashboard in dashboards">
+            <div class="card row" style="padding-right: 20px;">
+              <div class="col col-20" style="display: flex;">
+                <button style="font-size:500; margin: auto;" ng-style="{'color': dashboard.color}"
+                  class="button-large button-block button-clear icon ion-ios-analytics">
+                </button>
+              </div>
+              <div class="col" ng-click="viewDetail(dashboard)">
+                <h4><strong>{{dashboard.name}}</strong></h4>
+                <p style="color: grey">Gateways: {{dashboard.totalGateways}}</p>
+                <p style="color: grey">Sensors: {{dashboard.totalSensors}}</p>
+                <p style="color: grey">Actuators: {{dashboard.totalActuators}}</p>
+              </div>
+              <div class="col col-25" style="display: flex;">
+                <button ng-click="delete(dashboard.id)" style="font-weight:500; float:right; margin: auto;"
+                  ng-style="{'color': dashboard.color}"
+                  class="button button-positive button-large button-clear icon-right ion-android-close">
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-content>
+</ion-view>

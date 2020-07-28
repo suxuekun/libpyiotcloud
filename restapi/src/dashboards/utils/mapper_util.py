@@ -13,6 +13,9 @@ def map_entity_to_summary_response(entity):
     response.color = entity["option"]["color"] if entity["option"] is not None and entity["option"]["color"] is not None else ""
     response.createdAt = entity["createdAt"]
     response.modifiedAt = entity["modifiedAt"]
+    response.totalGateways = len(entity["gateways"])
+    response.totalSensors = len(entity["sensors"])
+    response.totalActuators = len(entity["actuators"])
     return response.to_primitive()
 
 

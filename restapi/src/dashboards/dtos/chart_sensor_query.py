@@ -6,11 +6,13 @@ from dashboards.exceptions.chart_sensor_query_exception import ChartSensorQueryE
 
 RULE_OF_MININUTES = [5, 10, 15, 30, 60, 1440, 10080]
 
+
 def check_list_minutes_in_rule(listMinutes):
     for minutes in listMinutes:
         if check_minutes_in_rule(minutes) == False:
             return False
     return True
+
 
 def check_minutes_in_rule(minutes):
     for i in RULE_OF_MININUTES:
@@ -18,14 +20,13 @@ def check_minutes_in_rule(minutes):
             return True
     return False
 
+
 class BaseChartSensorQuery(Model):
 
     minutes = IntType()
     timestamp = IntType()
     points = IntType()
     isMobile = BooleanType()
-    timeSpan = IntType()
-    isRealtime = BooleanType()
 
     def validate(self, partial=False, convert=True, app_data=None, **kwargs):
         super().validate(partial=partial, convert=convert, app_data=app_data, **kwargs)
@@ -33,11 +34,13 @@ class BaseChartSensorQuery(Model):
             raise ChartSensorQueryException("Points should be 30 or 60 points")
 
         if check_minutes_in_rule(self.minutes) == False:
-            raise ChartSensorQueryException("Minutes should be in 5, 15, 30, 60, 1440, 10080")
-
-        if self.timeSpan < 1 or self.timeSpan > 3:
             raise ChartSensorQueryException(
-                "Time span just only support in 1 to 3")
+                "Minutes should be in 5, 15, 30, 60, 1440, 10080")
+
+class ChartSensorDetailQuery(BaseChartSensorQuery):
+
+    def validate(self, partial=False, convert=True, app_data=None, **kwargs):
+        super().validate(partial=partial, convert=convert, app_data=app_data, **kwargs)
 
 
 class ChartSensorQuery(BaseChartSensorQuery):
@@ -60,8 +63,10 @@ class ChartSensorQuery(BaseChartSensorQuery):
                 "Sorry selected_minutes & chartsId should be a same size")
 
         if len(self.selectedMinutes) > 0 and check_list_minutes_in_rule(self.selectedMinutes) == False:
-            raise ChartSensorQueryException("Selected Minutes should be in 5, 15, 30, 60, 1440, 10080")
-        
+            raise ChartSensorQueryException(
+                "Selected Minutes should be in 5, 15, 30, 60, 1440, 10080")
+
+
 class ChartComparisonQuery(BaseChartSensorQuery):
     chartsId = ListType(StringType, min_size=2, max_size=3)
 

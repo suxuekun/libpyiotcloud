@@ -5,8 +5,37 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('app', ['ionic', 'app.controllers', 'app.routes', 'app.directives','app.services','user','server','devices','histories','token','chart.js','notifications','uiGmapgoogle-maps','googlemaps.init','payments','devicegroups','organizations','dateTimeUtil', 'app.dashboardsCtrl','app.paymentCtrl','payments.service',])
+let dependencies = [];
+const globalDependencies = [
+  'ionic', 'app.controllers', 'app.routes', 'app.directives',
+  'app.services','user','server','devices','histories','token','chart.js','notifications',
+  'uiGmapgoogle-maps','googlemaps.init', 'devicegroups', 'organizations'
+];
 
+const paymentDependencies = [
+  'payments',
+  'app.paymentCtrl',
+  'payments.service'
+];
+const dashboardDependencies = [
+  'app.dashboardsCtrl', 'app.compareChartCtrl', 'app.addNewChartGatewayCtrl',
+  'app.addNewChartSensorCtrl','app.addDashboardCtrl', 'app.chartSensorDetailCtrl', 'app.dashboardDetailCtrl'
+];
+
+const utilDependencies = [
+  'dateTimeUtil'
+]
+
+dependencies = [
+  ...globalDependencies,
+  ...paymentDependencies,
+  ...dashboardDependencies,
+  ...utilDependencies
+]
+
+console.log('Dependencies: ', dependencies);
+
+angular.module('app', dependencies)
 .config(function($ionicConfigProvider, $sceDelegateProvider){
     $ionicConfigProvider.backButton.text('').previousTitleText(false);
     $ionicConfigProvider.views.transition('none');
@@ -35,7 +64,7 @@ angular.module('app', ['ionic', 'app.controllers', 'app.routes', 'app.directives
 */
 .directive('disableSideMenuDrag', ['$ionicSideMenuDelegate', '$rootScope', function($ionicSideMenuDelegate, $rootScope) {
     return {
-        restrict: "A",  
+        restrict: "A",
         controller: ['$scope', '$element', '$attrs', function ($scope, $element, $attrs) {
 
             function stopDrag(){
@@ -70,7 +99,7 @@ angular.module('app', ['ionic', 'app.controllers', 'app.routes', 'app.directives
       attrs.$observe('hrefInappbrowser', function(val){
         href = val;
       });
-      
+
       element.bind('click', function (event) {
 
         window.open(href, '_system', 'location=yes');

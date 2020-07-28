@@ -46,10 +46,6 @@ def gets(dashboardId: str):
     query.isMobile = get_boolean_value(
         queryParams.get("mobile", "false").lower())
 
-    query.timeSpan = queryParams.get("timespan", 1)
-    query.isRealtime = get_boolean_value(
-        queryParams.get("realtime", "true").lower())
-
     query.selectedMinutes = []
     query.chartsId = []
 
@@ -73,7 +69,7 @@ def gets(dashboardId: str):
 def get(dashboardId: str, chartId: str):
     user = request.environ.get('user')
     queryParams = request.args
-    query = BaseChartSensorQuery()
+    query = ChartSensorDetailQuery()
     query.points = int(queryParams.get("points", 30))
     query.minutes = int(queryParams.get("minutes", 5))
 
@@ -83,10 +79,6 @@ def get(dashboardId: str, chartId: str):
 
     query.isMobile = get_boolean_value(
         queryParams.get("mobile", "false").lower())
-
-    query.timeSpan = queryParams.get("timespan", 1)
-    query.isRealtime = get_boolean_value(
-        queryParams.get("realtime", "true").lower())
 
     response = chartSensorService.get(
         dashboardId, user["username"], chartId, query)
@@ -118,10 +110,6 @@ def gets_compare(dashboardId: str):
 
     query.isMobile = get_boolean_value(
         queryParams.get("mobile", "false").lower())
-
-    query.timeSpan = queryParams.get("timespan", 1)
-    query.isRealtime = get_boolean_value(
-        queryParams.get("realtime", "true").lower())
 
     query.chartsId = []
     chartsId = queryParams.get("chartsId", "")
