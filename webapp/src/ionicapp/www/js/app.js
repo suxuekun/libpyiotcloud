@@ -33,8 +33,6 @@ dependencies = [
   ...utilDependencies
 ]
 
-console.log('Dependencies: ', dependencies);
-
 angular.module('app', dependencies)
 .config(function($ionicConfigProvider, $sceDelegateProvider){
     $ionicConfigProvider.backButton.text('').previousTitleText(false);
