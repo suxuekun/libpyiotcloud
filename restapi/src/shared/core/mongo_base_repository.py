@@ -12,13 +12,13 @@ class IMongoBaseRepository:
 
     def gets(self, query=None, projection=None):
         pass
-    
+
     def drop(self):
         pass
-    
+
     def get_one(self,query):
         pass
-    
+
     def create_many(self, inputs):
         pass
 
@@ -58,6 +58,10 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
         self.db = db
         self.collectionName = collectionName
         self.collection = db[collectionName]
+        self._create_indexes()
+
+    def _create_indexes(self):
+        pass
 
     def check_collection_existed(self):
         return self.collectionName in self.db.list_collection_names()
@@ -123,11 +127,14 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
     def _cast_object_without_objectId(self, data):
         data["_id"] = str(data["_id"])
         return data
-
-    def gets(self, query=None, projection=None):
+    
+    def gets(self, query=None, projection=None , sort=None,limit=None):
         cursors = self.collection.find(query, projection)
-        results = list(
-            map(lambda r: self._cast_object_without_objectId(r), cursors))
+        if sort:
+            cursors = cursors.sort(*sort)
+        if limit:
+            cursors = cursors.limit(limit)
+        results = list(map(lambda r: self._cast_object_without_objectId(r), cursors))
         return results
 
     def delete(self, id: str) -> bool:

@@ -6,11 +6,14 @@ braintree.WebhookNotification.Kind.DisbursementException
 '''
 import braintree
 
+from payment.services import transaction_service
+
+
 def disbursement(webhook_notification):
+    print('handle transaction disbursement')
     # TODO
-
-    pass
-
+    # transaction_service
+    return True
 def disbursement_exception(webhook_notification):
     # TODO
     pass

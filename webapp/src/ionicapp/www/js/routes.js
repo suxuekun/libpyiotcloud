@@ -224,12 +224,12 @@ angular.module('app.routes', [])
       .state('menu.subscription_address_ensure', {
         url: '/page_subscription_address_ensure',
         params: {
-          ui: {
-            title: "",
-            name: ""
+          ui:{
+            title:"",
+            name:""
           },
-          subscription: null,
-          plan: null,
+          subscription:null,
+          plan:null,
         },
         views: {
           'side-menu21': {
@@ -379,57 +379,57 @@ angular.module('app.routes', [])
         controller: 'resetPasswordCtrl'
       })
 
-      .state('changePassword', {
-        url: '/page_change_password',
-        params: {
-          username: "",
-          token: ""
-        },
-        templateUrl: 'templates/changePassword.html',
-        controller: 'changePasswordCtrl'
-      })
+  .state('changePassword', {
+    url: '/page_change_password',
+	params: {
+		username: "",
+		token: ""
+},
+    templateUrl: 'templates/changePassword.html',
+    controller: 'changePasswordCtrl'
+  })
 
-      .state('confirmRegistration', {
-        url: '/page_confirm_registration',
-        params: {
-          username: ""
-        },
-        templateUrl: 'templates/confirmRegistration.html',
-        controller: 'confirmRegistrationCtrl'
-      })
+  .state('confirmRegistration', {
+    url: '/page_confirm_registration',
+	params: {
+		username: ""
+},
+    templateUrl: 'templates/confirmRegistration.html',
+    controller: 'confirmRegistrationCtrl'
+  })
 
-      .state('confirmMFA', {
-        url: '/page_confirm_mfa',
-        params: {
-          username: ""
-        },
-        templateUrl: 'templates/confirmMFA.html',
-        controller: 'confirmMFACtrl'
-      })
+  .state('confirmMFA', {
+    url: '/page_confirm_mfa',
+	params: {
+		username: ""
+},
+    templateUrl: 'templates/confirmMFA.html',
+    controller: 'confirmMFACtrl'
+  })
 
-      .state('confirmPhoneNumber', {
-        url: '/page_confirm_phone_number',
-        params: {
-          username: "",
-          token: ""
-        },
-        templateUrl: 'templates/confirmPhoneNumber.html',
-        controller: 'confirmPhoneNumberCtrl'
-      })
+  .state('confirmPhoneNumber', {
+    url: '/page_confirm_phone_number',
+	params: {
+		username: "",
+		token: ""
+},
+    templateUrl: 'templates/confirmPhoneNumber.html',
+    controller: 'confirmPhoneNumberCtrl'
+  })
 
-      .state('menu.about', {
-        url: '/page_about',
-        params: {
-          username: "",
-          token: ""
-        },
-        views: {
-          'side-menu21': {
-            templateUrl: 'templates/about.html',
-            controller: 'aboutCtrl'
-          }
-        }
-      })
+  .state('menu.about', {
+    url: '/page_about',
+	params: {
+		username: "",
+		token: ""
+},
+    views: {
+      'side-menu21': {
+        templateUrl: 'templates/about.html',
+        controller: 'aboutCtrl'
+      }
+    }
+  })
 
       .state('menu.feedback', {
         url: '/page_feedback',

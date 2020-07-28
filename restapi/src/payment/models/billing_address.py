@@ -14,6 +14,7 @@ _GST = {
 
 class AbstractBillingAddress(BaseModel):
     name = StringType()
+    companyName = StringType()
     billing_address = StringType()
     country = StringType()
     city = StringType()

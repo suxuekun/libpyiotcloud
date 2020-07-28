@@ -19,7 +19,7 @@ def add_user(request):
         return
 
     verify_ret, new_token = db_client.verify_token(username, token)
-  
+
     if verify_ret ==2:
         request.environ['user'].update({'reason': http4xx.TOKEN_EXPIRE})
         return

@@ -1,4 +1,4 @@
-from schematics.types import StringType
+from schematics.types import StringType, IntType
 
 from shared.core.model import BaseModel, MongoIdMixin
 
@@ -7,10 +7,12 @@ class WebhookStatus():
     PENDING = 'pending'
     PROCESSING = 'processing'
     PROCESSED = 'processed'
+    FAIL = 'fail'
+    IGNORE = 'ignore'
 
 class AbstractWebhook(BaseModel,MongoIdMixin):
     kind = StringType()
-    timestamp = StringType()
+    timestamp = IntType()
     bt_signature = StringType()
     bt_payload = StringType()
 

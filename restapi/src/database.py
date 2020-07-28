@@ -149,7 +149,7 @@ class database_client:
     def get_next_month_epoch(self):
         today = datetime.datetime.now()
         if today.month == 12:
-            nextmonth = datetime.datetime(today.year + 1, 1, 1) 
+            nextmonth = datetime.datetime(today.year + 1, 1, 1)
         else:
             nextmonth = datetime.datetime(today.year, today.month + 1, 1)
         nextmonth_epoch = int((nextmonth - datetime.datetime(1970, 1, 1)).total_seconds())
@@ -1395,7 +1395,11 @@ class database_client_cognito:
     def delete_user(self, username, access_token):
         (result, response) = self.client.delete_user(username, access_token)
         return result
-    
+
+    def admin_get_user(self,username):
+        (result, response) = self.client.admin_get_user(username)
+        return response
+
     def admin_get_user(self,username):
         (result, response) = self.client.admin_get_user(username)
         return response
@@ -2006,7 +2010,7 @@ class database_client_mongodb:
                     self.client.subscriptions.replace_one({'username': username}, subscription)
                     subscription.pop('_id')
                     subscription.pop('username')
-                    return subscription 
+                    return subscription
         return None
 
 
